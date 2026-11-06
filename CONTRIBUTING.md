@@ -1,31 +1,33 @@
-# 协作说明
+# Contributing
 
-公司组织持有仓库，每个人使用自己的GitHub账号。当前指定负责人是`@Chengyuann`。
-不要共享账号密码、长期Token或SSH私钥。
+The company organization owns this repository. Every contributor uses their own GitHub account. The designated owner is `@Chengyuann`. Do not share passwords, long-lived tokens, or SSH private keys.
 
-本地首次提交采用`Chengyuann`的GitHub noreply邮箱，不使用原工作区中的雇主邮箱。
-这只修改本仓库Git配置，不修改全局身份。
+Local commits use the GitHub noreply address associated with `Chengyuann`, not the employer email from the original workspace. This is a repository-local setting; do not change global Git identity.
 
-## 日常开发
+## Language
 
-1. 从`main`创建功能分支。
-2. 修改相关模块，保留其他贡献者的改动。
-3. 运行必要的类型、构建和行为检查，不为普通页面改动调用模型。
-4. 用`git diff --cached`检查待提交内容，尤其是配置、截图和示例数据。
-5. 使用自己的账号推送分支并提交Pull Request。
-6. 合并前由实际负责人确认；批准PR不自动批准部署。
+Use English for repository documentation, README files, architecture notes, developer-facing metadata, pull request templates, and new commit and pull request descriptions.
 
-首次导入可以直接建立`main`，此后建议通过分支协作，不force push主分支。
-`CODEOWNERS`记录负责人，但不代表GitHub一定强制审批；私有仓库保护功能受套餐限制。
-不得为了开启保护擅自购买GitHub Team。
+Keep product localization, API response wording, and multilingual evaluation fixtures intact unless the task explicitly changes them. Existing Git history is not rewritten solely to translate old messages.
 
-## 不提交
+## Development workflow
 
-- API Key、密码、Token、私钥和生产连接字符串；
-- `.dev.vars`、`.local/`、`.wrangler/`和数据库；
-- 客户记录、模型原始输出、浏览器截图和部署会话；
-- `node_modules/`、构建产物和本地报告。
+1. Create a feature branch from `main`.
+2. Make scoped changes and preserve other contributors' work.
+3. Run relevant type, build, and behavior checks. Ordinary page changes do not require model calls.
+4. Review staged content with `git diff --cached`, especially configuration, screenshots, and sample data.
+5. Push through your own account and open a pull request.
+6. Have the responsible owner confirm the change before merging. Pull request approval does not authorize deployment.
 
-私有仓库也需要排除密钥。若发现秘密已进入历史，应先撤销或轮换，再评估清理。
+The initial import may establish `main` directly. Use branches afterward and do not force-push the main branch. `CODEOWNERS` records responsibility but does not guarantee required-review enforcement; private repository protections depend on the GitHub plan and settings. Do not purchase GitHub Team without approval.
 
-未来开源时，另建公开仓库并检查许可、数据和历史，不把此私有主仓库直接改为公开。
+## Never commit
+
+- API keys, passwords, tokens, private keys, or production connection strings.
+- `.dev.vars`, `.local/`, `.wrangler/`, or databases.
+- Customer records, raw model responses, browser screenshots, or deployment sessions.
+- `node_modules/`, build output, or local reports.
+
+Private repositories still require secret exclusion. If a secret enters history, revoke or rotate it first, then assess history cleanup.
+
+Future open-source work belongs in a separate public repository after a license, data, and history review. Do not change this private main repository to public.

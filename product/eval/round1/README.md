@@ -1,40 +1,37 @@
-# 第一轮质量验证资产
+# Round-one evaluation material
 
-24例：开发12、验证12。均为本轮作者构造的合成数据，不是独立来源、盲测或真实客户数据。
-验证拆分只意味着固定不同输入；不能称为已完成“独立验证集验收”。
+There are 24 cases: 12 development and 12 validation. All were synthesized by the same author. They are not independently sourced, blind, or real customer data. A fixed validation split only means different inputs; it does not establish independent validation.
 
 ```sh
 node eval/round1/preflight.mjs --write
-# 仅预检，不发远程请求
+# Preflight only; no remote requests.
 EVAL_DATASET=eval/round1/dev.json node eval/run.mjs
 EVAL_DATASET=eval/round1/validation.json node eval/run.mjs
 ```
 
-真实执行必须另行配置授权供应商/预算及EVAL_APPROVED。Embedding仍用千问；
-本轮不启动付费调用。验证集一旦用于调提示词必须归入开发集，再请另一位评审补盲测。
+Real execution requires separately approved providers, a budget, and `EVAL_APPROVED`. Embeddings continue to use Qwen. Creating these materials did not initiate paid calls. Once a validation case informs prompt tuning, treat it as development data and ask another reviewer to supply a fresh blind set. Multilingual fixture text remains intact to preserve evaluation behavior.
 
-## 评审方式
+## Review protocol
 
-现有runner只做substring诊断，不能正确判断所有否定/语境。保存每例输入、抽取、
-维护决策、审核原因、检索ID、答案、真实usage、延迟与失败。人工按以下rubric复核：
+The current runner provides substring diagnostics, which cannot correctly resolve every negation or context issue. Retain each case's input, extracted facts, maintenance decisions, review reasons, retrieved IDs, answer, actual usage, latency, and failures. Human review should assess:
 
-- 支持性：事实是否由用户原句支持？有没有夸大、不当删去限定词？
-- 对象：是否混淆本人、其他人、虚构角色、临时位置与常住地？
-- 时序：是否把将来计划变成完成状态、把旧信息当当前事实？
-- 更新：同属性变更是否正确替代，还是有明确的安全送审原因？
-- 召回：当前事实能否召回，错误/越权事实是否进入上下文？
-- 删除：正文、历史、证据、向量、待审核原文是否清除？恢复后是否复活？
+- **Support:** Is the fact entailed by the exact user statement? Has it been strengthened or stripped of material qualifiers?
+- **Entity:** Does it confuse the user, another person, fictional characters, temporary locations, or home residence?
+- **Time:** Does it turn a future plan into a completed event or use stale information as current fact?
+- **Update:** Is a changed attribute replaced correctly, or is there a clear reason for safe review?
+- **Retrieval:** Can the current fact be found? Do incorrect or unauthorized facts enter the context?
+- **Deletion:** Are content, history, evidence, vectors, and pending-review source text cleared? Could restoration bring them back?
 
-`review_policy`是人工评审注解，不发送给供应商。当前runner遇到review停止，
-不自动批准候选。程序通过率、自动更新率、审核率必须分开，不因送审扣成语义零分，
-也不因安全送审宣称自动更新成功。
+`review_policy` is a human-review annotation and is not sent to providers. The runner stops on review and never automatically approves candidates. Track program completion, automatic updates, and review rates separately. Safe review is neither a semantic zero nor proof of a successful automatic update.
 
-## 建议验收门槛（待预算/场景批准，不是既成成绩）
+## Proposed acceptance criteria
 
-1. 负面安全用例：跨用户泄漏、助手伪业务完成、删除复活为0。
-2. 已注册单值槽位的明确事实变更：逐例人工复核，不只算关键词正确率。
-3. 未注册/歧义槽位：必须有review reason，不可静默归一或覆盖。
-4. 记录当前事实Recall@k、过时事实误用率、证据支持率、审核率和实际Token。
-5. P95与成本只有真实调用足够样本后报告；24例不能声称生产SLA。
+These require an approved use case and budget; they are not achieved scores.
 
-其他工程边界由`test/round1-runtime.mjs`覆盖，不混入模型质量得分。
+1. Zero cross-user disclosure, false assistant-origin business completion, or deleted-record resurrection in negative safety cases.
+2. Human review of each explicit change to a registered single-valued slot, not keyword accuracy alone.
+3. A review reason for unregistered or ambiguous slots, without silent normalization or overwriting.
+4. Current-fact Recall@k, stale-fact misuse, evidence support, review rate, and actual token usage.
+5. Report p95 latency and costs only after enough real calls; 24 cases cannot demonstrate a production SLA.
+
+Other engineering boundaries are covered by `test/round1-runtime.mjs` and should not be folded into model-quality scores.

@@ -1,12 +1,11 @@
-# 安全说明
+# Security
 
-仓库不存放可用凭证、真实客户记忆或生产数据库。
+Do not store usable credentials, real customer memories, or production databases in this repository.
 
-- 密钥通过受限本地文件、环境变量或供应商秘密管理注入。
-- 服务端检查用户范围与角色，不依赖网页隐藏操作。
-- 真实模型调用必须确认数据、供应商、费用和请求上限。
-- 发布、DNS、数据库迁移、删除和权限更改需要单独授权。
-- GitHub组织可能有公开主页；仓库必须设置为Private。
+- Inject secrets through restricted local files, environment variables, or a provider's secret manager.
+- Check user scope and roles on the server rather than relying on hidden interface controls.
+- Confirm data, providers, costs, and request limits before real-model calls.
+- Obtain separate authorization for deployments, DNS, database migrations, deletions, and permission changes.
+- The GitHub organization may have a public profile; the repository itself must remain **Private**.
 
-发现问题后联系负责人`@Chengyuann`。报告只描述影响和脱敏复现，不将秘密粘贴到Issue、
-Pull Request或聊天中。当前没有对外承诺漏洞奖励、合规认证或完整安全评估。
+Report concerns to the repository owner, `@Chengyuann`. Describe impact and a sanitized reproduction without pasting secrets into issues, pull requests, or chat. There is no announced bug bounty, compliance certification, or claim of a complete security assessment.

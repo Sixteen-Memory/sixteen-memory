@@ -1,94 +1,83 @@
-# Mem0开源仓库学习记录
+# Mem0 source review
 
-日期：2026年11月6日
+Reviewed on November 6, 2026.
 
-## 参考范围
+## Reference scope
 
-- 上游仓库：`mem0ai/mem0`
-- 检查提交：`d16b8df6f97bad5b2a1ae88fcbacd31db834652e`
-- 许可：Apache License 2.0
-- 本次只阅读公开源码和文档，没有复制Mem0实现到SixteenMemory。
+- Upstream repository: `mem0ai/mem0`.
+- Reviewed commit: `d16b8df6f97bad5b2a1ae88fcbacd31db834652e`.
+- License: Apache License 2.0.
+- This review read public source and documentation; it did not copy Mem0 implementations into SixteenMemory.
 
-Mem0把Library、自托管Server和托管Platform分开。开源仓库的能力与托管平台并不完全
-相同；仓库README也明确说明托管平台包含开源SDK之外的优化。因此后续对比应固定
-开源版本、模型、数据集和调用协议，不能把平台指标直接写成开源版本成绩。
+Mem0 separates its library, self-hosted server, and managed platform. Their capabilities are not identical. The reviewed README explicitly distinguishes managed-platform optimizations from the open-source SDK. Future comparisons must pin the open-source version, models, datasets, and call protocol rather than present platform scores as SDK results.
 
-## 值得学习的部分
+## Useful design lessons
 
-### 1. 适配器边界清楚
+### 1. Clear adapter boundaries
 
-Mem0把LLM、Embedding、向量存储和Reranker放在独立配置及Factory中，核心Memory流程
-通过统一接口调用它们。这对我们有两点启发：
+Mem0 configures LLMs, embeddings, vector stores, and rerankers through separate configuration and factory layers. Core memory flows call shared interfaces. Two lessons apply here:
 
-- 供应商配置与记忆规则分开，模型名称和地址保持为运行配置；
-- 向量索引身份必须包含模型、维度和版本，切换配置后需要重新建立索引。
+- Keep provider configuration separate from memory rules; model names and endpoints remain runtime settings.
+- Include the model, dimensions, and revision in index identity; rebuild indexes after configuration changes.
 
-SixteenMemory现有`providers.ts`、`embedding-config.ts`与索引指纹方向一致。当前不需要
-为了“像Mem0”再增加通用插件系统；只有出现第二个真实供应商实现时才值得扩展。
+SixteenMemory's `providers.ts`, `embedding-config.ts`, and index fingerprints already follow this direction. A general plugin framework is unnecessary merely to resemble Mem0. Expand abstraction when another real implementation needs it.
 
-### 2. 写入和检索是两个独立流程
+### 2. Separate write and retrieval flows
 
-Mem0的`add`先处理消息和元数据，再做事实抽取、Embedding与向量写入；`search`在过滤后
-检索，并可选择Reranker。写入与检索分别记录事件和用量。
+Mem0's `add` processes messages and metadata, extracts facts, computes embeddings, and writes vectors. `search` retrieves under filters and can rerank results. The flows track events and usage separately.
 
-我们的实现应继续保持：
+Our implementation should continue to ensure:
 
-- 写入失败不留下正文、索引或半完成的事实更新；
-- 检索先执行权限与过滤，再限制结果条数；
-- 供应商失败不自动重复写入；
-- 词法、语义和混合检索使用同一用户范围和有效时间边界。
+- Failed writes do not leave partially committed content, indexes, or fact changes.
+- Scope and filters apply before result limits.
+- Provider failures do not automatically repeat writes.
+- Lexical, semantic, and hybrid retrieval share user-scope and validity boundaries.
 
-### 3. 新算法转向ADD-only
+### 3. The newer ADD-only algorithm
 
-Mem0在2026年README中描述的新算法使用一次LLM调用做ADD-only抽取，不在抽取阶段自动
-UPDATE/DELETE；记忆累积后，检索同时使用语义、BM25和实体信号，并增加时间排序。
+The reviewed 2026 README describes single-call ADD-only extraction rather than automatic UPDATE/DELETE during extraction. Memories accumulate, and retrieval combines semantic, BM25, entity, and temporal signals.
 
-这与SixteenMemory当前“当前事实槽位+显式历史”不完全相同。不能直接照搬，原因是：
+This differs from SixteenMemory's current-fact slots and explicit history. It is not a drop-in replacement:
 
-- 我们要为客服接续提供明确的当前事实和版本冲突处理；
-- 无限累积会把当前事实判断转移到每次检索，增加延迟和错误空间；
-- 删除、用户更正和来源追踪仍需要清楚的数据操作。
+- Customer continuity needs clear current facts and version-conflict handling.
+- Unbounded accumulation shifts current-state interpretation into every retrieval, potentially adding latency and error opportunities.
+- Deletion, corrections, and source tracing still require explicit data operations.
 
-可以单独评估的方向是：事件型信息采用追加保存，稳定事实继续使用有版本的当前记录。
-是否引入实体信号和时间排序，应由盲测证明，而不是因为竞品采用而实现。
+An option to evaluate separately is append-only event records alongside versioned stable facts. Entity signals and temporal ranking should earn their place through blind evaluation, not competitor imitation.
 
-### 4. 开源Server的身份模型不能直接照搬
+### 4. Preserve our identity boundary
 
-Mem0自托管Server提供管理员Key、普通API Key和可关闭鉴权的本地模式。SixteenMemory已
-有管理员、用户范围Key、服务端范围检查和控制台会话，并且默认不会关闭生产鉴权。
+The reviewed self-hosted Mem0 server provides administrator keys, regular API keys, and a local mode that can disable authentication. SixteenMemory already has administrators, user-scoped keys, server-side checks, and console sessions; production authentication is not disabled by default.
 
-后续可学习它的首次启动引导和配置检查，但不能降低现有范围隔离，也不应提供容易误用的
-生产`AUTH_DISABLED`开关。
+First-run setup and configuration checks are useful references. They should not weaken existing isolation or introduce an easy-to-misuse production `AUTH_DISABLED` switch.
 
-### 5. 异步版本与可观察性
+### 5. Async interfaces and observability
 
-Mem0同时提供同步与异步Memory接口，并对初始化、读写、检索、历史和内部操作记录事件。
-SixteenMemory目前有请求记录与模型用量，但没有统一后台任务和用户可查看的任务状态。
+Mem0 offers synchronous and asynchronous memory interfaces and records events for initialization, reads, writes, retrieval, history, and internal operations. SixteenMemory has request records and model usage, but no unified background-task framework. Existing ingestion state is not a general queue.
 
-下一步如果增加大批量导入、重建索引或Webhook，应该先定义统一任务状态和幂等边界，
-而不是在每个功能内分别增加轮询逻辑。
+Before adding bulk imports, reindexing workflows, or webhooks, define shared task states and idempotency boundaries instead of inventing separate polling behavior for each feature.
 
-## 不应直接复制的内容
+## Do not copy by default
 
-- 上游代码、提示词和品牌素材；
-- README中的托管平台性能成绩；
-- 默认OpenAI模型或向量数据库选择；
-- 允许Agent确认结果直接成为同等事实依据的策略；
-- 无限制增加供应商、向量库和图数据库适配器。
+- Upstream implementation, prompts, or brand assets.
+- Managed-platform benchmark claims from the README.
+- Default model choices or vector-database choices.
+- Treating Agent-confirmed actions as evidence equal to authoritative business records.
+- An unrestricted collection of provider, vector-store, or graph adapters.
 
-## 对SixteenMemory近期代码库的建议
+## Near-term repository decisions
 
-1. 保持`worker/`中的规则、存储和供应商边界，不进行大规模目录重写。
-2. 后续增加公开API描述时，从现有真实路由生成，而不是维护第二份手写接口。
-3. 将真实模型检查、Mem0开源对比和产品单元测试分开运行并保存用量。
-4. 私有主仓库保存产品、官网和必要文档；部署记录、密钥和本地输出不入库。
-5. 未来需要开源时，从私有主仓库拆出无部署秘密、无内部运维材料的独立公开仓库。
+1. Preserve the rules, storage, and provider boundaries in `worker/`; avoid a directory-wide rewrite.
+2. Build future API descriptions from actual routes rather than a second handwritten interface.
+3. Run real-model checks, Mem0 comparisons, and product unit tests separately, retaining usage records.
+4. Keep product source, website source, and required guides in the private repository; exclude deployment receipts, credentials, and local output.
+5. Extract future open-source modules into clean public repositories without deployment secrets or internal operating material.
 
-## 来源
+## Sources
 
 - `https://github.com/mem0ai/mem0`
 - `https://raw.githubusercontent.com/mem0ai/mem0/d16b8df6f97bad5b2a1ae88fcbacd31db834652e/LICENSE`
 - `https://raw.githubusercontent.com/mem0ai/mem0/d16b8df6f97bad5b2a1ae88fcbacd31db834652e/mem0/memory/main.py`
 - `https://raw.githubusercontent.com/mem0ai/mem0/d16b8df6f97bad5b2a1ae88fcbacd31db834652e/mem0/utils/factory.py`
 
-本地检查副本位于`output/github-setup-2026-11-06/research/`，不纳入公司代码库。
+Local review copies remain in the original workspace's `output/github-setup-2026-11-06/research/` directory and are not part of this repository.

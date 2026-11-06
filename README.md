@@ -1,73 +1,72 @@
 <p align="center">
-  <img src="docs/assets/repository-cover.png" alt="SixteenMemory — Context that continues. 私有产品代码库。" width="1200">
+  <img src="docs/assets/repository-cover.png" alt="SixteenMemory — Context that continues. Private product repository." width="1200">
 </p>
 
-<h1 align="center">SixteenMemory · 拾陆记忆</h1>
+<h1 align="center">SixteenMemory</h1>
 
 <p align="center">
-  <strong>让 Agent 记得，让记忆延续。</strong><br>
-  为已有 Agent 提供可管理的长期记忆：保存上下文，找到相关信息，追溯每一次变化。
+  <strong>Memory your Agent can use. Context that continues.</strong><br>
+  A managed memory layer for existing Agents: keep important context, retrieve what matters, and trace every change.
 </p>
 
 <p align="center">
-  <a href="docs/QUICKSTART.md">快速开始</a> ·
-  <a href="docs/ARCHITECTURE.md">系统架构</a> ·
-  <a href="docs/REPOSITORY_MAP.md">代码导航</a> ·
-  <a href="docs/ROADMAP.md">开发状态</a> ·
-  <a href="CONTRIBUTING.md">参与协作</a>
+  <a href="docs/QUICKSTART.md">Quickstart</a> ·
+  <a href="docs/ARCHITECTURE.md">Architecture</a> ·
+  <a href="docs/REPOSITORY_MAP.md">Code map</a> ·
+  <a href="docs/ROADMAP.md">Roadmap</a> ·
+  <a href="CONTRIBUTING.md">Contributing</a>
 </p>
 
 ---
 
 > **Private · Developer preview**<br>
-> 这是 `Sixteen-Memory/sixteen-memory` 的公司私有主仓库，不是开源发布。
-> 产品、官网和 SDK 源码均已纳入版本管理；GitHub 推送不会自动部署服务。
+> `Sixteen-Memory/sixteen-memory` is the company's private source repository, not an open-source release.
+> It contains the product, website, and SDK. Pushing code does not deploy a service.
 
-## 一层记忆，三部分产品
+## One memory layer. Three product surfaces.
 
 | Memory API | Console | Developer experience |
 | :--- | :--- | :--- |
-| 显式写入、范围检索、版本历史与删除 | 查看记忆、来源、Key 与请求记录 | JavaScript SDK、接入示例、文档与官网 |
-| [查看服务核心 →](product/worker/) | [查看管理台 →](product/src/) | [查看 SDK →](product/sdk/) · [查看官网 →](homepage/) |
+| Explicit writes, scoped retrieval, version history, and deletion | Inspect memories, sources, keys, and request records | JavaScript SDK, examples, documentation, and website |
+| [Explore the service →](product/worker/) | [Explore the console →](product/src/) | [Explore the SDK →](product/sdk/) · [Explore the website →](homepage/) |
 
-**保留来处。** 记忆与来源一起保存，更新保留历史，业务结果不能由助手的表述替代。<br>
-**守住范围。** 服务端检查用户范围和 Key 权限，不依赖客户端隐藏按钮。<br>
-**明确变化。** 更新带版本号，停用退出检索，删除清理在线数据与索引。<br>
-**渐进接入。** 先使用不调用模型的显式写入与词法检索，再按需启用开发中的智能路径。
+**Keep the source.** Store evidence with each memory and preserve history when it changes. An assistant's statement does not prove a business action occurred.<br>
+**Respect the scope.** Enforce user boundaries and key permissions on the server, not through hidden interface controls.<br>
+**Make changes explicit.** Update with a version, deactivate to exclude from retrieval, and delete online data and indexes.<br>
+**Integrate incrementally.** Start with explicit writes and lexical retrieval, without model calls. Enable development-stage intelligent paths only when needed.
 
-## 快速开始
+## Quickstart
 
-需要 **Node.js 24 + npm**。在仓库根目录安装两个应用的依赖：
+Requires **Node.js 24 + npm**. Install both applications from the repository root:
 
 ```sh
 npm run setup
 ```
 
-**启动官网**
+**Start the website**
 
 ```sh
 npm run dev:website -- --port 4180
 # http://127.0.0.1:4180
 ```
 
-**启动产品** — 在另一个终端运行：
+**Start the product** in another terminal:
 
 ```sh
 npm run prepare:product
 npm run build:product
 npm run dev:product
-# 管理台 http://127.0.0.1:4191 · API http://127.0.0.1:8790
+# Console http://127.0.0.1:4191 · API http://127.0.0.1:8790
 ```
 
-本地管理员 Key 由脚本生成在被 Git 忽略的 `product/.dev.vars` 中。
-不要把 Key 粘贴到代码、Issue 或截图里。模型默认关闭；上述构建只做本地 dry-run。
+The preparation script generates a local administrator key in the Git-ignored `product/.dev.vars` file.
+Never paste it into source code, issues, or screenshots. Models are disabled by default; the product build performs a local dry run only.
 
-完整说明见 [本地开发指南](docs/QUICKSTART.md)，接口入口见 [文档导航](docs/README.md)。
+Read the [local development guide](docs/QUICKSTART.md) or browse the [documentation index](docs/README.md).
 
-## 把记忆接进你的应用
+## Add memory to your application
 
-SDK 是本仓库的源码模块，**尚未发布 npm 包**。以下代码在仓库根目录的 Node.js 模块中运行，
-使用已绑定用户范围的测试 Key；只保存和检索一条合成记录，不调用模型：
+The SDK is a source module in this repository, **not a published npm package**. Run the following code in a Node.js module at the repository root, using a test key and its permitted user scope. It stores and retrieves one synthetic record without calling a model:
 
 ```js
 import { SixteenMemory } from "./product/sdk/index.mjs";
@@ -82,13 +81,13 @@ if (!userId || !process.env.SIXTEEN_API_KEY) {
 }
 
 await memory.add({
-  request_id: "readme-synthetic-preference-1",
+  request_id: "readme-synthetic-english-preference-1",
   user_id: userId,
-  content: "用户希望用中文沟通。",
+  content: "The user prefers to communicate in English.",
   source: {
     type: "conversation",
     ref: "synthetic-session-1",
-    text: "请用中文和我沟通。",
+    text: "Please communicate with me in English.",
     observed_at: "2026-11-06T08:00:00Z",
   },
   expires_at: null,
@@ -96,74 +95,69 @@ await memory.add({
 
 const result = await memory.search({
   user_id: userId,
-  query: "中文 沟通",
+  query: "English communicate",
   limit: 5,
 });
 ```
 
-相同请求 ID 用于重试同一份内容，不应拿来保存不同内容。
-需要完整的更新、历史与清理流程，参见 [客服接续示例](product/examples/)。
+Reuse a request ID only when retrying the same content, not for a different write. See the [customer continuity example](product/examples/) for updates, history, and cleanup.
 
-## 系统架构
+## Architecture
 
 <p align="center">
-  <img src="docs/assets/architecture.svg" alt="应用与管理台通过 Worker 访问 SQLite 记忆存储；供应商调用为显式启用的独立路径；官网单独发布。" width="1200">
+  <img src="docs/assets/architecture.svg" alt="Applications and the console access SQLite memory storage through a Worker. Model calls require explicit configuration. The website deploys independently." width="1200">
 </p>
 
-核心分层是 **接口 → 编排与规则 → 存储／供应商**。
-目前数据层使用 SQLite Durable Object，没有引入独立向量数据库或图数据库。
-模型调用不在数据库事务内执行，写入提交前再次检查权限和数据状态。
+The core layers are **access → orchestration and rules → storage and providers**.
+Storage uses a SQLite Durable Object, without a separate vector or graph database. Model calls run outside database transactions; final writes recheck permissions and data state.
 
-参考 Mem0 将记忆核心、供应商、客户端、服务、示例和评估分开的组织思路；
-我们保留现有运行路径，不为了目录形式增加空模块或重写产品。
-详见 [架构说明](docs/ARCHITECTURE.md) 与 [Mem0 参考记录](docs/MEM0_LEARNINGS_2026-11-06.md)。
+Mem0's separation of memory, providers, clients, services, examples, and evaluation informs the repository organization. We retain the working runtime paths rather than add empty modules or rewrite the product for appearances.
+See the [architecture guide](docs/ARCHITECTURE.md) and [Mem0 research notes](docs/MEM0_LEARNINGS_2026-11-06.md).
 
-## 代码地图
+## Code map
 
 ```text
 sixteen-memory/
-├── product/                 产品服务与管理台
-│   ├── worker/              API、领域规则、存储与模型适配
-│   ├── src/                 React 管理台
-│   ├── sdk/                 无运行时依赖的 JavaScript 客户端
-│   ├── examples/            合成数据接入示例
-│   ├── test/                本地行为与迁移检查
-│   ├── eval/                单独授权的模型评估工具
-│   └── pages/               生产入口与 Service Binding
-├── homepage/                独立官网、产品页与开发文档
-├── docs/                    架构、开发指南、状态与研究记录
-├── scripts/                 仓库级维护工具
-└── .github/                 协作模板与负责人说明
+├── product/                 Product service and console
+│   ├── worker/              API, domain rules, storage, and model adapters
+│   ├── src/                 React management console
+│   ├── sdk/                 JavaScript client with no runtime dependencies
+│   ├── examples/            Synthetic integration examples
+│   ├── test/                Local behavior and migration checks
+│   ├── eval/                Separately authorized model evaluation
+│   └── pages/               Production entry and Service Binding
+├── homepage/                Independent website and developer documentation
+├── docs/                    Architecture, guides, status, and research
+├── scripts/                 Repository maintenance tools
+└── .github/                 Collaboration templates and ownership
 ```
 
-每个应用独立维护依赖锁文件。先读 [代码导航](docs/REPOSITORY_MAP.md)，再进入需要修改的模块；
-后续协作以本仓库为唯一代码来源，不继续维护旧工作区的重复副本。
+Each application maintains its own dependency lockfile. Start with the [code map](docs/REPOSITORY_MAP.md), then open the relevant module. This repository is the source of truth; do not continue developing duplicate copies in the old workspace.
 
-## 能力与边界
+## Capabilities and boundaries
 
-以下是仓库记录的状态快照，不是实时服务监控。生产记录为 **v0.1.0**，
-本仓库开发版本为 **v0.2.1**；推送代码不代表新版后端已经发布。
+This is a recorded status snapshot, not live monitoring. The recorded production baseline is **v0.1.0**; the development version is **v0.2.1**. A code push does not publish a new backend version.
 
-| 状态 | 能力 |
+| Status | Capabilities |
 | :--- | :--- |
-| **基础已实现 · 记录为线上可用** | 显式记忆生命周期、词法检索、用户范围 Key、控制台、SDK 源码 |
-| **开发版本 · 未作为线上能力发布** | 对话抽取与审核、事实槽位、元数据／时间筛选、千问语义与混合检索 |
-| **规划中 · 尚未提供** | 用户画像、MCP、OpenAPI、SDK 发布包、Webhook、组织成员与自助计费 |
+| **Implemented baseline · recorded as live** | Explicit memory lifecycle, lexical retrieval, user-scoped keys, console, and SDK source |
+| **Development · not released as live features** | Conversation extraction and review, fact slots, metadata and time filters, Qwen semantic and hybrid retrieval |
+| **Planned · not available** | Profiles, MCP, OpenAPI, packaged SDK releases, webhooks, organization members, and self-service billing |
 
-真实模型效果、客户指标、生产容量与恢复演练没有因为代码入库而得到验证。
-详见 [开发状态与下一步](docs/ROADMAP.md)。
+Committing code does not validate real-model quality, customer outcomes, production capacity, or recovery procedures. Read the [roadmap and current status](docs/ROADMAP.md).
 
-## 开发与协作
+## Development and collaboration
 
 ```sh
-npm run check:docs       # 文档链接、资源与能力来源路径；无网络
-npm run build:website    # 静态网站构建，不上线
-npm run build:product    # 类型检查、前端构建与 Worker dry-run
+npm run check:docs       # Offline documentation, language, asset, and evidence checks
+npm run build:website    # Static build; no publication
+npm run build:product    # Type checks, frontend build, and Worker dry run
 ```
 
-- **组织持有代码，个人账号提交。** 日常协作账号为 `Chengyuann`，使用功能分支和 Pull Request。
-- **默认不产生外部副作用。** 不自动部署，不启用真实模型评估，也不改变仓库可见性。
-- **私有也要排除秘密。** 凭证、数据库、运行日志和客户数据不进入 Git。
-- **开源另建仓库。** 本仓库没有开源许可；第三方依赖和字体继续适用各自许可。
+- **Company ownership, personal contributions.** `Chengyuann` contributes through feature branches and pull requests.
+- **English repository documentation.** Keep guides, templates, and new contribution descriptions in English. Product localization and multilingual test data remain separate.
+- **No automatic external changes.** Do not deploy, run paid model evaluation, or change repository visibility implicitly.
+- **Private does not mean secret-safe.** Keep credentials, databases, logs, and customer data out of Git.
+- **Open source belongs in a separate repository.** This repository has no open-source license. Third-party dependencies and fonts retain their own licenses.
 
-[协作指南](CONTRIBUTING.md) · [安全说明](SECURITY.md) · [仓库归属](docs/GITHUB_REPOSITORY_PLAN.md)
+[Contributing](CONTRIBUTING.md) · [Security](SECURITY.md) · [Repository ownership](docs/GITHUB_REPOSITORY_PLAN.md)

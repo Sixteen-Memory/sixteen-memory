@@ -1,107 +1,97 @@
-# 系统架构
+# Architecture
 
-**让记忆的写入、变化、召回和管理各有明确职责。**
+**Give writes, changes, retrieval, and management clear responsibilities.**
 
-[文档首页](README.md) · [代码地图](REPOSITORY_MAP.md) · [开发状态](ROADMAP.md)
+[Documentation](README.md) · [Code map](REPOSITORY_MAP.md) · [Roadmap](ROADMAP.md)
 
-![SixteenMemory系统分层](assets/architecture.svg)
+![SixteenMemory system layers](assets/architecture.svg)
 
-## 设计边界
+## Design boundaries
 
-SixteenMemory提供记忆基础设施，不接管Agent的业务动作。退款、发货或审批是否完成，
-仍由业务系统确认；助手声称“已完成”不能直接变成事实。
+SixteenMemory provides memory infrastructure, not an Agent's business execution layer. Refunds, shipments, and approvals must be confirmed by the business system. An assistant saying "done" is not proof that an action occurred.
 
-当前是两个可独立构建和发布的应用，而不是一组微服务：
+There are two independently buildable and deployable applications, not a collection of microservices:
 
-- `product/`：Worker、SQLite Durable Object、管理台和SDK。
-- `homepage/`：静态官网与开发入口，不收集用户的记忆正文或模型凭证。
+- `product/`: Worker, SQLite Durable Object, console, and SDK.
+- `homepage/`: static website and developer entry points; it does not collect memory content or model credentials.
 
-数据层直接依赖SQLite Durable Object。没有独立向量数据库、图数据库、统一任务队列或
-通用插件框架；不把计划画成已实现系统。
+The data layer depends directly on SQLite Durable Objects. There is no separate vector database, graph database, unified task queue, or general-purpose plugin framework. Planned components are not shown as implemented infrastructure.
 
-## 四层职责
+## Four responsibilities
 
-| 层 | 实现 | 负责 | 不负责 |
+| Layer | Implementation | Responsible for | Not responsible for |
 | :--- | :--- | :--- | :--- |
-| 接入层 | `worker/index.ts`、`src/`、`sdk/` | HTTP、会话、错误、界面与客户端调用 | 凭客户端参数决定数据归属 |
-| 编排与规则 | `intelligence.ts`、`domain.ts`、事实槽位与过滤模块 | 请求校验、范围检查、抽取／检索编排、更新语义 | 把模型输出当作无条件可信输入 |
-| 持久化 | `project.ts`、`intelligence-store.ts` | SQLite、索引、历史、审核记录与事务提交 | 在事务中等待模型网络调用 |
-| 供应商边界 | `providers.ts`、`embedding-config.ts`、`generation-options.ts` | HTTPS调用、响应检查、配置与索引指纹 | 静默更换模型、无限重试或复制线上凭证 |
+| Access | `worker/index.ts`, `src/`, `sdk/` | HTTP, sessions, errors, interface, and client calls | Trusting client parameters to determine ownership |
+| Orchestration and rules | `intelligence.ts`, `domain.ts`, fact slots, and filters | Validation, scope checks, extraction/retrieval orchestration, and update semantics | Treating model output as unconditionally trusted input |
+| Persistence | `project.ts`, `intelligence-store.ts` | SQLite, indexes, history, review records, and transaction commits | Waiting for model network calls inside a transaction |
+| Provider boundary | `providers.ts`, `embedding-config.ts`, `generation-options.ts` | HTTPS calls, response validation, configuration, and index fingerprints | Silent model switching, unlimited retries, or copied production credentials |
 
-目前回答模型调用仍在`worker/index.ts`中，没有全部抽象到统一供应商接口。
-下次真正扩展回答供应商时，可将这部分移入同一适配层。
+Answer generation currently remains in `worker/index.ts`; it has not been fully moved behind a shared provider interface. A future expansion of answer providers can consolidate that code into the adapter layer.
 
-## 一次显式写入
+## An explicit write
 
-1. Worker检查Origin、限流、凭证和请求格式。
-2. `MemoryProject`验证身份、用户范围、容量及请求ID。
-3. 如果已经配置Embedding，先准备向量；默认关闭时不调用模型。
-4. 持久层在最终提交时再次执行必要检查，保存当前记录、来源、历史与索引。
-5. 相同请求ID重试同一内容不会重复新增；不同内容复用请求ID会冲突。
+1. The Worker checks Origin, rate limits, credentials, and request structure.
+2. `MemoryProject` validates identity, user scope, capacity, and request ID.
+3. If embeddings are configured, vectors are prepared first. The default disabled configuration makes no model call.
+4. Persistence repeats the necessary checks at final commit, saving the current record, source, history, and index.
+5. Retrying the same content with the same request ID does not create a duplicate. Reusing that ID for different content causes a conflict.
 
-更新带`expected_version`，防止覆盖并发修改。这里保证本地数据提交的一致性，
-不宣称供应商调用与数据库能回滚为一个事务。
+Updates carry `expected_version` to avoid overwriting concurrent changes. These guarantees cover local data commits, not a distributed transaction that can roll back both the provider call and the database.
 
-## 一次检索
+## A search
 
 ```text
-用户范围 + query + filter/at
-           │
-           ├─ lexical ────────── SQLite FTS → 结果与来源
-           │
-           └─ semantic/hybrid ── 权限与索引覆盖检查
-                                  → 查询Embedding
-                                  → 重新检查范围及数据状态
-                                  → 余弦排序／RRF融合 → 结果
+user scope + query + filter/at
+           |
+           +-- lexical ---------- SQLite FTS -> results and sources
+           |
+           +-- semantic/hybrid -- access and index coverage checks
+                                    -> query embedding
+                                    -> recheck scope and data state
+                                    -> cosine ranking / RRF fusion -> results
 ```
 
-词法路径不需要模型。开发中的语义路径读取受限规模的SQLite向量，不是大规模ANN服务。
-索引指纹包含供应商、模型、维度、API方式和版本标识；配置改变后必须明确重建索引。
+Lexical retrieval does not require a model. The development semantic path reads a bounded set of vectors from SQLite; it is not a large-scale ANN service. The index fingerprint includes provider, model, dimensions, API style, and revision. Configuration changes require explicit reindexing.
 
-过滤必须在结果数量限制之前生效，不能通过OR/NOT扩展用户范围。
-`at`仅筛选**当前保存版本**的有效窗口，不是过去任意时间点的历史快照。
+Filters apply before the result limit, and OR/NOT conditions cannot broaden user scope. `at` filters the validity window of the **currently stored version**; it does not reconstruct a historical snapshot.
 
-## 对话抽取：开发路径
+## Conversation extraction: a development path
 
-`ingest()`组织候选抽取与事实维护，`intelligence-domain.ts`检查证据、结构和更新动作。
-明确的新事实可进入更新计划；歧义、未注册字段或不可信依据进入审核。
+`ingest()` orchestrates candidate extraction and memory maintenance. `intelligence-domain.ts` validates evidence, structure, and proposed changes. Clear new facts can enter an update plan; ambiguity, unregistered slots, or untrusted support require review.
 
-- 用户原文是证据，助手消息仅提供上下文。
-- 人工更正不能被模型静默覆盖。
-- 模型出错与“没有抽取到事实”是不同结果。
-- 审核通过也需要检查目标数据是否已经改变。
+- Exact user text is evidence; assistant messages provide context only.
+- A model cannot silently overwrite a manual correction.
+- Model failure and "no facts extracted" are distinct results.
+- Approval still requires checking whether the target data has changed.
 
-该路径存在于代码中，但真实模型质量未完成确认，不将它包装为已上线能力。
+This path exists in source, but real-model quality is not yet confirmed. It is not presented as a released production capability.
 
-## 数据生命周期
+## Data lifecycle
 
-| 数据 | 位置／用途 |
+| Data | Location or purpose |
 | :--- | :--- |
-| 当前记忆与来源 | `memories`，带用户范围、状态和版本 |
-| 历史 | `history`，保存变化及原有来源 |
-| 词法索引 | SQLite FTS5，提供基础检索 |
-| Key与会话 | 保存摘要、权限、有效期与撤销状态，不保存可返回的明文Key |
-| 幂等与请求记录 | 请求摘要、状态、耗时及操作标识 |
-| 智能路径数据 | 向量、导入记录、证据、候选审核和用量信息 |
+| Current memories and sources | `memories`, with user scope, state, and version |
+| History | `history`, preserving changes and prior sources |
+| Lexical index | SQLite FTS5 for baseline retrieval |
+| Keys and sessions | Digests, permissions, expiry, and revocation state; not retrievable plaintext keys |
+| Idempotency and request records | Request digests, statuses, durations, and operation identifiers |
+| Intelligent-path data | Vectors, ingestions, evidence, review candidates, and usage |
 
-停用与删除不同：停用退出检索，删除清理在线记录及关联数据。
-云平台备份／恢复副本有独立边界，不宣称所有恢复副本会同步立即消失。
+Deactivation and deletion differ: deactivation removes a record from retrieval; deletion clears online records and related data. Platform backups and recovery copies have separate retention boundaries and are not claimed to disappear immediately.
 
-## 部署不是推送
+## Pushing is not deploying
 
-生产入口通过Pages Service Binding连接Worker；本地管理台代理到本地Worker。
-目前每个部署固定一个项目，用户范围Key不等于多组织企业身份系统。
+Production traffic reaches the Worker through a Pages Service Binding. The local console proxies to a local Worker. Each deployment currently has one fixed project; user-scoped keys are not an enterprise multi-organization identity system.
 
-GitHub仓库保持Private。网站和产品各自构建、单独获准后发布，没有自动部署工作流。
+The GitHub repository remains private. The website and product build separately and require separate publication approval. There is no automatic deployment workflow.
 
-## 参考Mem0，但不照搬
+## Learn from Mem0 without copying it
 
-| Mem0的组织方式 | SixteenMemory对应位置 | 我们的选择 |
+| Mem0 organization | SixteenMemory equivalent | Our choice |
 | :--- | :--- | :--- |
-| 记忆核心 | `product/worker/` | 显式当前记录、版本和来源优先 |
-| LLM、Embedding、存储配置 | Worker中的适配与配置文件 | 暂不增加不需要的数据库和供应商 |
-| 客户端／服务 | `product/sdk/`、Worker与管理台 | 使用现有TypeScript与JavaScript实现 |
-| 示例、文档、评估 | `product/examples/`、`docs/`、`product/eval/` | 各有入口，付费评估不混入常规构建 |
+| Memory core | `product/worker/` | Prioritize explicit current records, versions, and sources |
+| LLM, embedding, and storage configuration | Worker adapter and configuration files | Avoid unnecessary databases or providers |
+| Clients and service | `product/sdk/`, Worker, and console | Keep the existing TypeScript and JavaScript implementation |
+| Examples, documentation, and evaluation | `product/examples/`, `docs/`, `product/eval/` | Provide separate entry points; keep paid evaluation out of routine builds |
 
-没有复制Mem0源码、提示词、品牌或性能数字。目录形式服务于真实模块，不创建空的
-`graph/`、`mcp/`或`integrations/`来暗示尚未存在的功能。
+No Mem0 source, prompts, branding, or benchmark figures were copied. Directories represent real modules; empty `graph/`, `mcp/`, or `integrations/` folders would misleadingly imply implemented features.

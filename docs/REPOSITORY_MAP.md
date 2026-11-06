@@ -1,58 +1,56 @@
-# 代码地图
+# Code map
 
-[文档首页](README.md) · [系统架构](ARCHITECTURE.md)
+[Documentation](README.md) · [Architecture](ARCHITECTURE.md)
 
-## 先从哪里读？
+## Where to start
 
-| 你要做什么 | 从这里开始 |
+| Task | Entry point |
 | :--- | :--- |
-| 修改首页／导航／中英文产品页 | [homepage/src](../homepage/src/) |
-| 查看现有API和鉴权 | [worker/index.ts](../product/worker/index.ts) |
-| 修改写入、版本或删除行为 | [project.ts](../product/worker/project.ts) + [domain.ts](../product/worker/domain.ts) |
-| 修改对话抽取与审核 | [intelligence.ts](../product/worker/intelligence.ts) + [intelligence-domain.ts](../product/worker/intelligence-domain.ts) |
-| 修改分类和有效时间 | [memory-attributes.ts](../product/worker/memory-attributes.ts) |
-| 修改过滤行为 | [memory-filter.ts](../product/worker/memory-filter.ts) |
-| 配置模型与向量接口 | [providers.ts](../product/worker/providers.ts) + [embedding-config.ts](../product/worker/embedding-config.ts) |
-| 修改管理台 | [product/src](../product/src/) |
-| 修改客户端API | [SDK](../product/sdk/README.md) |
-| 跑通业务接续示例 | [Examples](../product/examples/README.md) |
+| Edit the homepage, navigation, or bilingual product pages | [homepage/src](../homepage/src/) |
+| Inspect API routes and authentication | [worker/index.ts](../product/worker/index.ts) |
+| Change writes, versions, or deletion | [project.ts](../product/worker/project.ts) + [domain.ts](../product/worker/domain.ts) |
+| Change extraction and review | [intelligence.ts](../product/worker/intelligence.ts) + [intelligence-domain.ts](../product/worker/intelligence-domain.ts) |
+| Change categories and validity windows | [memory-attributes.ts](../product/worker/memory-attributes.ts) |
+| Change filter behavior | [memory-filter.ts](../product/worker/memory-filter.ts) |
+| Configure generation or embeddings | [providers.ts](../product/worker/providers.ts) + [embedding-config.ts](../product/worker/embedding-config.ts) |
+| Edit the console | [product/src](../product/src/) |
+| Change client methods | [SDK](../product/sdk/README.md) |
+| Run an end-to-end continuity example | [Examples](../product/examples/README.md) |
 
-## 服务核心
+## Service core
 
 ```text
 product/worker/
-├── index.ts                  HTTP、鉴权入口与响应
-├── domain.ts                 数据类型、校验、版本与权限规则
-├── project.ts                Durable Object + SQLite基础存储
-├── intelligence.ts           智能写入、检索、索引重建编排
-├── intelligence-domain.ts    候选事实、证据、维护动作校验
-├── intelligence-store.ts     智能路径数据与提交
-├── fact-slots.ts             受控事实字段
-├── memory-attributes.ts      分类、元数据和时间属性
-├── memory-filter.ts          过滤校验与SQL编译
-├── providers.ts              生成和Embedding适配
-├── embedding-config.ts       配置、模型指纹与维度
-└── generation-options.ts     生成参数的兼容控制
+├── index.ts                  HTTP, authentication entry, and responses
+├── domain.ts                 Types, validation, versions, and access rules
+├── project.ts                Durable Object and baseline SQLite storage
+├── intelligence.ts           Intelligent writes, search, and reindex orchestration
+├── intelligence-domain.ts    Fact, evidence, and maintenance-action validation
+├── intelligence-store.ts     Intelligent-path data and commits
+├── fact-slots.ts             Controlled fact fields
+├── memory-attributes.ts      Categories, metadata, and time attributes
+├── memory-filter.ts          Filter validation and SQL compilation
+├── providers.ts              Generation and embedding adapters
+├── embedding-config.ts       Configuration, fingerprints, and dimensions
+└── generation-options.ts     Compatible generation parameters
 ```
 
-这些文件共同构成一个Worker，不是独立发布包。
+These files form one Worker, not separately published packages.
 
-官网按相同原则组织：`src/`负责页面，`public/`保留素材与字体许可，`scripts/`生成
-SDK下载和独立路由HTML，`tests/`检查显示与交互约束。
+The website follows the same principle: `src/` contains pages, `public/` holds assets and font licenses, `scripts/` prepares the SDK download and route HTML, and `tests/` checks presentation and interaction constraints.
 
-## 修改和检查一起定位
+## Match checks to changes
 
-| 变更 | 最小起点 |
+| Change | Starting point |
 | :--- | :--- |
-| 文档／README／来源路径 | `npm run check:docs` |
-| 官网代码 | `npm run check:website`，再检查受影响页面 |
-| Worker或SDK规则 | `npm run check:product`与受影响的本地运行时检查 |
-| 数据库结构 | 迁移检查、兼容性说明；不要直接降级旧Worker |
-| 真实模型或语义效果 | 单独确认数据、模型和预算后运行评估 |
+| Documentation, README, or evidence paths | `npm run check:docs` |
+| Website code | `npm run check:website`, then inspect affected pages |
+| Worker or SDK rules | `npm run check:product` and relevant local runtime checks |
+| Database structure | Migration checks and compatibility notes; do not directly downgrade to an incompatible Worker |
+| Real-model or retrieval quality | Separately approve data, models, and budget before evaluation |
 
-固定模型响应的用例不是模型效果成绩。不要为了文档改动重复跑全量后端或付费评估。
+Fixed-response provider fixtures are not model-quality scores. Documentation changes do not justify repeating the entire backend suite or running paid evaluation.
 
-## 保持单一源码
+## One source of truth
 
-日常修改只发生在此仓库。旧的原型工作区保存历史参考，但不是第二份持续开发分支。
-需要迁入旧文件时，检查来源、密钥、依赖和差异后做正常提交，不整目录覆盖。
+Develop only in this repository. The old prototype workspace is historical reference, not a second active codebase. Import old files through reviewed changes after checking provenance, secrets, dependencies, and differences; do not overwrite whole directories.

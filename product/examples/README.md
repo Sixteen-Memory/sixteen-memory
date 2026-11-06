@@ -1,29 +1,27 @@
 # Examples
 
-**先用合成数据跑通，再连接真实业务。**
+**Start with synthetic data before connecting real business records.**
 
-[接入指南](../../docs/QUICKSTART.md) · [SDK](../sdk/README.md)
+[Setup guide](../../docs/QUICKSTART.md) · [SDK](../sdk/README.md)
 
-| 示例 | 过程 | 模型调用 |
+| Example | Flow | Model calls |
 | :--- | :--- | :--- |
-| [customer-continuity.mjs](customer-continuity.mjs) | 保存 → 检索 → 更新 → 历史 → 删除合成记录 | 不需要 |
-| [intelligent-continuity.mjs](intelligent-continuity.mjs) | 对话导入、候选维护与智能检索 | 需要配置与授权 |
+| [customer-continuity.mjs](customer-continuity.mjs) | Write → search → update → history → delete the synthetic record | Not required |
+| [intelligent-continuity.mjs](intelligent-continuity.mjs) | Conversation ingestion, candidate maintenance, and intelligent retrieval | Configuration and authorization required |
 
-## 基础示例
+## Basic example
 
-先启动本地产品，在终端环境设置用户范围Key，不写入文件提交。
+Start the local product and set a user-scoped key in the terminal environment. Do not commit it to a file.
 
 ```sh
-# 已设置 SIXTEEN_API_KEY
+# SIXTEEN_API_KEY is already set.
 export SIXTEEN_BASE_URL=http://127.0.0.1:8790
 export SIXTEEN_USER_ID=example-user
 npm run example:basic
 ```
 
-从仓库根目录运行。结束时会删除它创建的合成记录；只指向本地或明确批准的测试环境。
-用户范围必须与Key一致。
+Run from the repository root. The example deletes its synthetic record when finished. Use only a local or explicitly approved test environment, with a user scope matching the key. Existing multilingual sample content is retained to exercise multilingual memory behavior.
 
-## 智能示例不是默认入门步骤
+## Intelligent examples are not the default first step
 
-先检查目标服务能力，再确认供应商、数据发送范围和费用。
-普通构建、README预览或基础接入不需要运行它；未配置模型时不应绕过错误强行调用。
+Check the target service's capabilities, then confirm the provider, data-sharing scope, and costs. Ordinary builds, README previews, and basic integration do not need these calls. Do not bypass configuration errors to force a model request.

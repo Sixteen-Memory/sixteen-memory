@@ -1,12 +1,12 @@
-# 本地开发指南
+# Local development guide
 
-[文档首页](README.md) · [SDK](../product/sdk/README.md) · [示例](../product/examples/README.md)
+[Documentation](README.md) · [SDK](../product/sdk/README.md) · [Examples](../product/examples/README.md)
 
-## 1. 准备
+## 1. Prerequisites
 
-- Node.js 24、npm与Git。
-- 使用自己的GitHub账号访问私有仓库。
-- 供应商Key不是基础写入和词法检索的前提。
+- Node.js 24, npm, and Git.
+- Your own GitHub account with access to this private repository.
+- Provider credentials are not required for explicit writes or lexical retrieval.
 
 ```sh
 git clone https://github.com/Sixteen-Memory/sixteen-memory.git
@@ -14,25 +14,24 @@ cd sixteen-memory
 npm run setup
 ```
 
-`setup`依次在`product/`和`homepage/`执行`npm ci`，使用各自锁文件。
-不会创建生产资源、部署服务或安装可选评估环境。
+`setup` runs `npm ci` in `product/` and `homepage/`, using their separate lockfiles. It does not create production resources, deploy services, or install optional evaluation dependencies.
 
-## 2. 只开发官网
+## 2. Work on the website
 
 ```sh
 npm run dev:website -- --port 4180
 ```
 
-打开`http://127.0.0.1:4180`。官网独立运行，不必先启动产品API。
+Open `http://127.0.0.1:4180`. The website runs independently of the product API.
 
 ```sh
 npm run build:website
 npm --prefix homepage run preview -- --port 4180
 ```
 
-构建输出在`homepage/dist/`，不进入Git，也不会自动上传。
+Build output goes to `homepage/dist/`. It is ignored by Git and is not automatically uploaded.
 
-## 3. 开发产品
+## 3. Work on the product
 
 ```sh
 npm run prepare:product
@@ -40,33 +39,30 @@ npm run build:product
 npm run dev:product
 ```
 
-| 入口 | 地址 |
+| Entry point | Address |
 | :--- | :--- |
-| 管理台开发服务器 | `http://127.0.0.1:4191` |
-| 本地API及构建版入口 | `http://127.0.0.1:8790` |
-| 无需Key的健康检查 | `http://127.0.0.1:8790/health` |
+| Console development server | `http://127.0.0.1:4191` |
+| Local API and built application | `http://127.0.0.1:8790` |
+| Health endpoint, no key required | `http://127.0.0.1:8790/health` |
 
-`prepare:product`生成本地Key，文件为`product/.dev.vars`。登录时在本机读取`ADMIN_KEY`，
-不要把值提交到代码或公开记录。应用使用管理员在控制台创建的、绑定用户范围的读写Key。
+`prepare:product` generates a local key in `product/.dev.vars`. Read `ADMIN_KEY` locally to sign in; do not commit or publish it. Applications should use a read/write key bound to a user scope, created by an administrator in the console.
 
-`dev:product`同时运行本地Worker和Vite，按`Ctrl+C`结束。
-数据位于被Git忽略的`product/.wrangler/`；删除此目录会删除本地数据，不要当作常规清理。
+`dev:product` runs the local Worker and Vite together. Stop them with `Ctrl+C`. Data lives in the Git-ignored `product/.wrangler/` directory. Deleting it deletes local data; do not treat that as routine cleanup.
 
-## 4. 先跑不需要模型的示例
+## 4. Run a model-free example
 
-保持产品服务运行，在另一个终端设置测试Key及允许访问的用户范围，不写入示例文件。
+Keep the product service running. In another terminal, set the test key and its permitted user scope without writing the key into an example file.
 
 ```sh
-# 已在当前终端设置 SIXTEEN_API_KEY
+# SIXTEEN_API_KEY is already set in this terminal.
 export SIXTEEN_BASE_URL=http://127.0.0.1:8790
 export SIXTEEN_USER_ID=example-user
 npm run example:basic
 ```
 
-示例会写入、检索、更新、查看历史，并在结束时删除它创建的合成记录。
-只指向本地或明确批准的测试环境，不使用生产管理员Key。
+The example writes, searches, updates, reads history, and deletes its synthetic record at the end. Use only a local or explicitly approved test environment, never a production administrator key. The example's multilingual sample text is intentional.
 
-## 5. 选择必要检查
+## 5. Choose relevant checks
 
 ```sh
 npm run check:docs
@@ -74,17 +70,15 @@ npm run check:website
 npm run check:product
 ```
 
-单独运行一个检查：`cd product && node --test test/sdk.test.mjs`。
-README或页面改动不需要真实模型评估；`product/eval/`的依赖和授权独立。
+For one targeted check: `cd product && node --test test/sdk.test.mjs`.
+README and ordinary page changes do not require real-model evaluation. `product/eval/` has separate dependencies and authorization requirements.
 
-## 常见问题
+## Troubleshooting
 
-**端口被占用？** 确认是否为自己启动的进程，不终止其他应用。产品同时涉及代理与Worker，
-不能只改其中一个端口。
+**Port already in use?** Check whether you started the existing process. Do not terminate unrelated applications. The product has both a proxy and a Worker, so changing only one port is insufficient.
 
-**返回503？** 本地管理员Key未配置与回答模型未配置是不同情况。无需模型时使用显式写入
-和`lexical`检索。
+**HTTP 503?** Missing administrator setup and a missing answer-model configuration are different errors. If no model is needed, use explicit writes and `lexical` retrieval.
 
-**SDK方法存在但线上不能用？** SDK含开发版本方法；目标服务版本决定是否开放。
+**An SDK method exists but the live service rejects it?** The SDK includes development methods. Availability depends on the target service version.
 
-**构建成功要不要deploy？** 不自动执行。推送、发布、数据迁移和模型费用分别需要授权。
+**Build succeeded: deploy next?** Not automatically. Pushing, deployment, data migration, and model costs require separate authorization.

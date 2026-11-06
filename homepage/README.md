@@ -1,6 +1,6 @@
-# Sixteenmemory website
+# SixteenMemory website
 
-[仓库首页](../README.md) · [快速开始](../docs/QUICKSTART.md) · [架构](../docs/ARCHITECTURE.md)
+[Repository home](../README.md) · [Quickstart](../docs/QUICKSTART.md) · [Architecture](../docs/ARCHITECTURE.md)
 
 Independent React/Vite website for `www.sixteenmemory.com`.
 This project publishes only the homepage static build, not the product service,

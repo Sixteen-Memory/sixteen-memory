@@ -1,19 +1,19 @@
-# v0.2.1 第一轮API增量（本地候选，未上线）
+# v0.2.1 API additions
 
-## 事实槽位
+Local development candidate, not a production release.
 
-`worker/fact-slots.ts`维护版本化注册表`self-facts/1`：
+## Fact slots
 
-- `user.home_city`：仅常住城市；接受residence_city/current_residence_city两个审核过的别名。
-- `user.preferred_language`：长期沟通语言。
-- `user.commute_mode`：主要日常通勤方式。
-- `user.timezone`：显式时区，不按城市推断。
+`worker/fact-slots.ts` maintains the versioned `self-facts/1` registry:
 
-`user.current_city`不归入常住城市；未注册槽位可以抽取，但必须人工审核。
-旧记录别名通过候选检索展开匹配，不批量覆写原历史。多个候选、手工更正、
-时间不明确、来源支持不足继续送审，返回`review_reasons`。
+- `user.home_city`: long-term home city only; accepts the reviewed aliases `residence_city` and `current_residence_city`.
+- `user.preferred_language`: durable communication language.
+- `user.commute_mode`: primary routine commuting method.
+- `user.timezone`: explicit timezone, never inferred from a city.
 
-## 属性写入
+`user.current_city` is not mapped to home city. Unregistered slots may be extracted but require review. Existing aliases are expanded during candidate lookup rather than bulk rewriting history. Multiple targets, manual corrections, ambiguous time, or insufficient support continue to require review and return `review_reasons`.
+
+## Write attributes
 
 ```json
 {
@@ -25,23 +25,20 @@
 }
 ```
 
-可用于显式新增/更新和ingestion的调用方属性。模型不决定metadata或有效时间。
-metadata最多16个平面字段、4096字节；值只能为string≤256、有限number、boolean、null。
-不接受数组、嵌套对象和特殊原型字段。分类最多64字符，采用标识符字符集。
-所有时间必须含时区并为真实日历值，保存为UTC。
+These are caller-provided attributes for explicit creates/updates and ingestions. Models do not choose metadata or validity windows.
 
-新增默认metadata={}，其余null；更新省略新属性保留旧值，metadata={}和category=null
-明确清空。metadata是整体替换而不是深度合并。已保存历史包含每版属性，旧历史默认空值，
-不伪造旧事件时间。ingestion merge只增加证据，属性不同报冲突，不静默覆盖分类或元数据。
+Metadata permits at most 16 flat fields and 4,096 bytes. Values may be strings of up to 256 characters, finite numbers, booleans, or null. Arrays, nested objects, and special prototype fields are rejected. Categories use identifier characters and are limited to 64 characters. Timestamps must include a timezone and valid calendar values; storage uses UTC.
 
-## 检索筛选
+Creates default to `metadata={}` and null for the other attributes. Updates preserve omitted attributes; `metadata={}` and `category=null` explicitly clear values. Metadata is replaced as a whole, not deep-merged. New history records retain versioned attributes; older history has empty defaults rather than fabricated event timestamps. An ingestion merge adds evidence only; differing attributes cause a conflict rather than silently replacing categories or metadata.
 
-`POST /v1/search`和`POST /v1/answer`：
+## Retrieval filters
+
+For `POST /v1/search` and `POST /v1/answer`:
 
 ```json
 {
   "user_id": "customer-42",
-  "query": "退款进度",
+  "query": "refund status",
   "mode": "lexical",
   "filter": {
     "AND": [
@@ -54,49 +51,37 @@ metadata最多16个平面字段、4096字节；值只能为string≤256、有限
 }
 ```
 
-- `AND/OR`每节点1–8子项；`NOT`一个子条件；总节点≤32、深度≤4。
-- 编译后筛选最多80个绑定参数，过大组合返回422而不是数据库错误。
-- 叶子严格为`field/op/value`。
-- 字段：metadata.平面字段、category、event_time、valid_from/to、created_at、
-  updated_at、origin、fact_key、source.type/ref/observed_at。
-- 不接受user_id/project_id/role作为filter字段；权限范围始终由服务端Key校验，
-  不因OR/NOT变宽。
-- 操作eq/ne/in/gt/gte/lt/lte/exists；范围比较仅数字/时间；in最多16值。
-- 类型严格区分true、1和"1"；metadata `eq:null`匹配显式null，不匹配缺字段。
-  `exists`判断字段是否存在；`ne`排除缺字段；NOT(eq)可包含缺字段。
-- SQL标识符白名单、路径和值参数绑定；筛选发生在limit之前。
-- lexical/semantic/hybrid和显式fallback保留相同filter/at。
+- Each `AND`/`OR` node has 1–8 children; `NOT` has one. Maximum 32 nodes and depth 4.
+- Compiled filters allow at most 80 bound parameters. Oversized expressions return 422, not a database error.
+- Leaves contain exactly `field`, `op`, and `value`.
+- Allowed fields: flat `metadata` fields, `category`, `event_time`, `valid_from/to`, `created_at`, `updated_at`, `origin`, `fact_key`, and `source.type/ref/observed_at`.
+- `user_id`, `project_id`, and `role` are not filter fields. Server-side key authorization always defines scope; OR/NOT cannot broaden it.
+- Operators: `eq`, `ne`, `in`, `gt`, `gte`, `lt`, `lte`, and `exists`. Range comparisons apply only to numbers/timestamps; `in` has at most 16 values.
+- Types distinguish `true`, `1`, and `"1"`. Metadata `eq:null` matches explicit null, not a missing field. `exists` tests presence; `ne` excludes missing fields; `NOT(eq)` can include missing fields.
+- SQL identifiers are allowlisted, while paths and values use bound parameters. Filtering happens before `limit`.
+- Lexical, semantic, hybrid, and explicitly requested fallback retain the same `filter` and `at` constraints.
 
-GET列表/导出用URL编码后的JSON `filter`参数；SDK list/exportPage自动编码。
-列表/导出不自动按有效时间隐藏，供管理查看；按有效时间检索使用search。
+GET list/export endpoints accept URL-encoded JSON in `filter`; SDK `list`/`exportPage` encode it automatically. List/export do not automatically hide records outside validity windows, because they support management. Use search for validity-filtered retrieval.
 
-## 三种时间不是同一回事
+## Time fields are different concepts
 
-- `source.observed_at`：收到来源的时间，维护更新顺序沿用此字段。
-- `event_time`：调用方声明的事件发生时间，只用于筛选，不自动推断。
-- `valid_from/to`：当前记录的有效窗口`[from,to)`；search默认按本次请求时间判断。
-- `expires_at`：实际在线物理清理时间。与“暂不召回”不同，不支持复活。
+- `source.observed_at`: when the source was observed; maintenance ordering continues to use this field.
+- `event_time`: caller-declared event time, used only for filtering and never automatically inferred.
+- `valid_from/to`: the current record's validity window, `[from,to)`. Search defaults to the current request time.
+- `expires_at`: physical online cleanup time, not temporary exclusion from retrieval; expired records do not reappear.
 
-**`at`不是历史快照/as-of查询。** 它只筛当前保存版本的有效窗口；不恢复旧版本、
-删除记录或过期数据，不意味着实现了双时间线或历史时间推理。
+**`at` is not a historical snapshot or as-of query.** It filters the currently saved version's validity window. It does not reconstruct old versions, deleted records, or expired data and does not implement bitemporal history or general temporal reasoning.
 
-## threshold
+## Threshold
 
-仅semantic/hybrid支持显式0..1数值，为**余弦门槛**，不是概率/统一score。
-hybrid设置threshold时，词法命中也要通过同一余弦门槛；返回score仍是RRF。
-lexical或带fallback:"lexical"的请求不接受threshold，避免静默丢失门槛。
-未配置threshold保留原混合检索语义。
+Only semantic/hybrid modes accept an explicit number in `0..1`. It is a **cosine gate**, not a probability or unified score. With a hybrid threshold, lexical hits must pass the same cosine gate; returned ranking scores are still RRF. Lexical mode and requests with `fallback:"lexical"` reject `threshold` rather than silently dropping it. Omitting the threshold preserves the original hybrid semantics.
 
-索引覆盖仍检查整个用户范围，不能用窄filter掩盖缺失索引；若过滤后无命中且
-覆盖完整，不产生Embedding请求。仍为每用户1000条、最高2048维的小规模实现。
+Coverage is still checked across the whole user scope. A narrow filter cannot hide a missing index. If coverage is complete and filtering leaves no candidates, no embedding request is made. The implementation remains bounded to 1,000 records per user and at most 2,048 dimensions.
 
-## 还未交付
+## Outside this increment
 
-真实模型质量、通用时间推理、统一异步队列、用户画像、OpenAPI/Python发布包、MCP、
-多组织、计费、SSO和新版官网页面。本轮只交API基础与审核材料。
+This API round did not deliver real-model quality validation, general temporal reasoning, a unified task queue, profiles, OpenAPI/Python packages, MCP, multiple organizations, billing, SSO, or website pages. Subsequent website work is tracked separately in the [roadmap](../docs/ROADMAP.md); this document describes the API increment only.
 
-## 升级与回退
+## Upgrade and rollback
 
-迁移增加memories/history字段并保留旧值，初始化可重复执行。**不能直接降级回旧Worker**：
-旧版history使用无列名INSERT，与新增列不兼容。未来生产升级前必须先备份并验证恢复，
-采用与新schema兼容的前向修复或整体恢复；本轮没有做生产备份/恢复演练。
+The migration adds fields to `memories` and `history`, preserves existing values, and is safe to initialize repeatedly. **Do not downgrade directly to the old Worker**: its history writes use positional inserts that are incompatible with added columns. Before a production upgrade, verify backups and restoration, then use a schema-compatible forward fix or complete restoration strategy. This round did not perform a production backup/recovery drill.

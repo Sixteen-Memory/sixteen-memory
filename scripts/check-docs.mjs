@@ -7,11 +7,24 @@ import { dirname, extname, isAbsolute, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const excluded = new Set([".git", "node_modules", "dist", "dist-worker", "dist-pages", ".local", ".wrangler", ".playwright-cli", "output"]);
+const excluded = new Set([".git", ".agent", "node_modules", "dist", "dist-worker", "dist-pages", ".local", ".wrangler", ".playwright-cli", "output"]);
 const problems = [];
 const documents = [];
 const parsed = new Map();
 let linksChecked = 0;
+let languageFilesChecked = 0;
+
+// Repository prose is English. Product localization and multilingual fixtures
+// are deliberately outside this documentation-only language guard.
+function checkDocumentationLanguage(path, text) {
+  languageFilesChecked++;
+  const lines = text.split(/\r?\n/);
+  for (let index = 0; index < lines.length; index++) {
+    if (/\p{Script=Han}/u.test(lines[index])) {
+      problems.push(`${relative(root, path)}:${index + 1}: repository documentation must use English`);
+    }
+  }
+}
 
 async function walk(folder) {
   for (const entry of await readdir(folder, { withFileTypes: true })) {
@@ -74,7 +87,8 @@ async function checkLink(from, href) {
 }
 await walk(root);
 for (const path of documents) {
-  const { links } = await parse(path);
+  const { original, links } = await parse(path);
+  checkDocumentationLanguage(path, original);
   for (const link of links) await checkLink(path, link);
 }
 const packageJson = JSON.parse(await readFile(resolve(root, "package.json"), "utf8"));
@@ -85,6 +99,7 @@ for (const path of documents.filter(path => path === resolve(root, "README.md") 
   }
 }
 const capabilities = JSON.parse(await readFile(resolve(root, "product/capabilities.json"), "utf8"));
+checkDocumentationLanguage(resolve(root, "product/capabilities.json"), JSON.stringify(capabilities));
 for (const item of capabilities.items) {
   for (const evidence of item.evidence ?? []) {
     await checkLink(resolve(root, "README.md"), evidence);
@@ -93,6 +108,7 @@ for (const item of capabilities.items) {
 for (const file of await readdir(resolve(root, "docs/assets"))) {
   if (!file.endsWith(".svg")) continue;
   const text = await readFile(resolve(root, "docs/assets", file), "utf8");
+  checkDocumentationLanguage(resolve(root, "docs/assets", file), text);
   if (/<script\b|<foreignObject\b|\son[a-z]+\s*=|(?:href|src)=["'](?:https?:|\/\/|data:)/i.test(text)) {
     problems.push(`docs/assets/${file}: executable or external SVG content`);
   }
@@ -100,5 +116,5 @@ for (const file of await readdir(resolve(root, "docs/assets"))) {
 if (problems.length) {
   console.error(problems.join("\n")); process.exitCode = 1;
 } else {
-  console.log(JSON.stringify({ status: "passed", markdown_files: documents.length, local_links_checked: linksChecked, capability_items: capabilities.items.length, network_requests: 0, model_calls: 0 }, null, 2));
+  console.log(JSON.stringify({ status: "passed", markdown_files: documents.length, local_links_checked: linksChecked, capability_items: capabilities.items.length, language_files_checked: languageFilesChecked, language_guard: "English documentation; no Han-script text", product_localization_checked: false, network_requests: 0, model_calls: 0 }, null, 2));
 }
