@@ -1,49 +1,46 @@
-# 开发状态
+# Roadmap and status
 
-**先搭好产品与接入框架，再逐步确认真实场景。**
+**Build the product and integration foundation first; validate real use cases incrementally.**
 
-[文档首页](README.md) · [系统架构](ARCHITECTURE.md)
+[Documentation](README.md) · [Architecture](ARCHITECTURE.md)
 
-2026年11月6日整理的源码与已有发布记录快照，不是实时监控。
-仓库记录的线上基础为v0.1.0；开发代码版本为v0.2.1。
+This source and release-record snapshot was assembled on November 6, 2026. It is not live monitoring. The recorded production baseline is v0.1.0; development source is v0.2.1.
 
-## 已实现的基础
+## Implemented foundation
 
-- [x] 显式保存、读取、列表、更新、历史、停用、删除和分页导出。
-- [x] 中文与英文词法检索。
-- [x] 用户范围Key、角色检查和可撤销控制台会话。
-- [x] 管理台、请求记录、JavaScript SDK源码与示例。
-- [x] 独立官网、产品页、开发文档与中英文导航。
-- [x] 公司私有仓库、个人账号贡献与协作入口。
+- [x] Explicit create, read, list, update, history, deactivate, delete, and paginated export.
+- [x] Chinese and English lexical retrieval.
+- [x] User-scoped keys, role checks, and revocable console sessions.
+- [x] Console, request records, JavaScript SDK source, and examples.
+- [x] Independent website, product pages, developer documentation, and bilingual navigation.
+- [x] Private company repository, personal contributions, and collaboration guides.
 
-## 开发版本，尚未完成真实模型确认
+## Development features awaiting real-model validation
 
-| 工作 | 目前进度 | 仍缺少什么 |
+| Work | Implemented | Still needed |
 | :--- | :--- | :--- |
-| 对话抽取与维护 | 来源校验、候选、事实槽位、歧义审核已有实现 | 模型效果与试点确认 |
-| 语义／混合检索 | 千问适配、覆盖检查、余弦／RRF与重建已有实现 | 真实向量调用与检索质量确认 |
-| 分类、元数据和时间 | API校验、存储与组合过滤已有实现 | 管理台完整表单与发布 |
-| 评估材料 | 本地检查、合成用例和独立脚本已有 | 独立盲评和真实客户结果 |
+| Conversation extraction and maintenance | Source checks, candidates, fact slots, and ambiguity review | Model-quality and pilot validation |
+| Semantic and hybrid retrieval | Qwen adapter, coverage checks, cosine/RRF ranking, and reindexing | Real embedding calls and retrieval-quality validation |
+| Categories, metadata, and time | API validation, storage, and compound filtering | Complete console forms and release |
+| Evaluation material | Local checks, synthetic cases, and isolated scripts | Independent blind review and real customer results |
 
-“有效时间”不是历史快照或时间推理。“用量限制”不是账户账单硬上限。
-凭证不随代码入库；有凭证也不代表模型路径已通过验证。
+Validity windows are not historical snapshots or temporal reasoning. Usage limits are not a hard account-billing cap. Credentials are not committed; possessing credentials does not validate a model path.
 
-## 接下来的结构性工作
+## Next structural work
 
-1. 将管理台、文档与实际API保持同步，补齐已有功能的操作入口。
-2. 新增API描述时从真实路由建立来源，避免第二套不一致的接口。
-3. 出现批量任务需求后再设计任务状态、幂等和恢复，不先搭空队列。
-4. 确认供应商与场景后，再安排小样本模型质量检查。
+1. Keep the console and documentation aligned with actual APIs; complete entry points for implemented features.
+2. Derive new API descriptions from real routes rather than maintaining a conflicting second interface.
+3. Design task state, idempotency, and recovery when batch workloads require them, not an empty queue in advance.
+4. Confirm providers and use cases before scheduling a small real-model quality pilot.
 
-这是方向列表，不是日期承诺。普通网站和仓库维护不触发付费模型检查。
+These are directions, not delivery-date commitments. Ordinary website and repository maintenance does not trigger paid model evaluation.
 
-## 尚未提供
+## Not available
 
-- 用户画像API、只读MCP Server。
-- 正式npm／Python SDK包、OpenAPI描述。
-- Webhook、反馈接口、统一异步任务框架。
-- 自助注册、客户计费、多组织成员、SSO。
-- 企业SLA、公开合规认证、生产容量或客户效果承诺。
+- Profile API or read-only MCP server.
+- Published npm/Python SDK packages or an OpenAPI specification.
+- Webhooks, feedback endpoints, or a unified asynchronous task framework.
+- Self-service signup, customer billing, organization membership, or SSO.
+- Enterprise SLA, public compliance certification, validated production capacity, or customer outcome claims.
 
-不为规划创建空目录、虚假安装命令或无效接口。
-开源模块另建公开仓库，核心主仓库保持Private。
+Do not represent planned work with empty directories, invented installation commands, or nonfunctional endpoints. Open-source modules belong in separate public repositories; the core repository remains private.

@@ -1,30 +1,28 @@
 # SixteenMemory / Product
 
-[快速开始](../docs/QUICKSTART.md) · [系统架构](../docs/ARCHITECTURE.md) · [代码导航](../docs/REPOSITORY_MAP.md) · [开发状态](../docs/ROADMAP.md)
+[Quickstart](../docs/QUICKSTART.md) · [Architecture](../docs/ARCHITECTURE.md) · [Code map](../docs/REPOSITORY_MAP.md) · [Roadmap](../docs/ROADMAP.md)
 
-本地候选版本0.2.1，开发预览（线上仍为0.1.0，未发布本轮智能能力）。与现有官网、演示原型和 AML 比赛服务独立。
+Development candidate v0.2.1. The recorded production baseline remains v0.1.0; the new intelligent paths have not replaced it. This service is separate from the website, demonstration prototype, and legacy competition service.
 
-当前公开入口为 `https://console.sixteenmemory.com`。部署凭证和运行记录不包含在代码库中。
+The public entry point is `https://console.sixteenmemory.com`. Deployment credentials and operating records are not included in the repository.
 
-新增智能路径、测试范围和未完成实现记录见 [P0开发记录](P0.md)。
-2026年11月5日第一轮增加事实槽位注册表、metadata/分类/有效时间与复合筛选，详见
-[第一轮API增量](ROUND1_API.md)。这些字段当前只提供API，不声称管理台已有表单。
-供应商策略：生成可使用OpenAI GPT或阿里千问；语义Embedding固定使用千问，见
-[供应商策略](PROVIDER_POLICY.md)。
+See the [P0 implementation notes](P0.md) for intelligent paths, test scope, and outstanding validation. The November 5, 2026 round added a fact-slot registry, metadata, categories, validity windows, and compound filters; see [API additions](ROUND1_API.md). These additions are API-level features, not a claim that the console already exposes every field. Generation targets OpenAI GPT or Alibaba Qwen; semantic embeddings use Qwen only. See [provider policy](PROVIDER_POLICY.md).
 
-## v0.1.0已上线基础
+## Recorded v0.1.0 production baseline
 
-- 真实 SQLite 存储：新增、读取、列表、显式更新、历史、撤销、删除、到期清理和分页导出。
-- 中文/英文词法检索，只查询有效记忆；没有启用语义检索或自动事实抽取。
-- 管理员凭证、绑定用户范围的读写/只读 Key、服务端范围校验、可撤销登录会话。
-- 接入真实 API 的管理台：记忆列表、来源与历史、检索、Key 管理、请求记录。
-- JavaScript SDK 与客户服务接续示例。
-- 可选回答模型接口；未配置时返回503，不生成模拟回答。
-- Worker 与 Pages Service Binding 已部署；新增登录/API基础限流。
+- Real SQLite storage: create, read, list, explicit update, history, deactivate, delete, expiry cleanup, and paginated export.
+- Chinese and English lexical retrieval over active memories, without semantic retrieval or automatic extraction enabled.
+- Administrator credentials, user-scoped read-only/read-write keys, server-side scope checks, and revocable login sessions.
+- Console connected to the real API: memory lists, sources, history, search, key management, and request records.
+- JavaScript SDK and customer continuity example.
+- Optional answer-model endpoint; returns 503 when unconfigured rather than fabricating an answer.
+- Worker and Pages Service Binding, with baseline login and API rate limits.
 
-## 本地运行
+## Run locally
 
-```bash
+From `product/`:
+
+```sh
 npm ci
 npm run prepare:local
 npm run types
@@ -32,72 +30,70 @@ npm run build
 npm run dev
 ```
 
-需要在终端命令结束后保留本地预览时，可使用 `npm run start:local`。进程ID和日志位于`.local/`；已有端口被占用时会停止，不终止其他服务。
+Use `npm run start:local` if the preview must outlive the terminal command. Process IDs and logs are stored under `.local/`. Startup stops if a required port is occupied; it does not terminate other services.
 
-管理台：`http://127.0.0.1:4191`。
+- Console: `http://127.0.0.1:4191`.
+- Built application and API: `http://127.0.0.1:8790`.
 
-构建版和 API：`http://127.0.0.1:8790`。
+First-run preparation generates a local-only administrator key in `.dev.vars` with mode 0600. Read `ADMIN_KEY` locally to sign in. Never put the file or its value in Git, browser source, or chat.
 
-首次运行会生成仅本地使用的管理员 Key，保存在 `.dev.vars`，文件权限为0600。登录时读取其中 `ADMIN_KEY` 的值。不要将该文件或密钥放入 Git、网页代码或聊天。
+Data lives in `product/.wrangler/state/`, not browser localStorage. It survives restarts; deleting that directory deletes local data.
 
-数据保存在 `product/.wrangler/state/`，不是浏览器 localStorage。重启保留；删除该目录会删除本地数据。
+The bundled API guide is `public/quickstart.html`. Create a scoped application key in the console, set `SIXTEEN_API_KEY` in the terminal, then run:
 
-API 文档：`public/quickstart.html`。管理员可创建限定用户范围的 Key，再运行：
-
-```bash
+```sh
 SIXTEEN_BASE_URL=http://127.0.0.1:8790 \
 SIXTEEN_USER_ID=example-user \
-SIXTEEN_API_KEY=... \
 node examples/customer-continuity.mjs
 ```
 
-示例会写入、查询、更新和删除一条合成记录，不涉及模型调用。
+The example writes, searches, updates, and deletes a synthetic record without model calls. Existing sample localization and product interface language are unchanged by repository documentation translation.
 
-## 验证
+## Checks
 
-```bash
+```sh
 npm test
 npm run build
 npm run test:runtime
 npm run build:pages
 ```
 
-`test:runtime` 使用真实本地 Workers/SQLite 运行时，经 Pages Service Binding 调用 API。测试创建隔离临时存储并清理，不访问线上数据，不调用模型。
+`test:runtime` exercises the actual local Workers/SQLite runtime through a Pages Service Binding. It creates and cleans up isolated temporary storage, without accessing production data or calling models.
 
-范围包含：登录、Key 范围、跨项目隔离、并发版本冲突、幂等、历史、撤销、在线物理删除、到期清理、重启持久化和 SDK。
+Coverage includes login, key scopes, project isolation, concurrent version conflicts, idempotency, history, deactivation, online physical deletion, expiry cleanup, restart persistence, and SDK behavior.
 
-## 数据行为
+## Data behavior
 
-- `source` 是调用方提供的依据，不等于系统已经确认真实。
-- 新增同一 `request_id` 时检查请求内容；30天内同内容重试不会重复创建。原记录已删除或到期则返回410。
-- 更新要求 `expected_version`，不覆盖并发修改；旧正文和来源进入历史。
-- 撤销保留历史但退出检索；更新已撤销记录会将其重新设为有效。
-- 删除清理在线正文、来源、历史和 FTS 索引。重试表仅保留请求摘要和原记录 ID，防止重复请求重新创建。
-- 到期时间为空表示不自动过期；仍受容量限制。
-- 导出是当前记录的分页读取，不是数据库备份或一致性快照。导出期间发生变更时可能看到不同时间的状态。
-- 请求记录只含操作、状态、耗时、凭证 ID 和时间，保留最近1,000条，不含查询和记忆正文。
-- 本地/线上平台恢复副本的清理与在线删除不同，详见部署说明。
+- `source` is caller-supplied evidence, not an independently verified truth claim.
+- A repeated `request_id` checks the request content. Identical retries within 30 days do not duplicate the record. A deleted or expired original returns 410.
+- Updates require `expected_version` and do not overwrite concurrent changes. Previous content and sources are preserved in history.
+- Deactivation preserves history but excludes the record from retrieval. Updating a deactivated record reactivates it.
+- Deletion clears online content, sources, history, and the FTS index. The retry table retains only the request digest and original ID to prevent a retry from recreating the record.
+- A null expiry means no automatic expiry, not exemption from capacity limits.
+- Export is a paginated read of current records, not a database backup or consistent snapshot. Concurrent changes can produce records from different points in time.
+- Request records contain operation, status, duration, credential ID, and timestamp. The latest 1,000 are retained, without query or memory content.
+- Platform recovery-copy retention is separate from online deletion; see deployment notes.
 
-## 当前限制
+## Current limitations
 
-以下区分线上基础与开发候选，完整状态见[开发状态](../docs/ROADMAP.md)。这不是完整企业版，尚未完成：
+See the [roadmap](../docs/ROADMAP.md) for the distinction between the production baseline and development candidates. This is not a complete enterprise release. Outstanding work includes:
 
-- 开发候选中的抽取、审核和语义检索尚未完成真实模型效果确认及生产发布；通用时间推理仍未实现。
-- 多组织自助注册、SSO、项目成员管理；当前每个部署固定一个项目。
-- 全局严格配额、完整滥用防护、负载和地域网络验收；现有基础限流是按地点近似计数。
-- 云端备份恢复演练、恢复后删除记录的再次清理。
-- Mem0 同条件评测、真实客户试点和实际付费模型验证。
+- Real-model validation and production release of extraction, review, and semantic retrieval; general temporal reasoning is not implemented.
+- Multi-organization signup, SSO, and project membership. Each deployment currently has one fixed project.
+- Strict global quotas, comprehensive abuse controls, load validation, and regional network checks. Current rate limits use approximate per-location counters.
+- Cloud backup/recovery drills and reapplying deletions after restoration.
+- Matched-condition Mem0 evaluation, real customer pilots, and full paid-model validation.
 
-每项目10,000条当前记录、单请求64 KiB、正文与来源正文各8,000字符、搜索最多50条。历史版本也消耗存储；这些是接口上限，不是已验证的生产容量。尚无完整用量和费用上限管理。
+Interface limits: 10,000 current records per project; 64 KiB per request; 8,000 characters each for content and source text; up to 50 search results. History also consumes storage. These are interface limits, not demonstrated production capacity. Complete usage and billing-cap management is not available.
 
-## 文件
+## Files
 
 ```text
-worker/       API、身份校验、存储与历史
-src/          React 管理台
-sdk/          无运行依赖的 JavaScript 客户端
-examples/     合成数据接续示例
-pages/        子域名入口和 Service Binding
-test/         SDK 与 Workers 运行测试
-DEPLOYMENT.md 部署与上线前检查
+worker/       API, authorization, storage, and history
+src/          React console
+sdk/          JavaScript client with no runtime dependencies
+examples/     Synthetic continuity examples
+pages/        Domain entry and Service Binding
+test/         SDK and Workers runtime checks
+DEPLOYMENT.md Deployment boundaries and prerequisites
 ```

@@ -1,63 +1,60 @@
-# SixteenMemory GitHub代码库方案
+# GitHub organization and repository
 
-日期：2026年11月6日
+Recorded on November 6, 2026.
 
-## 已确认的组织结构
+## Confirmed ownership
 
-使用GitHub **Organization**，不是共享的公司个人账号：
+Use a GitHub **Organization**, not a shared company personal account:
 
 ```text
 Organization: Sixteen-Memory
 Private repository: sixteen-memory
-Owner / 日常提交账号: Chengyuann
+Owner / daily contributor: Chengyuann
 ```
 
-组织代表公司，个人账号代表实际贡献者。这样提交记录、二步验证、访问回收和后续增加成员
-都更清楚。不要多人共用一个`SixteenMemory`登录密码或长期Token。
+The organization represents the company; personal accounts identify actual contributors. This keeps authorship, two-factor authentication, access removal, and future membership clear. Do not share a company password or long-lived token.
 
-未来如果需要开源：
+Future open-source work has a separate home:
 
 ```text
-Sixteen-Memory/sixteen-memory       私有主仓库
-Sixteen-Memory/<public-project>     单独公开仓库
+Sixteen-Memory/sixteen-memory       Private core repository
+Sixteen-Memory/<public-project>     Separate public repository
 ```
 
-公开仓库应从主仓库挑选可发布内容，不应直接把核心私有仓库改为公开。
+Select releasable content for a public repository. Do not turn the private core repository public.
 
-## 首个私有仓库范围
+## Source import scope
 
-纳入：
+Included:
 
-- `product/`：Worker、管理台、SDK、示例、测试和评估脚本；
-- `homepage/`：官网源码、素材来源说明、页面检查；
-- `docs/`：产品、集成、Mem0学习记录和代码库说明；
-- 顶层Plan及构建配置中与产品直接相关的内容。
+- `product/`: Worker, console, SDK, examples, tests, and evaluation scripts.
+- `homepage/`: website source, asset provenance, and page checks.
+- `docs/`: product, integration, Mem0 research, and repository documentation.
+- Relevant top-level development and build configuration.
 
-排除：
+Excluded:
 
-- `.agent/`、截图、临时图表、`output/`和本地浏览器记录；
-- `.dev.vars`、`.local/`、`.wrangler/`、生产Key与供应商凭证；
-- `node_modules/`、`dist/`与TypeScript缓存；
-- 真实模型响应、生产数据、本地数据库和部署会话。
+- `.agent/`, screenshots, temporary charts, `output/`, and browser records.
+- `.dev.vars`, `.local/`, `.wrangler/`, production keys, and provider credentials.
+- `node_modules/`, `dist/`, and TypeScript caches.
+- Real model responses, production data, local databases, and deployment sessions.
 
-## 初次建库步骤
+## Initial setup process
 
-1. 用户已创建`Sixteen-Memory`组织；2026年11月6日查询确认`Chengyuann`为有效Owner。
-2. 在组织下创建私有仓库`sixteen-memory`，不自动添加README、LICENSE或`.gitignore`。
-3. 在单独目录准备干净的首次提交，不直接推当前混合工作区。
-4. 设置提交身份为个人GitHub账号对应的名称和邮箱。
-5. 推送`main`后检查仓库可见性、文件列表和密钥扫描。
-6. 按实际套餐确认分支保护是否可用；GitHub Free组织的私有仓库不提供全部保护功能，
-   不能把`CODEOWNERS`文件当作已强制执行的审批。升级付费套餐需另行批准。
-7. 后续使用个人账号分支和Pull Request协作。
+1. The user created `Sixteen-Memory`; `Chengyuann` was verified as an active Owner on November 6, 2026.
+2. Create the private `sixteen-memory` repository without generating duplicate README, license, or ignore files.
+3. Prepare a clean import in a separate directory rather than pushing the mixed prototype workspace.
+4. Set repository-local authorship to the personal GitHub account.
+5. Push `main`, then verify visibility, file inventory, and secret exclusion.
+6. Check actual plan support before relying on branch protection. GitHub Free does not provide every private-repository protection; a `CODEOWNERS` file alone is not enforced approval. Paid upgrades require separate authorization.
+7. Use personal-account feature branches and pull requests afterward.
 
-## 已核实与权限边界
+## Verified boundaries
 
-- 组织实际地址为`Sixteen-Memory`，品牌名称仍为SixteenMemory。
-- 当前套餐为GitHub Free，没有批准升级付费套餐。
-- `Chengyuann`已有Owner权限，无需额外邀请自己为外部协作者。
-- 核心仓库只使用Private，不启用公开Pages或自动部署。
-- `CODEOWNERS`记录负责人，不等于套餐已经提供强制审批。
+- The organization handle is `Sixteen-Memory`; the brand is SixteenMemory.
+- The recorded plan is GitHub Free; no paid upgrade was authorized.
+- `Chengyuann` already has Owner access and does not need an outside-collaborator invitation.
+- The core repository stays private, without public Pages or automatic deployment.
+- `CODEOWNERS` identifies responsibility; it does not prove required-review enforcement.
 
-本地提交使用`Chengyuann`对应的GitHub noreply邮箱，不使用原工作区中的雇主邮箱。
-此设置只作用于新的本地仓库，不改全局Git配置。
+Local commits use the GitHub noreply address for `Chengyuann`, not the employer email from the old workspace. This configuration applies only to this repository, not global Git settings.

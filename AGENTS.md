@@ -8,6 +8,10 @@
   existing GitHub credential helper; never place tokens in remotes or files.
 - Make scoped commits and use feature branches for subsequent work. Do not
   force-push or rewrite shared history.
+- Write repository documentation, README files, developer metadata, templates,
+  and new commit/PR descriptions in English. Preserve product localization,
+  API response text, and multilingual fixtures unless explicitly asked to
+  change them. Do not rewrite historical commits just to translate messages.
 - Keep credentials, `.dev.vars`, `.local`, `.wrangler`, databases, private model
   outputs and generated build directories out of commits.
 - A successful push does not authorize deployment, DNS, billing, account

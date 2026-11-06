@@ -1,13 +1,14 @@
-## 改动
+## Changes
 
-说明实际改变的行为或页面。
+Describe the actual behavior, documentation, or interface changes.
 
-## 检查
+## Checks
 
-列出运行的命令和结果；没有执行的检查写明原因。
+List the commands run and their results. Explain any checks not performed.
 
-## 风险
+## Risk and scope
 
-- 是否涉及接口、数据含义、权限或供应商调用？
-- 是否需要部署或数据库操作？本PR不自动执行这些操作。
-- 待提交内容是否不含密钥、真实客户数据和运行输出？
+- Does this change affect APIs, data semantics, permissions, or provider calls?
+- Does it require deployment or database operations? This pull request does not authorize those actions.
+- Does the staged content exclude secrets, real customer data, and runtime output?
+- Are repository documentation and contribution descriptions in English, while existing localization and multilingual fixtures remain intact?
