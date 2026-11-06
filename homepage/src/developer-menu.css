@@ -1,0 +1,83 @@
+.developer-menu { position: relative; flex-shrink: 0; }
+.developer-menu > summary {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 44px;
+  padding: 0;
+  list-style: none;
+  cursor: pointer;
+  color: var(--body);
+  font: inherit;
+  font-size: 13px;
+  white-space: nowrap;
+}
+.developer-menu > summary::-webkit-details-marker { display: none; }
+.developer-menu > summary:hover,
+.developer-menu[open] > summary { color: var(--rust); }
+.developer-menu > summary:focus-visible { outline: 2px solid var(--rust); outline-offset: 4px; border-radius: 3px; }
+.developer-menu > summary svg { transition: transform .15s; }
+.developer-menu[open] > summary svg { transform: rotate(180deg); }
+.developer-menu-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  z-index: 40;
+  width: min(380px, calc(100vw - 40px));
+  max-height: calc(100svh - 110px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 10px;
+  border: 1px solid var(--hairline);
+  border-radius: 12px;
+  background: var(--paper-dark);
+  box-shadow: 0 18px 48px rgb(0 0 0 / .32);
+}
+.developer-menu .developer-menu-entry {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 14px;
+  min-height: 68px;
+  border-radius: 7px;
+  color: var(--ink);
+  white-space: normal;
+  letter-spacing: 0;
+  text-align: left;
+  text-decoration: none;
+}
+.developer-menu .developer-menu-entry > svg { flex: 0 0 18px; margin-top: 3px; color: var(--rust); }
+.developer-menu-entry > span { min-width: 0; }
+.developer-menu-entry strong { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; font: 500 16px/1.4 var(--font-ui); }
+.developer-menu-entry em { display: block; margin-top: 4px; color: var(--body); font: 400 12px/1.6 var(--font-ui); }
+.developer-menu a.developer-menu-entry:hover { background: var(--paper); color: var(--rust); }
+.developer-menu a.developer-menu-entry:focus-visible { outline: 2px solid var(--rust); outline-offset: -2px; }
+.developer-menu .is-planned { margin-top: 6px; border-top: 1px solid var(--hairline); border-radius: 0; }
+.developer-menu .is-planned > svg { color: var(--body); }
+.developer-menu-entry small { font: 400 10px/1.5 var(--font-ui); padding: 2px 7px; color: var(--body); border: 1px solid var(--hairline); border-radius: 4px; }
+.site-header { position: relative; z-index: 25; }
+.site-header .developer-menu > summary { font-size: 12px; }
+.site-header .developer-menu-panel { left: auto; right: 0; }
+.docs-endpoints#api-reference { scroll-margin-top: 24px; }
+.mobile-navigation > div,
+.site-mobile-menu > div { max-height: calc(100svh - 110px); overflow-y: auto; overscroll-behavior: contain; }
+.developer-menu.is-compact > summary { justify-content: space-between; padding: 0 12px; font-size: 13px; }
+.developer-menu.is-compact .developer-menu-panel {
+  position: static;
+  width: 100%;
+  max-height: none;
+  overflow: visible;
+  padding: 4px;
+  margin: 4px 0 10px;
+  border-radius: 7px;
+  box-shadow: none;
+}
+.developer-menu.is-compact .developer-menu-entry { padding: 11px 8px; gap: 9px; min-height: 62px; }
+.developer-menu.is-compact .developer-menu-entry strong { font-size: 13px; }
+.developer-menu.is-compact .developer-menu-entry em { font-size: 11px; }
+@media (max-width: 1150px) and (min-width: 901px) {
+  .night-nav .developer-menu > summary { font-size: 11px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .developer-menu > summary svg { transition: none; }
+}

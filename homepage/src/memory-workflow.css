@@ -1,0 +1,109 @@
+/* Concise technical scenarios; evidence status stays beside each claim. */
+.facts.memory-workflow {
+  display: block;
+  min-height: auto;
+  padding: 88px 40px 100px;
+  scroll-margin-top: 24px;
+}
+.memory-workflow .workflow-shell { max-width: 1240px; margin: 0 auto; }
+.memory-workflow .workflow-header {
+  display: grid;
+  grid-template-columns: 1.08fr 1fr;
+  align-items: end;
+  gap: 64px;
+  padding-top: 38px;
+  margin-bottom: 48px;
+  border-top: 1px solid var(--hairline);
+}
+.memory-workflow .facts-heading { min-height: 0; position: static; }
+.memory-workflow .facts-heading .eyebrow { font-size: 11px; letter-spacing: .14em; }
+.memory-workflow .facts-heading h2 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 56px;
+  line-height: 1.13;
+  letter-spacing: -.035em;
+  margin: 23px 0 0;
+}
+.memory-workflow .facts-heading h2 > span { display: block; }
+html[lang="en"] .memory-workflow .facts-heading h2 { font-size: 51px; }
+.memory-workflow .workflow-intro { color: var(--body); font-size: 15px; line-height: 1.9; max-width: 440px; margin: 0; }
+.memory-workflow .agent-roundtable { margin: 0 0 48px; }
+.memory-workflow .agent-roundtable-image { display: block; width: 100%; height: auto; aspect-ratio: 3 / 2; object-fit: contain; background: transparent; }
+.memory-workflow .roundtable-caption { display: grid; grid-template-columns: 1.08fr 1fr; gap: 64px; padding: 24px 0 8px; }
+.memory-workflow .roundtable-label { color: var(--rust); font-size: 11px; letter-spacing: .12em; margin: 0 0 10px; }
+.memory-workflow .roundtable-caption h3 { font-family: var(--font-display); font-size: 23px; font-weight: 700; line-height: 1.5; margin: 0; }
+.memory-workflow .roundtable-description { color: var(--body); font-size: 14px; line-height: 1.9; margin: 0; }
+.memory-workflow .roundtable-note { color: var(--body); font-size: 11px; line-height: 1.7; margin: 10px 0 0; }
+.memory-workflow .memory-capabilities { list-style: none; padding: 0; margin: 0; border-top: 1px solid var(--hairline); }
+.memory-workflow .capability-row {
+  display: grid;
+  grid-template-columns: .65fr 1fr 1.12fr;
+  align-items: center;
+  gap: 38px;
+  padding: 34px 0;
+  border-bottom: 1px solid var(--hairline);
+}
+.memory-workflow .capability-row > * { min-width: 0; }
+.memory-workflow .capability-label { display: flex; align-items: baseline; gap: 22px; }
+.memory-workflow .capability-number { font-size: 12px; color: var(--rust); font-variant-numeric: tabular-nums; }
+.memory-workflow .capability-label p { font-size: 29px; font-weight: 500; line-height: 1.25; margin: 0; }
+.memory-workflow .capability-label p > span { display: block; font-size: 10px; font-weight: 400; letter-spacing: .12em; margin-top: 9px; color: var(--body); }
+html[lang="en"] .memory-workflow .capability-label p > span { display: none; }
+.memory-workflow .capability-row h3 { font-family: var(--font-display); font-size: 24px; font-weight: 700; line-height: 1.45; margin: 0; }
+.memory-workflow .capability-description { color: var(--body); font-size: 14px; line-height: 1.9; margin: 0; }
+.memory-workflow .capability-description > p { margin: 0; }
+.memory-workflow .capability-mechanism { color: var(--rust); font-size: 11px; line-height: 1.7; margin: 12px 0 0; }
+.memory-workflow .capability-description > .capability-status { font-size: 11px; line-height: 1.7; margin-top: 12px; }
+.memory-workflow .workflow-footer { display: flex; align-items: center; justify-content: space-between; gap: 48px; margin-top: 36px; }
+.memory-workflow .workflow-footer > div { max-width: 700px; }
+.memory-workflow .workflow-principle { font-size: 16px; font-weight: 500; margin: 0; }
+.memory-workflow .workflow-maturity { color: var(--body); font-size: 12px; line-height: 1.8; margin: 14px 0 0; }
+.memory-workflow .workflow-contact { display: inline-flex; align-items: center; justify-content: space-between; gap: 28px; min-height: 44px; padding: 11px 0; border-bottom: 1px solid var(--rust); color: var(--rust); font-size: 14px; font-weight: 500; white-space: nowrap; }
+.memory-workflow .workflow-contact svg { transition: transform .2s; }
+.memory-workflow .workflow-contact:hover svg { transform: translate(2px, -2px); }
+@media (max-width: 1150px) {
+  .memory-workflow .workflow-header { gap: 36px; }
+  .memory-workflow .facts-heading h2 { font-size: 49px; }
+  html[lang="en"] .memory-workflow .facts-heading h2 { font-size: 43px; }
+  .memory-workflow .roundtable-caption { gap: 36px; }
+  .memory-workflow .workflow-intro { font-size: 13px; }
+  .memory-workflow .capability-row { grid-template-columns: .65fr .95fr 1.1fr; gap: 26px; }
+  .memory-workflow .capability-row h3 { font-size: 21px; }
+  .memory-workflow .capability-label { gap: 14px; }
+}
+@media (max-width: 850px) {
+  .facts.memory-workflow { padding: 64px 28px 80px; }
+  .memory-workflow .workflow-header { grid-template-columns: 1fr; gap: 22px; }
+  .memory-workflow .workflow-intro { max-width: 470px; font-size: 14px; }
+  .memory-workflow .roundtable-caption { grid-template-columns: 1fr; gap: 14px; }
+  .memory-workflow .capability-row { grid-template-columns: 150px 1fr; gap: 10px 30px; }
+  .memory-workflow .capability-label { grid-row: span 2; }
+  .memory-workflow .capability-description { grid-column: 2; }
+}
+@media (max-width: 520px) {
+  .facts.memory-workflow { padding: 48px 18px 64px; scroll-margin-top: 10px; }
+  .memory-workflow .workflow-header { padding-top: 26px; margin-bottom: 28px; gap: 20px; }
+  .memory-workflow .facts-heading .eyebrow { font-size: 10px; }
+  .memory-workflow .facts-heading h2 { font-size: 42px; margin-top: 18px; line-height: 1.17; }
+  html[lang="en"] .memory-workflow .facts-heading h2 { font-size: 36px; }
+  .memory-workflow .workflow-intro { font-size: 13px; max-width: none; }
+  .memory-workflow .agent-roundtable { margin-bottom: 28px; }
+  .memory-workflow .roundtable-caption { padding-top: 18px; }
+  .memory-workflow .roundtable-caption h3 { font-size: 20px; }
+  .memory-workflow .roundtable-description { font-size: 13px; }
+  .memory-workflow .capability-row { grid-template-columns: 1fr; padding: 25px 0; gap: 13px; }
+  .memory-workflow .capability-label { grid-row: auto; gap: 12px; align-items: center; }
+  .memory-workflow .capability-label p { display: flex; align-items: center; gap: 12px; font-size: 23px; }
+  .memory-workflow .capability-label p > span { margin-top: 0; }
+  .memory-workflow .capability-row h3 { font-size: 20px; }
+  .memory-workflow .capability-description { grid-column: auto; font-size: 13px; }
+  .memory-workflow .workflow-footer { align-items: flex-start; flex-direction: column; gap: 22px; margin-top: 28px; }
+}
+@media (max-width: 360px) {
+  .memory-workflow .facts-heading h2 { font-size: 38px; }
+  html[lang="en"] .memory-workflow .facts-heading h2 { font-size: 32px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .memory-workflow .workflow-contact svg { transition: none; }
+}

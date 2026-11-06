@@ -1,0 +1,8 @@
+{
+  "source": "v0.1.0 pre-P0 source snapshot; do not execute as production",
+  "files": {
+    "domain.ts": "b814ec63bd60ba0d396f663831a748b84ac03e9e0e92942c2708565b8445de62",
+    "index.ts": "b14e852a6341d30b77d4a803fe3691e42a5feacecf053d2657fc26ccec92f81c",
+    "project.ts": "b94dafc684742e8db7bf1878eed94e47b6c049f4614b56805e7db303d577b79b"
+  }
+}

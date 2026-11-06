@@ -1,0 +1,9 @@
+{
+  "$schema": "../node_modules/wrangler/config-schema.json",
+  "name": "sixteen-memory-console",
+  "pages_build_output_dir": "../dist-pages",
+  "compatibility_date": "2026-11-04",
+  "services": [
+    { "binding": "MEMORY_SERVICE", "service": "sixteen-memory-product" }
+  ]
+}

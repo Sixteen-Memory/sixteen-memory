@@ -1,0 +1,34 @@
+node_modules/
+dist/
+dist-worker/
+dist-pages/
+*.tsbuildinfo
+.route-build-*/
+.DS_Store
+
+# Credentials and local execution state
+.env
+.env.*
+!.env.example
+.dev.vars
+.dev.vars.*
+.local/
+.wrangler/
+*.key
+*.pem
+*.p12
+*.pfx
+*.sqlite
+*.sqlite3
+*.db
+*.db-shm
+*.db-wal
+
+# Reports and private working material
+output/
+.agent/
+.playwright-cli/
+*.log
+*.zip
+*.tgz
+product/eval/round1/preflight.json

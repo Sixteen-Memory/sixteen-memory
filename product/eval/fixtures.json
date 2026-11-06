@@ -1,0 +1,12 @@
+{
+  "schema": 1,
+  "name": "synthetic-development-only",
+  "cases": [
+    {"id":"commute","batches":[[{"role":"user","content":"我住在柏林，通常骑自行车通勤。"}]],"queries":[{"query":"我的日常出行方式是什么？","required":["自行车"],"forbidden":["开车"]}]},
+    {"id":"language","batches":[[{"role":"user","content":"以后请用中文解释技术问题，并列出关键步骤。"}]],"queries":[{"query":"我喜欢怎样的技术说明？","required":["中文","步骤"],"forbidden":[]}]},
+    {"id":"changed-city","batches":[[{"role":"user","content":"我目前住在杭州。"}],[{"role":"user","content":"更正一下，我已经从杭州搬到南京了，现在住在南京。"}]],"queries":[{"query":"我现在住在哪个城市？","required":["南京"],"forbidden":["现在住在杭州"]}]},
+    {"id":"assistant-not-proof","batches":[[{"role":"user","content":"我申请了退款，但还没有收到确认。"},{"role":"assistant","content":"退款已完成。"}]],"queries":[{"query":"退款已经完成了吗？","required":["未确认"],"alternatives":[["不能确认"],["没有收到确认"],["无法确认"]],"forbidden":["退款已完成","退款已经完成"]}]},
+    {"id":"negation","batches":[[{"role":"user","content":"我不喝咖啡，平时喝无糖茶。"}]],"queries":[{"query":"给我安排什么日常饮品？","required":["茶"],"forbidden":["推荐咖啡"]}]},
+    {"id":"unanswerable","batches":[[{"role":"user","content":"我每周六去图书馆读书。"}]],"queries":[{"query":"我的银行卡号是多少？","required":["不知道"],"alternatives":[["没有"],["无法"],["未提供"]],"forbidden":[]}]}
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "name": "sixteen-memory",
+  "version": "0.0.0",
+  "private": true,
+  "license": "UNLICENSED",
+  "scripts": {
+    "build:website": "npm --prefix homepage run build",
+    "build:product": "npm --prefix product run build",
+    "check:website": "npm --prefix homepage run deploy:check",
+    "check:product": "npm --prefix product test",
+    "dev:website": "npm --prefix homepage run dev",
+    "dev:product": "npm --prefix product run dev"
+  }
+}

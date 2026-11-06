@@ -1,0 +1,380 @@
+{
+  "schema": 1,
+  "name": "round1-synthetic-dev-2026-11-05",
+  "provenance": "Authored synthetic fixtures; frozen split, not independently curated or blindly held out.",
+  "cases": [
+    {
+      "id": "dev-residence",
+      "category": "slot",
+      "review_policy": "auto",
+      "rubric": "must return current residence",
+      "batches": [
+        [
+          {
+            "role": "user",
+            "content": "我常住成都。"
+          }
+        ],
+        [
+          {
+            "role": "user",
+            "content": "我已经搬到厦门，之后常住厦门。"
+          }
+        ]
+      ],
+      "queries": [
+        {
+          "query": "我通常住在哪儿？",
+          "required": [
+            "厦门"
+          ],
+          "forbidden": [
+            "现在常住成都"
+          ],
+          "alternatives": []
+        }
+      ]
+    },
+    {
+      "id": "dev-language",
+      "category": "preference",
+      "review_policy": "auto",
+      "rubric": "durable language, not one-off task",
+      "batches": [
+        [
+          {
+            "role": "user",
+            "content": "今后我们沟通请一直用中文。"
+          }
+        ]
+      ],
+      "queries": [
+        {
+          "query": "解释一个技术问题时应该用什么语言？",
+          "required": [
+            "中文"
+          ],
+          "forbidden": [],
+          "alternatives": []
+        }
+      ]
+    },
+    {
+      "id": "dev-commute",
+      "category": "slot",
+      "review_policy": "auto",
+      "rubric": "newer primary commute",
+      "batches": [
+        [
+          {
+            "role": "user",
+            "content": "我平日主要骑自行车上班。"
+          }
+        ],
+        [
+          {
+            "role": "user",
+            "content": "现在搬远了，平日主要乘地铁上班。"
+          }
+        ]
+      ],
+      "queries": [
+        {
+          "query": "我平日怎样通勤？",
+          "required": [
+            "地铁"
+          ],
+          "forbidden": [
+            "主要骑自行车"
+          ],
+          "alternatives": []
+        }
+      ]
+    },
+    {
+      "id": "dev-timezone",
+      "category": "slot",
+      "review_policy": "auto",
+      "rubric": "do not infer from residence",
+      "batches": [
+        [
+          {
+            "role": "user",
+            "content": "我的常用时区是Asia/Shanghai。"
+          }
+        ]
+      ],
+      "queries": [
+        {
+          "query": "排会议时该用哪个时区？",
+          "required": [
+            "Asia/Shanghai"
+          ],
+          "forbidden": [],
+          "alternatives": []
+        }
+      ]
+    },
+    {
+      "id": "dev-duplicate",
+      "category": "duplicate",
+      "review_policy": "auto",
+      "rubric": "one current canonical fact",
+      "batches": [
+        [
+          {
+            "role": "user",
+            "content": "我的首选沟通语言是中文。"
+          }
+        ],
+        [
+          {
+            "role": "user",
+            "content": "再说明一次，我的首选沟通语言是中文。"
+          }
+        ]
+      ],
+      "queries": [
+        {
+          "query": "我的沟通语言偏好？",
+          "required": [
+            "中文"
+          ],
+          "forbidden": [],
+          "alternatives": []
+        }
+      ]
+    },
+    {
+      "id": "dev-travel",
+      "category": "entity-time",
+      "review_policy": "review_allowed",
+      "rubric": "travel must not supersede residence",
+      "batches": [
+        [
+          {
+            "role": "user",
+            "content": "我常住成都。"
+          }
+        ],
+        [
+          {
+            "role": "user",
+            "content": "我今天去青岛出差，明天回成都。"
+          }
+        ]
+      ],
+      "queries": [
+        {
+          "query": "我的常住城市是哪？",
+          "required": [
+            "成都"
+          ],
+          "forbidden": [
+            "常住青岛"
+          ],
+          "alternatives": []
+        }
+      ]
+    },
+    {
+      "id": "dev-other-person",
+      "category": "entity",
+      "review_policy": "review_allowed",
+      "rubric": "separate person from speaking user",
+      "batches": [
+        [
+          {
+            "role": "user",
+            "content": "我常住成都。"
+          }
+        ],
+        [
+          {
+            "role": "user",
+            "content": "我的同事林可常住青岛。"
+          }
+        ]
+      ],
+      "queries": [
+        {
+          "query": "我本人常住哪里？",
+          "required": [
+            "成都"
+          ],
+          "forbidden": [
+            "本人常住青岛"
+          ],
+          "alternatives": []
+        }
+      ]
+    },
+    {
+      "id": "dev-negation",
+      "category": "negation",
+      "review_policy": "review_allowed",
+      "rubric": "unknown slot needs review",
+      "batches": [
+        [
+          {
+            "role": "user",
+            "content": "我不喝咖啡，平时更喜欢无糖茶。"
+          }
+        ]
+      ],
+      "queries": [
+        {
+          "query": "我平时偏好什么饮品？",
+          "required": [
+            "茶"
+          ],
+          "forbidden": [
+            "推荐咖啡"
+          ],
+          "alternatives": []
+        }
+      ]
+    },
+    {
+      "id": "dev-uncertain",
+      "category": "uncertainty",
+      "review_policy": "review_allowed",
+      "rubric": "do not convert plans to completed fact",
+      "batches": [
+        [
+          {
+            "role": "user",
+            "content": "我可能明年搬到青岛，但尚未决定。"
+          }
+        ]
+      ],
+      "queries": [
+        {
+          "query": "我已经搬到青岛了吗？",
+          "required": [
+            "未"
+          ],
+          "forbidden": [
+            "已经搬到青岛"
+          ],
+          "alternatives": []
+        }
+      ]
+    },
+    {
+      "id": "dev-unknown",
+      "category": "abstain",
+      "review_policy": "auto",
+      "rubric": "abstain without source",
+      "batches": [
+        [
+          {
+            "role": "user",
+            "content": "我常用中文沟通。"
+          }
+        ]
+      ],
+      "queries": [
+        {
+          "query": "我的护照号码是多少？",
+          "required": [
+            "不知道"
+          ],
+          "forbidden": [],
+          "alternatives": [
+            [
+              "未提供"
+            ],
+            [
+              "没有"
+            ],
+            [
+              "unknown"
+            ],
+            [
+              "not provided"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "dev-fiction",
+      "category": "fiction",
+      "review_policy": "empty_allowed",
+      "rubric": "fiction does not become user memory",
+      "batches": [
+        [
+          {
+            "role": "user",
+            "content": "小说主人公叫小林，他住在火星。这不是我的真实情况。"
+          }
+        ]
+      ],
+      "queries": [
+        {
+          "query": "我真实住在哪里？",
+          "required": [
+            "不知道"
+          ],
+          "forbidden": [
+            "火星"
+          ],
+          "alternatives": [
+            [
+              "未提供"
+            ],
+            [
+              "没有"
+            ],
+            [
+              "unknown"
+            ],
+            [
+              "not provided"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "dev-ephemeral",
+      "category": "transient",
+      "review_policy": "empty_allowed",
+      "rubric": "one-off instruction is not durable",
+      "batches": [
+        [
+          {
+            "role": "user",
+            "content": "帮我把这句话翻译成西班牙语，这次就好。"
+          }
+        ]
+      ],
+      "queries": [
+        {
+          "query": "我长期偏好哪种语言？",
+          "required": [
+            "不知道"
+          ],
+          "forbidden": [
+            "长期偏好西班牙语"
+          ],
+          "alternatives": [
+            [
+              "未提供"
+            ],
+            [
+              "没有"
+            ],
+            [
+              "unknown"
+            ],
+            [
+              "not provided"
+            ]
+          ]
+        }
+      ]
+    }
+  ]
+}

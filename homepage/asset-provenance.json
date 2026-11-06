@@ -1,0 +1,207 @@
+{
+  "reference": {
+    "title": "User-supplied Tana Camps Elephant editorial sections",
+    "usedFor": "Historical editorial layout and animations: staggered letters, round image reveals, facts and portrait wipe. Its former warm palette and Bodoni display typography are no longer used. The current local preview uses the cover's dark palette and the user's Reelmark typography specification.",
+    "sourceCodeCopied": false,
+    "referenceMediaPublished": false
+  },
+  "landscape": {
+    "generator": "gpt-image-2",
+    "provider": "AIDP ModelHub",
+    "original": "../output/homepage-v2/imagegen/memory-field.png",
+    "published": [
+      "public/assets/memory-field.webp",
+      "public/assets/memory-field-mobile.webp"
+    ],
+    "date": "2026-10-26"
+  },
+  "cube": {
+    "generator": "gpt-image-2",
+    "provider": "AIDP ModelHub",
+    "original": "../output/homepage-v2/imagegen/memory-cube.png",
+    "published": "public/assets/memory-cube.webp",
+    "date": "2026-10-26"
+  },
+  "direction": {
+    "generator": "gpt-image-2",
+    "original": "../output/homepage-v2/imagegen/homepage-layout.png",
+    "published": false
+  },
+  "motion": {
+    "provider": "html5-video-autoplay-scroll-seek",
+    "lux3dGenerated": false,
+    "pipeline": "Approved native user MP4 with unified dark theme and Reelmark typography, promoted from isolated preview for production deployment.",
+    "newGenerationCount": 0
+  },
+  "brandMark": {
+    "wordmark": "HTML typography using locally hosted Inter Tight 700",
+    "favicon": "Existing generated concept from docs/kunshan-2026/redesign/assets/logo-transparent.png",
+    "status": "Design concept, not a cleared trademark"
+  },
+  "typography": {
+    "reference": "User-pasted Reelmark hero prompt, attachment 9b83a392-e88e-4856-bf51-c6d1b19d4228",
+    "scope": "Typography only. No Reelmark branding, mint theme, carousel, layout or video assets imported.",
+    "headline": "Inter Tight 700; desktop cover title on one row, intro on two lines. Responsive sizes and mobile wrapping retained.",
+    "ui": "Inter 400/500",
+    "notes": "Caveat 600 on the existing English chapter marker and FIELD NOTES caption only",
+    "chinese": "Sans-serif fallbacks: PingFang SC, Microsoft YaHei, Noto Sans CJK SC. Chinese glyphs are not supplied by the Latin font files; browser verification on this Mac resolved headings to PingFang SC Semibold and body copy to PingFang SC Regular.",
+    "delivery": "Same-origin local font files with font-display swap and bundled SIL OFL licenses",
+    "files": [
+      "public/assets/inter-tight-latin.woff2",
+      "public/assets/inter-latin.woff2",
+      "public/assets/caveat-600.ttf"
+    ],
+    "caveatSource": "https://fonts.gstatic.com/s/caveat/v23/WnznHAc5bAfYB2QRah7pcpNvOx-pjSx6SII.ttf",
+    "caveatLicenseSource": "https://raw.githubusercontent.com/google/fonts/main/ofl/caveat/OFL.txt",
+    "caveatSha256": "e5be0a7ef2eb97414937cb70d079c8c9fb2e472cf74eab5b8fe9dfa2f6fb2704",
+    "publiclyDeployed": true
+  },
+  "editorial": {
+    "generator": "gpt-image-2",
+    "provider": "AIDP ModelHub",
+    "original": "../output/homepage-v3/imagegen/memory-editorial.png",
+    "published": [
+      "public/assets/memory-editorial.webp",
+      "public/assets/memory-editorial-mobile.webp",
+      "public/assets/memory-foreground.webp"
+    ],
+    "foreground": "Locally cut alpha silhouette from exact original pixels. Background and silhouette share identical placement and transform.",
+    "date": "2026-10-26"
+  },
+  "videoHero": {
+    "reference": "User-generated 16 and memory sculpture video following the NOMI-inspired direction.",
+    "mediaSource": "User-provided local video; original file not included in this repository.",
+    "sourceSha256": "7602465c22d82a0a92a8d3a5dab2d8ff2d2d86b83feb718439d119ba08149be7",
+    "sourceResolution": [
+      1280,
+      720
+    ],
+    "sourceDurationSeconds": 8.064,
+    "sourceFrames": 193,
+    "sourceAudio": true,
+    "sourceUnmodified": true,
+    "publiclyDeployed": true,
+    "published": [
+      "public/assets/memory16-native.mp4",
+      "public/assets/memory16-native-poster.jpg"
+    ],
+    "generatedByThisTask": false,
+    "license": "User provided the local video for website integration. Generator and provider-specific usage rights were not independently verified.",
+    "measuredDurationSeconds": 8.041667,
+    "fps": 24,
+    "keyframeInterval": "Preserved from the original video stream",
+    "audio": false,
+    "adaptation": "Video stream remuxed without re-encoding; audio omitted. Native file 1280x720, 16:9, no baked crop, padding or synthetic sky. One source at every breakpoint. Desktop container prefers 16:9 and caps its height at 80% of the hero; mobile container is the lower 56%. CSS object-fit cover uniformly scales with peripheral scenery cropping; ultrawide screens use contain. Original dark cover palette and white typography restored; tablet and short landscape type have explicit sizes. The source's original small loop discontinuity is retained. Real silent 0.7x playback, scroll seeking and reduced-motion pause.",
+    "transport": "Native same-origin looping video. The cover is exactly one viewport with no sticky scroll timeline. Scrolling moves directly to the next section; video pauses offscreen and resumes on return. Poster remains behind the stream. No video seeking."
+  },
+  "archivedLux3d": {
+    "published": false,
+    "reason": "User rejected the typography, composition and animation quality.",
+    "sourceModel": "../output/homepage-v5/lux3d/lux3d_g1_26749.glb",
+    "workingScene": "../output/homepage-v5/lux3d/scene/memory16-desktop.blend",
+    "ledger": "../output/homepage-v5/lux3d/plan-v1.json",
+    "lastReleaseBackup": "../output/homepage-v6-restore/before/homepage-v5.tar.gz",
+    "historicalGenerationCount": 1,
+    "historicalQuotedCredits": 1,
+    "settledDebit": null
+  },
+  "release": {
+    "status": "deployed",
+    "userAuthorized": true,
+    "authorizationDate": "2026-11-05",
+    "timezone": "Asia/Shanghai",
+    "scope": "Header logo left, primary navigation centered, actions right; keep mobile menus.",
+    "previousDeployment": "5dc317fe-547f-495d-8fce-2a691be232a3",
+    "officialURL": "https://www.sixteenmemory.com/",
+    "pagesURL": "https://sixteenmemory-homepage.pages.dev/",
+    "verification": "41 tests/build;36 local/8 live bilingual header checks,center error<1px,no overlap,menus/Esc/mobile/home-doc links passed.Live console zero errors/warnings.One safe rendered preview inspected.No physical-device test.",
+    "deploymentId": "f542eca8-86eb-47c6-a2b2-03457e9f6a76",
+    "deploymentURL": "https://f542eca8.sixteenmemory-homepage.pages.dev"
+  },
+  "memoryWorkflow": {
+    "presentation": "Three concise technical scenarios: repeated events vs retries, prototype scope boundaries, expiry exclusion and online index cleanup.",
+    "source": "../output/homepage-technical-cases/CLAIM_MATRIX.md",
+    "maturity": "Prototype and product development; enterprise authorization and full fact update/revocation explicitly in development.",
+    "unverifiedCustomerOrPerformanceClaims": false
+  },
+  "headerTypography": {
+    "wordmark": "Instrument Serif regular + italic, OFL, self-hosted",
+    "navigation": "Manrope + native Chinese sans-serif fallback, OFL, self-hosted",
+    "fontSources": "../output/homepage-v11-header/research/font-sources.json",
+    "scope": "Header only; page headings, video and product content unchanged."
+  },
+  "roundtableIllustration": {
+    "format": "native SVG",
+    "source": "public/assets/agent-roundtable-2d.svg",
+    "bytes": 37695,
+    "sha256": "4a94bc390a841bbe590d4425f0cb4b5ce34762566150b783e3a0ec76a1258996",
+    "artDirection": "GPT Image 2 flat editorial concepts; two exact-model edit calls from previous counted composition",
+    "execution": "Original code-native SVG redraw informed by the generated concepts, NOT a GPT Image 2 SVG export or an embedded raster wrapper.",
+    "concepts": "../output/homepage-v13-flat-roundtable/imagegen/",
+    "vectorSource": "../output/homepage-v13-flat-roundtable/vector/draw_roundtable.py",
+    "participants": {
+      "agents": 15,
+      "human": 1
+    },
+    "transparency": "No background shape. Browser rasterization verifies transparent perimeter and all four corners; 59.5% fully transparent pixels.",
+    "use": "Brand concept; no customer likeness, customer case or implemented multi-agent-analysis claim.",
+    "previousAssets": "Unused WebP originals retained for rollback; no longer referenced by active UI."
+  },
+  "roundtableIllustrationHistory": [
+    {
+      "provider": "AIDP ModelHub CN",
+      "model": "gpt-image-2",
+      "date": "2026-10-27",
+      "requestedSize": "1536x1024",
+      "quality": "high",
+      "generationCalls": 1,
+      "editCalls": 1,
+      "source": "../output/homepage-v12-roundtable/imagegen/sixteen-roundtable-final.png",
+      "prompt": "../output/homepage-v12-roundtable/imagegen/prompt.txt",
+      "editPrompt": "../output/homepage-v12-roundtable/imagegen/edit-prompt.txt",
+      "participants": {
+        "agents": 15,
+        "human": 1
+      },
+      "composition": "Original robot characters and one human around one table; conversation fragments converge into a shared memory object.",
+      "use": "AI-generated brand concept, not a customer case, screenshot, existing AI analysis implementation or benchmark claim.",
+      "transforms": "Aspect-preserving resize and WebP compression; no cropping; no runtime third-party image request.",
+      "webAssets": [
+        {
+          "path": "homepage/public/assets/agent-roundtable.webp",
+          "size": [
+            1536,
+            1024
+          ],
+          "bytes": 166318,
+          "sha256": "43281085bcdd4e235468b0144817d430a6d4c9bd79cb1178e01a8960e8cd5410"
+        },
+        {
+          "path": "homepage/public/assets/agent-roundtable-mobile.webp",
+          "size": [
+            960,
+            640
+          ],
+          "bytes": 72264,
+          "sha256": "9296d2d246c590e0c14c55a0fd7501d2fbe111b4d29b975c7b8cd75cbea1cf96"
+        }
+      ],
+      "review": "../output/homepage-v12-roundtable/qa/image-review.json"
+    }
+  ],
+  "developerResources": {
+    "date": "2026-11-05",
+    "sourceOfTruth": "../product/sdk/index.mjs",
+    "sdkDownload": "public/downloads/sixteen-memory-sdk.mjs",
+    "sdkSha256": "7a08b8c006fb9997a268ec9d7d5712da651dc9e19ddc3f82fa609ee3aae61af6",
+    "console": "https://console.sixteenmemory.com/",
+    "quickstart": "https://console.sixteenmemory.com/quickstart",
+    "health": "https://console.sixteenmemory.com/health",
+    "observedVersion": "0.1.0",
+    "retrieval": "lexical",
+    "extraction": "explicit",
+    "modelConfigured": false,
+    "MCP": "Planned, not implemented in the inspected product routes; no connection address published.",
+    "provenance": "Original React/CSS resource cards and API reference; Mem0 used only for information structure, no copied brand assets or performance claims."
+  }
+}

@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>拾陆记忆 · 接入文档</title>
+<style>body{font:15px/1.8 Arial,"PingFang SC",sans-serif;margin:0;color:#2c3540;background:#fafbfc}main{max-width:850px;margin:auto;padding:45px 24px}h1{font-size:28px}h2{font-size:20px;margin-top:35px}pre{background:#edf1f3;padding:18px;overflow-x:auto;border-radius:5px;font-size:12px}code{font-family:ui-monospace,monospace}table{border-collapse:collapse;width:100%;font-size:13px}td,th{text-align:left;border-bottom:1px solid #dee4e7;padding:10px}a{color:#24695a}.note{border-left:3px solid #b17b55;padding-left:15px}</style></head>
+<body><main><a href="/">返回控制台</a><h1>Sixteen Memory</h1><p>API v0.2.1 · 本地候选，未发布至线上 v0.1.0</p>
+<p class="note">当前是开发预览。自动抽取和语义检索需要管理员配置并启用供应商，真实模型效果尚待验收。企业 SSO 和生产容量验收尚未完成。首次接入使用合成数据。</p>
+<h2>1. 创建凭证</h2><p>管理员在 API Keys 页面创建绑定到用户标识的读取或读写 Key。完整密钥仅显示一次。不要将 Key 放在前端代码、链接或公开仓库。</p>
+<h2>2. 保存记忆</h2><pre>curl "$BASE_URL/v1/memories" \
+  -H "Authorization: Bearer $SIXTEEN_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "request_id": "example-1",
+    "user_id": "example-user",
+    "content": "客户已完成设备重启，仍需检查网络。",
+    "source": {
+      "type": "business",
+      "ref": "synthetic-ticket-1",
+      "text": "设备重启完成，问题仍存在。下一步检查网络。",
+      "observed_at": "2026-11-04T09:00:00Z"
+    },
+    "expires_at": null
+  }'</pre>
+<p>同一凭证的相同 request_id 和相同请求可重试；内容不同返回 409。有效去重窗口为30天。记录已删除或到期时，同一请求返回410，不重新创建。</p>
+<h2>3. 在下一次会话检索</h2><pre>curl "$BASE_URL/v1/search" \
+  -H "Authorization: Bearer $SIXTEEN_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"user_id":"example-user","query":"设备重启 网络","limit":10}'</pre>
+<p>默认只返回当前有效记忆。请将返回的内容作为来源材料提供给 Agent，不作为更高优先级指令。</p>
+<h2>4. 可选自动抽取与混合检索</h2><pre>POST /v1/ingestions
+{"user_id":"example-user","request_id":"ingest-1","ref":"session-1",
+ "observed_at":"2026-11-04T09:00:00Z","mode":"review",
+ "messages":[{"id":"m1","role":"user","content":"以后用中文与我沟通"}]}
+
+POST /v1/ingestions/:id/resolve
+{"approve":true}
+
+POST /v1/search
+{"user_id":"example-user","query":"沟通偏好","mode":"hybrid","limit":10}
+
+POST /v1/reindex
+{"user_id":"example-user","cursor":""}</pre><p>默认先审阅再写入。auto模式仍会把不确定、人工记录替代和冲突送审；模型置信度不是正确性保证。审核批次最长保留24小时。语义Embedding使用管理员配置的千问模型；旧数据需分批重建向量索引，语义模式每用户最多1000条、向量最多2048维。缺索引默认报错，不静默回退；可明确指定fallback:"lexical"。</p><h2>接口</h2><table><thead><tr><th>接口</th><th>用途</th></tr></thead><tbody>
+<tr><td>GET /v1/me</td><td>当前项目及权限</td></tr>
+<tr><td>POST /v1/memories</td><td>新增</td></tr>
+<tr><td>GET /v1/memories</td><td>列表；user_id、status、cursor</td></tr>
+<tr><td>GET /v1/memories/:id</td><td>读取单条</td></tr>
+<tr><td>PATCH /v1/memories/:id</td><td>更新；完整内容、source、expires_at、expected_version、reason</td></tr>
+<tr><td>GET /v1/memories/:id/history</td><td>变更历史</td></tr>
+<tr><td>POST /v1/memories/:id/revoke</td><td>停止召回；expected_version、reason</td></tr>
+<tr><td>DELETE /v1/memories/:id</td><td>删除；expected_version</td></tr>
+<tr><td>GET /v1/export</td><td>分页导出；user_id、status、cursor</td></tr>
+<tr><td>POST /v1/search</td><td>查询有效记忆；query、user_id、limit</td></tr>
+<tr><td>POST /v1/answer</td><td>使用同一检索范围生成回答，需由管理员配置模型</td></tr>
+</tbody></table>
+<h2>5. 可选分类、元数据与有效窗口</h2><p>新增、更新或导入可带 metadata（最多16个平面标量字段）、category、event_time、valid_from、valid_to。更新省略这些属性会保留旧值，metadata:{} 可明确清空。新属性会随历史和导出保存。日期时间必须包含时区。</p>
+<pre>POST /v1/search
+{"user_id":"example-user","query":"网络","mode":"lexical",
+ "filter":{"AND":[
+   {"field":"category","op":"eq","value":"support"},
+   {"field":"metadata.priority","op":"gte","value":2}
+ ]}}
+</pre><p>filter支持AND/OR/NOT和eq/ne/in/gt/gte/lt/lte/exists，不可扩大Key的用户范围。metadata筛选严格区分数字、布尔和字符串；eq:null不匹配缺失字段。GET列表/导出的filter参数需URL编码为JSON，SDK自动处理。</p><p>search按当前时间筛选[valid_from,valid_to)；可传at选择窗口检查时间，但这不是历史版本快照。event_time只描述事件时间，expires_at用于物理清理。semantic/hybrid可传0至1的threshold作为余弦门槛，不能与词法回退同时使用；返回的RRF/BM25分数不是概率。</p>
+<h2>来源与变更</h2><p>来源类型为 conversation、business 或 manual。系统保存提交的依据，不保证依据本身真实。更新保留之前的正文与来源；撤销不删除历史；删除移除在线正文、历史和检索索引。平台恢复副本可能仍有保留期。</p>
+<h2>限制与错误</h2><p>每请求64 KiB，单条正文和来源正文各8,000字符，每项目10,000条当前记录，检索1至50条，列表每页50条。导出时持续传入 next_cursor，直到为空。</p><p>401：凭证无效；403：没有操作权限；404：记录不存在或不属于当前范围；409：版本或请求标识冲突；410：原记录已删除；413：请求过大；422：字段无效；503：存储不可用或回答模型未配置。</p>
+<h2>模型调用</h2><p>仅词法检索不调用模型；语义/混合检索会发送查询至Embedding供应商，抽取发送对话，重建索引发送记忆正文。“生成回答”会将查询和检索到的记忆发送到管理员配置的模型服务，可能产生费用。只应配置获得数据处理授权的模型供应商。</p>
+</main></body></html>

@@ -1,0 +1,45 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "sixteen-memory-product",
+  "main": "worker/index.ts",
+  "compatibility_date": "2026-11-04",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": false,
+  "preview_urls": false,
+  "vars": {
+    "PROJECT_ID": "sixteen",
+    "MODEL_BASE_URL": "",
+    "MODEL_NAME": "",
+    "EXTRACTION_ENABLED": "false",
+    "EXTRACTION_BASE_URL": "",
+    "EXTRACTION_MODEL": "",
+    "EMBEDDINGS_ENABLED": "false",
+    "EMBEDDING_PROVIDER": "qwen",
+    "EMBEDDING_API_STYLE": "openai-compatible",
+    "EMBEDDING_DIMENSIONS": "1024",
+    "EMBEDDING_BASE_URL": "",
+    "EMBEDDING_MODEL": "",
+    "EMBEDDING_REVISION": "1"
+  },
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/v1/*", "/health"]
+  },
+  "durable_objects": {
+    "bindings": [
+      { "name": "PROJECTS", "class_name": "MemoryProject" }
+    ]
+  },
+  "migrations": [
+    { "tag": "v1", "new_sqlite_classes": ["MemoryProject"] }
+  ],
+  "ratelimits": [
+    { "name": "LOGIN_LIMITER", "namespace_id": "16110401", "simple": { "limit": 10, "period": 60 } },
+    { "name": "API_LIMITER", "namespace_id": "16110402", "simple": { "limit": 180, "period": 60 } }
+  ],
+  "observability": {
+    "enabled": false
+  }
+}

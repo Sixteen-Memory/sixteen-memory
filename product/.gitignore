@@ -1,0 +1,11 @@
+node_modules/
+dist/
+dist-worker/
+dist-pages/
+.wrangler/
+.dev.vars
+.local/
+.playwright-cli/
+output/
+eval/node_modules/
+*.log
