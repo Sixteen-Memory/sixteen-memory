@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="770" viewBox="0 0 1200 770" role="img" aria-labelledby="title description">
+  <title id="title">SixteenMemory architecture</title>
+  <desc id="description">An agent or JavaScript SDK and the React console access the Worker API. The Worker handles authentication, rules, explicit writes and optional intelligent paths. SQLite stores memories, sources and history. Optional provider calls are disabled by default. The static website is deployed separately.</desc>
+  <defs>
+    <linearGradient id="bg" x2="1" y2="1"><stop stop-color="#101a2b"/><stop offset="1" stop-color="#0b1220"/></linearGradient>
+    <linearGradient id="core" x2="1" y2="1"><stop stop-color="#23372b"/><stop offset="1" stop-color="#152632"/></linearGradient>
+    <marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M1 1 L7 4 L1 7" fill="none" stroke="#8b9aaa" stroke-width="1.3"/></marker>
+    <style>
+      text{font-family:Inter,Arial,sans-serif;fill:#f4f6fa}
+      .tag{font-size:12px;letter-spacing:2px;fill:#b4c2cd}
+      .label{font-size:21px;font-weight:600}
+      .body{font-size:15px;fill:#b4c2cd}
+      .mono{font-family:ui-monospace,monospace;font-size:13px;fill:#b4c2cd}
+      .lime{fill:#c6ff2e}
+      .edge{stroke:#748595;stroke-width:1.5;fill:none;marker-end:url(#arrow)}
+    </style>
+  </defs>
+  <rect width="1200" height="770" rx="20" fill="url(#bg)"/>
+  <rect x="1" y="1" width="1198" height="768" rx="19" fill="none" stroke="#2b394b"/>
+  <text x="48" y="53" class="tag lime">SixteenMemory / SYSTEM OVERVIEW</text>
+  <text x="48" y="94" font-size="30" font-weight="600">One memory layer. Clear boundaries.</text>
+  <text x="48" y="125" class="body">Current implementation, with optional development paths explicitly separated.</text>
+  <text x="48" y="181" class="tag">01 / ACCESS</text>
+  <text x="455" y="181" class="tag">02 / SERVICE</text>
+  <text x="898" y="181" class="tag">03 / DATA &amp; MODELS</text>
+
+  <rect x="48" y="206" width="295" height="116" rx="12" fill="#172338" stroke="#34475b"/>
+  <text x="73" y="247" class="label">Your Agent / SDK</text>
+  <text x="73" y="276" class="body">REST or JavaScript client</text>
+  <text x="73" y="300" class="mono">product/sdk</text>
+  <rect x="48" y="372" width="295" height="116" rx="12" fill="#172338" stroke="#34475b"/>
+  <text x="73" y="413" class="label">Management console</text>
+  <text x="73" y="442" class="body">Memories, sources, keys &amp; history</text>
+  <text x="73" y="466" class="mono">product/src</text>
+  <path d="M343 264H388V301H432" class="edge"/>
+  <path d="M343 430H388V394H432" class="edge"/>
+  <text x="354" y="241" font-size="11" fill="#b4c2cd">HTTPS</text>
+
+  <rect x="432" y="206" width="355" height="342" rx="14" fill="url(#core)" stroke="#a1ca4766"/>
+  <text x="459" y="247" class="tag lime">MEMORY SERVICE</text>
+  <text x="459" y="282" font-size="27" font-weight="600">Cloudflare Worker</text>
+  <text x="459" y="310" class="mono">product/worker</text>
+  <path d="M459 333H760" stroke="#4e665e"/>
+  <text x="459" y="369" class="body">User scope &amp; access checks</text>
+  <text x="459" y="405" class="body">Explicit writes &amp; version control</text>
+  <text x="459" y="441" class="body">Lexical retrieval &amp; filters</text>
+  <rect x="457" y="469" width="305" height="50" rx="8" fill="#0e1b26" stroke="#587284" stroke-dasharray="5 5"/>
+  <text x="476" y="491" font-size="13">Extraction / semantic orchestration</text>
+  <text x="476" y="510" font-size="11" fill="#9ccfe9">Development path · enabled by configuration</text>
+
+  <path d="M787 302H872" class="edge"/>
+  <text x="800" y="285" font-size="11" fill="#b4c2cd">local commit</text>
+  <rect x="872" y="206" width="280" height="176" rx="12" fill="#172338" stroke="#34475b"/>
+  <text x="897" y="247" class="label">SQLite</text>
+  <text x="897" y="273" class="body">Durable Object storage</text>
+  <text x="897" y="311" class="mono">memories · sources · history</text>
+  <text x="897" y="337" class="mono">FTS · sessions · evidence</text>
+  <text x="897" y="363" class="mono">development vector storage</text>
+
+  <path d="M787 490H872" class="edge" stroke-dasharray="5 5"/>
+  <text x="797" y="469" font-size="11" fill="#b4c2cd">opt-in HTTPS</text>
+  <rect x="872" y="420" width="280" height="128" rx="12" fill="#142030" stroke="#587284" stroke-dasharray="5 5"/>
+  <text x="897" y="458" class="label">Model providers</text>
+  <text x="897" y="487" class="body">Generation + Qwen embeddings</text>
+  <text x="897" y="519" font-size="13" fill="#9ccfe9">Disabled by default · no automatic retry</text>
+
+  <path d="M48 592H1152" stroke="#2b394b"/>
+  <rect x="48" y="620" width="295" height="94" rx="12" fill="#101a2b" stroke="#34475b"/>
+  <text x="73" y="655" font-size="19" font-weight="600">Website &amp; documentation</text>
+  <text x="73" y="687" class="mono">homepage/ · independent static build</text>
+  <text x="384" y="646" class="tag lime">INDEPENDENT RELEASES</text>
+  <text x="384" y="677" class="body">A code push does not publish the website, enable a model or migrate data.</text>
+  <text x="384" y="705" class="body">Solid paths: core flow. Dashed paths: explicitly enabled model integration.</text>
+</svg>

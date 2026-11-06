@@ -4,11 +4,15 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
+    "setup": "npm ci --prefix product && npm ci --prefix homepage",
+    "prepare:product": "npm --prefix product run prepare:local",
     "build:website": "npm --prefix homepage run build",
     "build:product": "npm --prefix product run build",
     "check:website": "npm --prefix homepage run deploy:check",
     "check:product": "npm --prefix product test",
-    "dev:website": "npm --prefix homepage run dev",
+    "check:docs": "node scripts/check-docs.mjs",
+    "example:basic": "node product/examples/customer-continuity.mjs",
+    "dev:website": "npm --prefix homepage run dev --",
     "dev:product": "npm --prefix product run dev"
   }
 }
