@@ -1,0 +1,22 @@
+# Repository working rules
+
+- This is the canonical company source repository. Do not keep developing a
+  second copy in the old mixed prototype workspace.
+- GitHub owner: `Sixteen-Memory`; repository: `sixteen-memory`; visibility:
+  **private**. Do not change its visibility or publish its contents elsewhere.
+- Human contributor: `Chengyuann`. Use the repository-local Git identity and
+  existing GitHub credential helper; never place tokens in remotes or files.
+- Make scoped commits and use feature branches for subsequent work. Do not
+  force-push or rewrite shared history.
+- Keep credentials, `.dev.vars`, `.local`, `.wrangler`, databases, private model
+  outputs and generated build directories out of commits.
+- A successful push does not authorize deployment, DNS, billing, account
+  permissions, customer-data actions or paid model calls.
+- Keep website work in `homepage/` and the service, console and SDK in
+  `product/`. Preserve each module's package lockfile.
+- Run only checks relevant to the change. Do not run real-model benchmarks for
+  normal website or repository maintenance.
+- Mem0 is a research reference, not vendored code. Any future reuse of third-party
+  code requires explicit attribution and license review.
+- Do not claim CODEOWNERS or branch-review enforcement merely because a file
+  exists; verify actual GitHub settings and plan support.

@@ -60,8 +60,9 @@ npm run dev
 
 ## 用个人账号协作
 
-预期远程为`SixteenMemory/sixteen-memory`，可见性必须是Private。
+远程归属为`Sixteen-Memory/sixteen-memory`，可见性必须是Private。
 由个人账号`Chengyuann`开发、提交和推送，公司组织持有仓库。
+组织地址中有连字符；品牌名称仍写作SixteenMemory。
 
 ```sh
 git switch -c feat/short-description

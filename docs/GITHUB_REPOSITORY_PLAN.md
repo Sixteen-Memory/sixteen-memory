@@ -2,12 +2,12 @@
 
 日期：2026年11月6日
 
-## 推荐结构
+## 已确认的组织结构
 
 使用GitHub **Organization**，不是共享的公司个人账号：
 
 ```text
-Organization: SixteenMemory
+Organization: Sixteen-Memory
 Private repository: sixteen-memory
 Owner / 日常提交账号: Chengyuann
 ```
@@ -18,8 +18,8 @@ Owner / 日常提交账号: Chengyuann
 未来如果需要开源：
 
 ```text
-SixteenMemory/sixteen-memory       私有主仓库
-SixteenMemory/<public-project>     单独公开仓库
+Sixteen-Memory/sixteen-memory       私有主仓库
+Sixteen-Memory/<public-project>     单独公开仓库
 ```
 
 公开仓库应从主仓库挑选可发布内容，不应直接把核心私有仓库改为公开。
@@ -42,7 +42,7 @@ SixteenMemory/<public-project>     单独公开仓库
 
 ## 初次建库步骤
 
-1. 在GitHub创建`SixteenMemory`组织，并确认`Chengyuann`为Owner。
+1. 用户已创建`Sixteen-Memory`组织；2026年11月6日查询确认`Chengyuann`为有效Owner。
 2. 在组织下创建私有仓库`sixteen-memory`，不自动添加README、LICENSE或`.gitignore`。
 3. 在单独目录准备干净的首次提交，不直接推当前混合工作区。
 4. 设置提交身份为个人GitHub账号对应的名称和邮箱。
@@ -51,12 +51,13 @@ SixteenMemory/<public-project>     单独公开仓库
    不能把`CODEOWNERS`文件当作已强制执行的审批。升级付费套餐需另行批准。
 7. 后续使用个人账号分支和Pull Request协作。
 
-## 待用户确认
+## 已核实与权限边界
 
-- 组织使用`SixteenMemory`还是其他可用名称；
-- 私有仓库名是否使用`sixteen-memory`；
-- 组织联系邮箱和公司归属信息；
-- 组织创建完成后，是否立即创建并推送首次提交。
+- 组织实际地址为`Sixteen-Memory`，品牌名称仍为SixteenMemory。
+- 当前套餐为GitHub Free，没有批准升级付费套餐。
+- `Chengyuann`已有Owner权限，无需额外邀请自己为外部协作者。
+- 核心仓库只使用Private，不启用公开Pages或自动部署。
+- `CODEOWNERS`记录负责人，不等于套餐已经提供强制审批。
 
-本地首次提交将使用`Chengyuann`对应的GitHub noreply邮箱，不使用当前工作区中的雇主邮箱。
+本地提交使用`Chengyuann`对应的GitHub noreply邮箱，不使用原工作区中的雇主邮箱。
 此设置只作用于新的本地仓库，不改全局Git配置。
