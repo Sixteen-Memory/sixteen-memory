@@ -1,0 +1,22 @@
+{
+  "name": "@sixteen-memory/vercel-ai",
+  "version": "0.1.0",
+  "description": "Scoped memory tools and retrieval middleware for the Vercel AI SDK.",
+  "private": true,
+  "license": "UNLICENSED",
+  "type": "module",
+  "sideEffects": false,
+  "engines": { "node": ">=22" },
+  "exports": { ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" } },
+  "files": ["dist", "README.md", "CHANGELOG.md", "LICENSE.md", "SECURITY.md", "examples"],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.test.json",
+    "test": "npm run build && npm run typecheck && node --test test/adapter.test.mjs test/framework.test.mjs",
+    "test:runtime": "node test/runtime.mjs",
+    "example": "npm run build && node examples/offline.mjs",
+    "prepack": "npm run build"
+  },
+  "peerDependencies": { "ai": "^7.0.0", "zod": "^4.1.8" },
+  "devDependencies": { "ai": "7.0.165", "zod": "4.6.7", "typescript": "5.9.3", "@types/node": "22.19.0" }
+}

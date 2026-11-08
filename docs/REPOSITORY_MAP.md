@@ -16,6 +16,7 @@
 | Edit the console | [product/src](../product/src/) |
 | Change client methods | [SDK](../product/sdk/README.md) |
 | Run an end-to-end continuity example | [Examples](../product/examples/README.md) |
+| Integrate with Vercel AI SDK 7 | [Vercel AI SDK adapter](../product/integrations/vercel-ai/README.md) |
 
 ## Service core
 

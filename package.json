@@ -10,6 +10,8 @@
     "build:product": "npm --prefix product run build",
     "check:website": "npm --prefix homepage run deploy:check",
     "check:product": "npm --prefix product test",
+    "check:vercel-ai": "npm --prefix product/integrations/vercel-ai test",
+    "check:vercel-ai:runtime": "npm --prefix product/integrations/vercel-ai run test:runtime",
     "check:docs": "node scripts/check-docs.mjs",
     "example:basic": "node product/examples/customer-continuity.mjs",
     "dev:website": "npm --prefix homepage run dev --",
