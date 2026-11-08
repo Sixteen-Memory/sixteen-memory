@@ -27,8 +27,8 @@
 
 | Memory API | Console | Developer experience |
 | :--- | :--- | :--- |
-| Explicit writes, scoped retrieval, version history, and deletion | Inspect memories, sources, keys, and request records | JavaScript SDK, examples, documentation, and website |
-| [Explore the service →](product/worker/) | [Explore the console →](product/src/) | [Explore the SDK →](product/sdk/) · [Explore the website →](homepage/) |
+| Explicit writes, scoped retrieval, version history, and deletion | Inspect memories, sources, keys, and request records | JavaScript SDK, Vercel AI SDK adapter, examples, documentation, and website |
+| [Explore the service →](product/worker/) | [Explore the console →](product/src/) | [Explore the SDK →](product/sdk/) · [AI SDK adapter →](product/integrations/vercel-ai/) · [Explore the website →](homepage/) |
 
 **Keep the source.** Store evidence with each memory and preserve history when it changes. An assistant's statement does not prove a business action occurred.<br>
 **Respect the scope.** Enforce user boundaries and key permissions on the server, not through hidden interface controls.<br>
@@ -123,6 +123,7 @@ sixteen-memory/
 │   ├── src/                 React management console
 │   ├── sdk/                 JavaScript client with no runtime dependencies
 │   ├── examples/            Synthetic integration examples
+│   ├── integrations/        Framework adapters with isolated dependency locks
 │   ├── test/                Local behavior and migration checks
 │   ├── eval/                Separately authorized model evaluation
 │   └── pages/               Production entry and Service Binding
@@ -141,7 +142,7 @@ This is a recorded status snapshot, not live monitoring. The recorded production
 | Status | Capabilities |
 | :--- | :--- |
 | **Implemented baseline · recorded as live** | Explicit memory lifecycle, lexical retrieval, user-scoped keys, console, and SDK source |
-| **Development · not released as live features** | Conversation extraction and review, fact slots, metadata and time filters, Qwen semantic and hybrid retrieval |
+| **Development · not released as live features** | Private Vercel AI SDK adapter; conversation extraction and review, fact slots, metadata and time filters, Qwen semantic and hybrid retrieval |
 | **Planned · not available** | Profiles, MCP, OpenAPI, packaged SDK releases, webhooks, organization members, and self-service billing |
 
 Committing code does not validate real-model quality, customer outcomes, production capacity, or recovery procedures. Read the [roadmap and current status](docs/ROADMAP.md).

@@ -25,3 +25,7 @@ Run from the repository root. The example deletes its synthetic record when fini
 ## Intelligent examples are not the default first step
 
 Check the target service's capabilities, then confirm the provider, data-sharing scope, and costs. Ordinary builds, README previews, and basic integration do not need these calls. Do not bypass configuration errors to force a model request.
+
+## Framework integration
+
+For AI SDK 7 middleware and tools, see the [Vercel AI SDK adapter](../integrations/vercel-ai/README.md). It has its own lockfile and does not change the basic examples above.

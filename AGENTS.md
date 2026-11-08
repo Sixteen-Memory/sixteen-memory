@@ -16,8 +16,9 @@
   outputs and generated build directories out of commits.
 - A successful push does not authorize deployment, DNS, billing, account
   permissions, customer-data actions or paid model calls.
-- Keep website work in `homepage/` and the service, console and SDK in
-  `product/`. Preserve each module's package lockfile.
+- Keep website work in `homepage/` and the service, console, SDK, and framework
+  adapters in `product/`. Preserve each module's package lockfile. Framework
+  adapters keep isolated dependencies under `product/integrations/`.
 - Run only checks relevant to the change. Do not run real-model benchmarks for
   normal website or repository maintenance.
 - Mem0 is a research reference, not vendored code. Any future reuse of third-party

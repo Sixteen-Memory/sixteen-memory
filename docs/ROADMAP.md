@@ -6,12 +6,16 @@
 
 This source and release-record snapshot was assembled on November 6, 2026. It is not live monitoring. The recorded production baseline is v0.1.0; development source is v0.2.1.
 
+The private Vercel AI SDK adapter entry was added on November 8, 2026. This does
+not change the recorded production version or publish an npm package.
+
 ## Implemented foundation
 
 - [x] Explicit create, read, list, update, history, deactivate, delete, and paginated export.
 - [x] Chinese and English lexical retrieval.
 - [x] User-scoped keys, role checks, and revocable console sessions.
 - [x] Console, request records, JavaScript SDK source, and examples.
+- [x] Private Vercel AI SDK 7 adapter with retrieval middleware, read-only tools, explicit writes, and local compatibility tests.
 - [x] Independent website, product pages, developer documentation, and bilingual navigation.
 - [x] Private company repository, personal contributions, and collaboration guides.
 
@@ -38,7 +42,7 @@ These are directions, not delivery-date commitments. Ordinary website and reposi
 ## Not available
 
 - Profile API or read-only MCP server.
-- Published npm/Python SDK packages or an OpenAPI specification.
+- Published npm/Python SDK packages or an OpenAPI specification. The Vercel AI SDK adapter is private source, not a registry release.
 - Webhooks, feedback endpoints, or a unified asynchronous task framework.
 - Self-service signup, customer billing, organization membership, or SSO.
 - Enterprise SLA, public compliance certification, validated production capacity, or customer outcome claims.

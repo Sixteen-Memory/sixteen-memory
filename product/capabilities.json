@@ -6,6 +6,19 @@
   "evidence_note": "Paths point to repository implementation or documentation, not proof of a live deployment. Private deployment receipts and provider credentials are intentionally excluded.",
   "items": [
     {
+      "id": "vercel-ai-adapter",
+      "as_of": "2026-11-08",
+      "title": "Vercel AI SDK 7 integration",
+      "status": "local",
+      "public_claim": "Private source adapter provides scoped retrieval middleware, read-only tools, and explicit user-message writes. Offline framework checks and local v0.1.0/v0.2.1 compatibility checks pass; no npm publication or real-model quality claim.",
+      "evidence": [
+        "product/integrations/vercel-ai/README.md",
+        "product/integrations/vercel-ai/test/framework.test.mjs",
+        "product/integrations/vercel-ai/test/runtime.mjs"
+      ],
+      "publishable_as_available": false
+    },
+    {
       "id": "lifecycle",
       "title": "Explicit memory lifecycle",
       "status": "live",
