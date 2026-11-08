@@ -4,6 +4,11 @@ const client = new SixteenMemory({ baseUrl: "https://memory.example", apiKey: "s
 const source: Source = { type: "manual", ref: "example", text: "Concise replies.", observed_at: "2026-11-01T00:00:00Z" };
 const saved: Memory = await client.add({ request_id: "example", user_id: "alice", content: source.text, source });
 const result = await client.search({ query: "replies", user_id: "alice", limit: 10 });
+await client.search({ query: "replies" }, { signal: new AbortController().signal });
+await client.list({});
+await client.me();
+await client.login("synthetic-console-key");
+await client.logout();
 const score: number = result.data[0].score;
 const cursor: string | null = (await client.list({ status: "all" })).next_cursor;
 const history: number = (await client.history(saved.id))[0].version;

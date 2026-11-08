@@ -5,6 +5,8 @@ import { fileURLToPath } from "node:url";
 import { build } from "esbuild";
 
 const sdk = new URL("../../product/sdk/", import.meta.url);
+const { version } = JSON.parse(await readFile(new URL("package.json", sdk)));
+const { info: { version: apiVersion } } = JSON.parse(await readFile(new URL("openapi.json", sdk)));
 const downloads = new URL("../public/downloads/", import.meta.url);
 await mkdir(downloads, { recursive: true });
 // Keep the original single-file download working, including candidate methods.
@@ -21,14 +23,14 @@ for (const [source, target] of [
 const [{ filename }] = JSON.parse(execFileSync("npm", ["pack", "--ignore-scripts", "--json", "--pack-destination", fileURLToPath(downloads)], { cwd: sdk, encoding: "utf8" }));
 const files = ["sixteen-memory-sdk.mjs", "sixteen-memory-client.mjs", "sixteen-memory-client.d.mts", "schema.d.ts", "openapi.json", filename];
 const sha256 = Object.fromEntries(await Promise.all(files.map(async file => [file, createHash("sha256").update(await readFile(new URL(file, downloads))).digest("hex")])));
-await writeFile(new URL("manifest.json", downloads), JSON.stringify({ sdk_version: "0.1.0", api_version: "0.1.0", package: filename, sha256 }, null, 2) + "\n");
-await writeFile(new URL("README.txt", downloads), `SixteenMemory typed SDK 0.1.0
+await writeFile(new URL("manifest.json", downloads), JSON.stringify({ sdk_version: version, api_version: apiVersion, package: filename, sha256 }, null, 2) + "\n");
+await writeFile(new URL("README.txt", downloads), `SixteenMemory typed SDK ${version}
 
 Install the downloadable package from your server-side application:
 npm install https://www.sixteenmemory.com/downloads/${filename}
 import { SixteenMemory } from "@sixteen-memory/sdk";
 
-No runtime dependencies. Node.js 20+. ESM JavaScript and TypeScript.
+No runtime dependencies. Node.js 20.3+. ESM JavaScript and TypeScript.
 The package includes generated API types and OpenAPI 3.1.
 It is distributed here, not published to the npm registry.
 Base URL: https://console.sixteenmemory.com

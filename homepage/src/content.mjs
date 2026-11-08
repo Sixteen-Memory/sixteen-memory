@@ -3,7 +3,7 @@ export const consoleUrl = "https://console.sixteenmemory.com/";
 export const quickstartUrl = "https://console.sixteenmemory.com/quickstart";
 export const apiHealthUrl = "https://console.sixteenmemory.com/health";
 export const sdkDownloadUrl = "/downloads/sixteen-memory-sdk.mjs";
-export const sdkPackageUrl = "/downloads/sixteen-memory-sdk-0.1.0.tgz";
+export const sdkPackageUrl = "/downloads/sixteen-memory-sdk-0.2.0.tgz";
 export const openapiUrl = "/downloads/openapi.json";
 
 const zh = {

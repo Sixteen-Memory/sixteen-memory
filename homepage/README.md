@@ -65,9 +65,11 @@ API experiment. Current online product health reports v0.1.0, lexical retrieval,
 explicit writes and no configured answer model. Never treat a health response as
 proof of workload capacity, customer outcomes or complete business-route coverage.
 
-The downloaded SDK is an exact copy of the existing project client. Its experimental
-ingestion/evidence/reindex methods are not enabled on the online v0.1 service.
-The webpage examples use only core endpoints. It is a source preview, not an npm release.
+The stable download is packaged from `product/sdk/client.mjs` with generated
+types and OpenAPI. The legacy single-file download bundles `index.mjs`; its
+experimental methods are not enabled online. The webpage examples use only
+core endpoints. This branch prepares SDK 0.2.0 artifacts but does not publish
+them. The recorded website release still has SDK 0.1.0 until separately approved.
 
 ## Assets and accessibility
 

@@ -1,6 +1,11 @@
 import { tool, wrapLanguageModel } from 'ai';
 import type { LanguageModelMiddleware } from 'ai';
 import { z } from 'zod';
+import { SixteenMemory, MemoryApiError, MemoryTransportError } from '@sixteen-memory/sdk';
+import type { Memory, CallOptions } from '@sixteen-memory/sdk';
+export type { CallOptions } from '@sixteen-memory/sdk';
+export { createChatHandler } from './handler.js';
+export type { ChatHandlerOptions, ChatSession } from './handler.js';
 
 const id = z.string().min(1).max(100).regex(/^[A-Za-z0-9][A-Za-z0-9_.:@-]*$/);
 const recordId = z.string().min(1).max(100).regex(/^[A-Za-z0-9-]+$/);
@@ -56,19 +61,13 @@ export interface SixteenMemoryOptions {
   /** Transport injection for runtimes/tests. Must honor abort and redirect options. */
   fetch?: typeof globalThis.fetch;
 }
-export interface MemoryEvidence {
-  id: string;
-  content: string;
-  version: number;
-  source: { type: 'conversation' | 'business' | 'manual'; ref: string; observed_at: string };
-}
+export type MemoryEvidence = Pick<Memory, 'id' | 'content' | 'version'> & { source: Omit<Memory['source'], 'text'> };
 export interface MemoryContext {
   memories: MemoryEvidence[];
   context: string;
   truncated: boolean;
 }
 export type RememberUserMessage = z.input<typeof rememberInput>;
-export interface CallOptions { signal?: AbortSignal }
 type RawRecord = z.infer<typeof recordSchema>;
 
 function invalid(): never { throw new SixteenMemoryAdapterError('invalid_input'); }
@@ -142,45 +141,13 @@ export function createSixteenMemory(options: SixteenMemoryOptions) {
   const fetcher = options.fetch ?? ((...args: Parameters<typeof fetch>) => globalThis.fetch(...args));
   if (typeof fetcher !== 'function') return invalid();
 
-  async function request(path: string, body: unknown, signal?: AbortSignal): Promise<unknown> {
-    if (signal?.aborted) throw new SixteenMemoryAdapterError('aborted');
-    const timeout = AbortSignal.timeout(timeoutMs);
-    const combined = signal ? AbortSignal.any([signal, timeout]) : timeout;
-    const serialized = body === undefined ? undefined : JSON.stringify(body);
-    if (serialized && new TextEncoder().encode(serialized).length > 64 * 1024) return invalid();
+  const client = new SixteenMemory({ baseUrl, apiKey, fetch: fetcher, timeoutMs, maxResponseBytes: MAX_RESPONSE_BYTES });
+  async function call<T>(request: () => Promise<T>): Promise<T> {
     try {
-      const response = await fetcher(baseUrl + path, {
-        method: serialized === undefined ? 'GET' : 'POST', redirect: 'manual', signal: combined,
-        headers: { Authorization: `Bearer ${apiKey}`, ...(serialized ? { 'Content-Type': 'application/json' } : {}) },
-        ...(serialized ? { body: serialized } : {}),
-      });
-      if (!response.ok) {
-        await response.body?.cancel().catch(() => {});
-        throw new SixteenMemoryAdapterError(response.status >= 300 && response.status < 400 ? 'redirect_denied' : 'http_error', response.status);
-      }
-      const reader = response.body?.getReader();
-      if (!reader) throw new SixteenMemoryAdapterError('invalid_response');
-      const chunks: Uint8Array[] = [];
-      let bytes = 0;
-      try {
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          bytes += value.byteLength;
-          if (bytes > MAX_RESPONSE_BYTES) throw new SixteenMemoryAdapterError('response_too_large');
-          chunks.push(value);
-        }
-      } catch (error) { await reader.cancel().catch(() => {}); throw error; }
-      finally { reader.releaseLock(); }
-      const data = new Uint8Array(bytes);
-      let offset = 0;
-      for (const chunk of chunks) { data.set(chunk, offset); offset += chunk.byteLength; }
-      try { return JSON.parse(new TextDecoder().decode(data)); }
-      catch { throw new SixteenMemoryAdapterError('invalid_response'); }
+      return await request();
     } catch (error) {
-      if (signal?.aborted) throw new SixteenMemoryAdapterError('aborted');
-      if (timeout.aborted) throw new SixteenMemoryAdapterError('timeout');
-      if (error instanceof SixteenMemoryAdapterError) throw error;
+      if (error instanceof MemoryApiError) throw new SixteenMemoryAdapterError(error.code === 'redirect_denied' ? 'redirect_denied' : 'http_error', error.status);
+      if (error instanceof MemoryTransportError) throw new SixteenMemoryAdapterError(error.code === 'request_too_large' ? 'invalid_input' : error.code);
       throw new SixteenMemoryAdapterError('network_error');
     }
   }
@@ -190,28 +157,28 @@ export function createSixteenMemory(options: SixteenMemoryOptions) {
     if (parsed.data.user_id !== userId) throw new SixteenMemoryAdapterError('scope_mismatch');
     return parsed.data;
   }
-  async function search(query: string, call: CallOptions = {}): Promise<MemoryContext> {
+  async function search(query: string, options: CallOptions = {}): Promise<MemoryContext> {
     const input = parseInput(searchInput, { query });
-    const result = await request('/v1/search', { user_id: userId, query: input.query, limit: maxResults, mode: 'lexical' }, call.signal);
+    const result = await call(() => client.search({ user_id: userId, query: input.query, limit: maxResults }, options));
     const envelope = z.object({ data: z.array(z.unknown()).max(50) }).safeParse(result);
     if (!envelope.success) throw new SixteenMemoryAdapterError('invalid_response');
     return contextFor(envelope.data.data.map(checkedRecord), maxContextChars, maxResults);
   }
-  async function get(memoryId: string, call: CallOptions = {}): Promise<MemoryContext> {
+  async function get(memoryId: string, options: CallOptions = {}): Promise<MemoryContext> {
     const input = parseInput(getInput, { id: memoryId });
-    const record = checkedRecord(await request(`/v1/memories/${encodeURIComponent(input.id)}`, undefined, call.signal));
+    const record = checkedRecord(await call(() => client.get(input.id, options)));
     if (record.id !== memoryId) throw new SixteenMemoryAdapterError('invalid_response');
     const context = contextFor([record], maxContextChars, 1);
     if (!context.memories.length) throw new SixteenMemoryAdapterError('memory_unavailable');
     return context;
   }
-  async function rememberUserMessage(input: RememberUserMessage, call: CallOptions = {}): Promise<{ id: string; version: number }> {
+  async function rememberUserMessage(input: RememberUserMessage, options: CallOptions = {}): Promise<{ id: string; version: number }> {
     const message = parseInput(rememberInput, input);
-    const record = checkedRecord(await request('/v1/memories', {
+    const record = checkedRecord(await call(() => client.add({
       request_id: message.requestId, user_id: userId, content: message.text,
       source: { type: 'conversation', ref: message.ref, text: message.text, observed_at: message.observedAt },
       expires_at: message.expiresAt ?? null,
-    }, call.signal));
+    }, options)));
     return { id: record.id, version: record.version };
   }
   const tools = {

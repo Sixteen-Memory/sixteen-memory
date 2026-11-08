@@ -16,7 +16,7 @@ test('read-only tools have strict inputs and immutable application-owned scope',
   await assert.rejects(memory.tools.searchMemory.execute({ query: 'preference', user_id: 'bob' }, toolOptions), code('invalid_input'));
   const output = await memory.tools.searchMemory.execute({ query: 'preference' }, toolOptions);
   assert.equal(fixture.requests[0].body.user_id, 'alice');
-  assert.equal(fixture.requests[0].body.mode, 'lexical');
+  assert.equal(fixture.requests[0].body.mode, undefined);
   assert.equal(output.count, 1);
   assert.ok(!output.context.includes(key));
   assert.ok(!output.context.includes('Please keep replies concise.')); // Raw source text is not sent to the model.

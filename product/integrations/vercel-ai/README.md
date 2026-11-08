@@ -1,6 +1,7 @@
 # SixteenMemory for Vercel AI SDK
 
-A server-side AI SDK 7 adapter for scoped memory retrieval, read-only model tools, and explicit user-message writes.
+A server-side AI SDK 7 adapter using the shared typed SDK for scoped retrieval,
+read-only tools, explicit writes, and an authenticated HTTP chat handler.
 
 > **Developer preview · private source**<br>
 > This package is not published to npm and is not a production-release claim. It targets the development API candidate while its retrieval and explicit-write paths are also checked against the recorded v0.1.0 source fixture.
@@ -33,13 +34,24 @@ Application dependencies must satisfy the peer range:
 
 ```sh
 npm install ai@^7 zod@^4.1.8
+npm install -D @types/node@^22 @types/json-schema@7.0.15
 ```
 
-To install it into another authorized application without publishing, run
-`npm pack --pack-destination /path/to/private-artifacts` in this package and
-install the resulting local archive in that application. It contains an ESM
-entry point and TypeScript declarations. Imports then use
-`@sixteen-memory/vercel-ai`, not a relative checkout path.
+The adapter has a peer dependency on `@sixteen-memory/sdk@^0.2.0`.
+From the repository root, prepare both archives without publishing:
+
+```sh
+mkdir -p output/packages
+npm --prefix product/integrations/vercel-ai run build
+npm pack ./product/sdk --pack-destination output/packages --ignore-scripts
+npm pack ./product/integrations/vercel-ai --pack-destination output/packages --ignore-scripts
+# In the consuming application, install both archives together:
+npm install /path/to/output/packages/sixteen-memory-sdk-0.2.0.tgz /path/to/output/packages/sixteen-memory-vercel-ai-0.2.0.tgz
+```
+
+Imports use `@sixteen-memory/sdk` and `@sixteen-memory/vercel-ai`. Neither
+0.2.0 archive has a public registry or website release. TypeScript consumers
+need Node and JSON Schema declarations for the installed official AI SDK types.
 
 Do not use an invented public package command. Publishing requires separate naming, access, license, changelog, and registry approval.
 
@@ -109,14 +121,45 @@ the adapter cannot override server-side model billing.
 
 ## Server handler
 
-[`examples/server.ts`](examples/server.ts) is compile-checked and shows ordinary and streaming responses. The host must provide:
+`createChatHandler` is a tested package export, not a copy-paste-only example.
+It accepts Web-standard Request/Response values, so a Next.js route can export
+the returned function as `POST` (use the Node.js runtime). The host must provide:
 
 - authenticated user state and a matching user-scoped key;
-- trusted Origin/session checks, body-size and rate limits;
+- exact allowed browser origins and a real per-user quota callback;
 - an approved model instance and model budget;
 - production logging that does not expose keys or raw memory content.
 
-The example retrieves memory before streaming starts so memory failures can return a useful HTTP response. It does not auto-save a generated answer.
+```ts
+import { createChatHandler } from '@sixteen-memory/vercel-ai';
+
+// Define these using your application session store, quota service and approved provider.
+export const POST = createChatHandler({
+  memoryBaseUrl: process.env.SIXTEEN_MEMORY_URL!,
+  allowedOrigins: ['https://your-application.example'],
+  authenticate: resolveVerifiedSession,
+  rateLimit: consumeUserQuota,
+  model: approvedModel,
+});
+```
+
+The JSON body is strictly `{ message: string, stream?: boolean }`; supplying a
+user ID, credential or unknown field returns 400. Requests are bounded to 64 KiB.
+Normal responses are `{ text, memoryIds }`. Streaming responses are plain text;
+errors after headers fail the response body with a sanitized error. Consumers
+must treat interrupted streams as incomplete, not as a successful full answer.
+
+Authentication and quota checks precede retrieval. Memory is retrieved before
+streaming headers, output is capped at 512 model tokens, retries are disabled,
+and the request abort signal reaches retrieval and generation. There are no
+implicit writes. Call `rememberUserMessage` separately only for an authorized
+retention event with a stable event ID and original user text.
+
+The handler is single-turn plus long-term memory, not a conversation transcript
+store. Each request carries one current user message. The host still owns
+deployment, session expiry, cross-instance quota enforcement, overall request
+deadlines and provider data-retention policy. The quota callback must enforce
+limits atomically in a shared store in multi-instance deployments.
 
 ## Security and failure behavior
 
@@ -130,11 +173,11 @@ The example retrieves memory before streaming starts so memory failures can retu
 
 Prompt injection remains an application risk. Escaping and data labels improve separation but cannot make untrusted text safe by themselves. Keep high-authority instructions in the system prompt, restrict tools and downstream business actions, and require human confirmation where appropriate.
 
-The adapter intentionally has a small independent HTTP transport rather than
-copying the existing JavaScript SDK into a distributable package. This allows
-bounded responses, cancellation, redirect denial, and sanitized tool errors
-without changing current SDK behavior. Both use the same existing API routes,
-with compatibility checked against the real local service.
+The adapter has no independent HTTP implementation. It calls the typed SDK's
+`search`, `get`, and `add`; the SDK owns transport, limits and cancellation.
+The adapter additionally validates response shape/scope and sanitizes errors
+before exposing them to tools. Generated OpenAPI types supply evidence types.
+The documented search request defaults to lexical retrieval on both tested APIs.
 
 ## Official framework references
 
@@ -149,9 +192,20 @@ were copied.
 ## Verification
 
 ```sh
-npm test          # Type declarations + 20 offline tests using official AI SDK mocks
+npm test          # Type declarations + 25 offline tests using official AI SDK mocks
 npm run example   # Offline middleware example; no provider or service request
 npm run test:runtime
+npm run test:e2e     # Loopback HTTP chat -> shared SDK -> real local Workers/SQLite
+npm run test:console # Actual console API module with cookie sessions
+npm run test:package # Two clean archives installed offline with public-registry cache
 ```
 
 The runtime test uses local Miniflare/SQLite against the recorded v0.1.0 source fixture and the current v0.2.1 candidate. It checks idempotent writes, retrieval, framework middleware, read/write keys, cross-user isolation, updates, deactivation, deletion, and stale-context avoidance. Provider calls and production requests are disabled.
+
+`test:e2e` starts a temporary loopback HTTP server and both real local API
+versions. It maps synthetic application sessions to scoped keys, explicitly
+stores a user event, calls normal/streaming chat, verifies Bob cannot retrieve
+Alice's data, updates and deactivates the record, exports/deletes it and confirms
+there is no stale recall or automatic assistant-answer storage. All temporary
+storage and sockets are cleaned up. This is real application/storage integration
+with an official mock model, not real-model quality or production acceptance.

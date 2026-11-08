@@ -35,9 +35,24 @@
 **Make changes explicit.** Update with a version, deactivate to exclude from retrieval, and delete online data and indexes.<br>
 **Integrate incrementally.** Start with explicit writes and lexical retrieval, without model calls. Enable development-stage intelligent paths only when needed.
 
+### Run the full integration locally
+
+```sh
+npm run setup
+npm run example:integration
+npm run check:integration
+```
+
+This runs authenticated HTTP chat through the shared SDK into real temporary
+Worker/SQLite storage, including ordinary and streaming responses, user
+isolation, update/history, deactivation and deletion. Generation uses the
+official AI SDK mock; no paid provider or production data is used.
+See the [integration guide](product/integrations/vercel-ai/README.md) for real
+application session, quota and approved-model wiring.
+
 ## Quickstart
 
-Requires **Node.js 24 + npm**. Install both applications from the repository root:
+Requires **Node.js 24 + npm**. Install the applications, API tooling and adapter from the repository root:
 
 ```sh
 npm run setup
