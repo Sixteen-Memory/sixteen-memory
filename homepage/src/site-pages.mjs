@@ -3,7 +3,7 @@
 /** @typedef {{id:string,title:Bilingual,body:Bilingual,items:PageItem[]}} PageSection */
 /** @typedef {{path:string,nav:Bilingual,kicker:string,title:Bilingual,description:Bilingual,kind:string,sections:PageSection[],related:string[]}} SitePage */
 export const siteOrigin = "https://www.sixteenmemory.com";
-export const statusDate = "2026-11-05";
+export const statusDate = "2026-11-08";
 export const primaryNavigation = [
   { path: "/product/memory", zh: "产品", en: "Product" },
   { path: "/integrations", zh: "集成", en: "Integrations" },
@@ -28,12 +28,12 @@ export const capabilities = [
   { id: "memory", state: "live", title: label("显式记忆管理", "Explicit memory"), detail: label("保存、读取、更新、查看历史、停用、删除与分页导出。", "Create, read, update, inspect history, deactivate, delete and export in pages."), path: "/product/memory" },
   { id: "scope", state: "live", title: label("用户范围与权限", "User-scoped access"), detail: label("普通 Key 绑定一个用户范围，读写权限由服务端检查。", "Regular keys belong to one user scope, with read and write permissions checked by the service."), path: "/security" },
   { id: "lexical", state: "live", title: label("词法检索", "Lexical retrieval"), detail: label("按中文与英文词语查找当前有效记忆，随结果返回来源。", "Find active memories by Chinese and English terms, with sources included."), path: "/product/retrieval" },
-  { id: "console", state: "live", title: label("控制台与开发接入", "Console and API access"), detail: label("管理台、REST 接口、Quickstart 与 JavaScript SDK 源码预览。", "A management console, REST API, Quickstart and JavaScript SDK source preview."), path: "/integrations" },
+  { id: "console", state: "live", title: label("控制台与开发接入", "Console and API access"), detail: label("管理台、REST、OpenAPI 3.1 与 TypeScript / JavaScript SDK 下载包。", "A management console, REST, OpenAPI 3.1 and a downloadable TypeScript / JavaScript SDK."), path: "/integrations" },
   { id: "extraction", state: "local", title: label("抽取与事实更新", "Extraction and fact updates"), detail: label("开发版本支持从对话提取候选事实；有歧义时交由人工检查。", "The development version extracts candidate facts from conversations and sends ambiguous changes for review."), path: "/product/memory" },
   { id: "semantic", state: "local", title: label("千问语义与混合检索", "Qwen semantic and hybrid search"), detail: label("向量接入代码已准备，尚未完成真实模型效果检查，也未向线上开放。", "The embedding integration is prepared. Real-model quality has not been checked and the feature is not live."), path: "/product/retrieval" },
   { id: "filters", state: "local", title: label("分类、元数据与时间筛选", "Categories, metadata and time filters"), detail: label("开发 API 支持组合筛选与有效时间窗口；不是历史快照查询。", "The development API supports compound filters and validity windows, not historical snapshots."), path: "/product/retrieval" },
   { id: "profile", state: "planned", title: label("用户画像与只读 MCP", "Profiles and read-only MCP"), detail: label("希望让常用背景和偏好更容易被 Agent 使用，目前没有开放接口。", "Planned ways to supply recurring background and preferences to agents. No public endpoints yet."), path: "/integrations" },
-  { id: "sdk", state: "planned", title: label("更多 SDK 与通知能力", "More SDKs and notifications"), detail: label("Python 发布包、OpenAPI 描述、Webhook 和反馈接口尚未提供。", "A published Python SDK, OpenAPI document, webhooks and feedback endpoints are not available yet."), path: "/integrations" },
+  { id: "sdk", state: "planned", title: label("更多 SDK 与通知能力", "More SDKs and notifications"), detail: label("Python 发布包、npm 注册表发布、Webhook 和反馈接口尚未提供。", "A Python package, npm registry release, webhooks and feedback endpoints are not available yet."), path: "/integrations" },
   { id: "teams", state: "planned", title: label("团队与企业管理", "Teams and enterprise controls"), detail: label("组织成员、SSO、自助注册和计费仍待实现。", "Organization membership, SSO, self-service signup and billing remain planned."), path: "/usage" }
 ];
 /** @param {string} id @param {Bilingual} title @param {Bilingual} body @param {PageItem[]} items @returns {PageSection} */
@@ -82,10 +82,10 @@ export const sitePages = [
     label("从 REST 或 JavaScript 客户端开始，把记忆放到已有工作流中。控制台负责查看与管理，业务逻辑仍留在你的应用。", "Begin with REST or the JavaScript client. Use the console for inspection and management while keeping business logic in your application."),
     "integrations", [
       section("available-tools", label("现在可以使用的入口。", "The ways in today."),
-        label("示例只调用线上核心接口。SDK 为源码预览，不是 npm 发布包；其中的实验方法并未全部在生产服务启用。", "Examples call only live core endpoints. The SDK is a source preview, not a published npm package, and experimental methods are not all enabled online.")),
+        label("OpenAPI 和类型化 SDK 对应线上 v0.1 API。SDK 通过官网下载包安装，尚未发布到 npm 注册表。实验接口不在稳定包中。", "OpenAPI and the typed SDK target the online v0.1 API. Install the package from this website; it is not in the npm registry. Experimental endpoints are excluded from the stable package.")),
       section("planned-tools", label("更多入口，不做空的承诺。", "More ways in, clearly labeled."), label("这些方向已列入计划，但现在没有可连接的服务或安装包。", "These are planned directions, not services or packages you can connect to today."), [
         item(label("只读 MCP", "Read-only MCP"), label("计划提供带权限范围的记忆召回工具。目前没有 MCP Server 地址。", "A scoped recall tool is planned. There is no MCP Server URL yet."), "planned"),
-        item(label("Python 与 OpenAPI", "Python and OpenAPI"), label("计划补充 Python 发布包与机器可读接口描述。当前可用任何支持 HTTPS 的语言调用 REST。", "A Python release and machine-readable API description are planned. Today, use REST from any language with HTTPS support."), "planned"),
+        item(label("Python SDK", "Python SDK"), label("Python 发布包尚未提供；现在可使用 OpenAPI 描述生成客户端，或直接调用 REST。", "A Python release is not available yet. Use the OpenAPI document to generate a client or call REST directly."), "planned"),
         item(label("通知与反馈", "Notifications and feedback"), label("Webhook、反馈和统一后台任务仍待实现，不需要为不存在的接口预留集成。", "Webhooks, feedback and unified background jobs are not implemented yet."), "planned")
       ])
     ], ["/docs", "/usage", "/status"]),

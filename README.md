@@ -66,7 +66,7 @@ Read the [local development guide](docs/QUICKSTART.md) or browse the [documentat
 
 ## Add memory to your application
 
-The SDK is a source module in this repository, **not a published npm package**. Run the following code in a Node.js module at the repository root, using a test key and its permitted user scope. It stores and retrieves one synthetic record without calling a model:
+The [typed SDK](product/sdk/README.md) is available as a website download, **not an npm registry release**. Its types come from the [OpenAPI specification](product/openapi/README.md). The original source import below remains compatible. Run it in a Node.js module at the repository root with a test key and its permitted user scope. It stores and retrieves one synthetic record without calling a model:
 
 ```js
 import { SixteenMemory } from "./product/sdk/index.mjs";
@@ -141,9 +141,9 @@ This is a recorded status snapshot, not live monitoring. The recorded production
 
 | Status | Capabilities |
 | :--- | :--- |
-| **Implemented baseline · recorded as live** | Explicit memory lifecycle, lexical retrieval, user-scoped keys, console, and SDK source |
+| **Implemented baseline · recorded as live** | Explicit memory lifecycle, lexical retrieval, user-scoped keys, console, OpenAPI 3.1, and typed SDK download |
 | **Development · not released as live features** | Private Vercel AI SDK adapter; conversation extraction and review, fact slots, metadata and time filters, Qwen semantic and hybrid retrieval |
-| **Planned · not available** | Profiles, MCP, OpenAPI, packaged SDK releases, webhooks, organization members, and self-service billing |
+| **Planned · not available** | Profiles, MCP, npm registry and Python SDK releases, webhooks, organization members, and self-service billing |
 
 Committing code does not validate real-model quality, customer outcomes, production capacity, or recovery procedures. Read the [roadmap and current status](docs/ROADMAP.md).
 

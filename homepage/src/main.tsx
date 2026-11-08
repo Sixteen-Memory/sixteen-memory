@@ -5,6 +5,7 @@ import "./styles.css";
 import "./product-page.css";
 import "./site-document.css";
 import "./developer-menu.css";
+import "./brand-logo.css";
 
 const root = document.getElementById("root")!;
 const app = <React.StrictMode><App /></React.StrictMode>;

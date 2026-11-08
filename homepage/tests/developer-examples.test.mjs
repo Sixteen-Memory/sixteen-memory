@@ -2,6 +2,9 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { snippets, endpoints } from "../src/developer-examples.mjs";
 import { SixteenMemory } from "../public/downloads/sixteen-memory-sdk.mjs";
+import { SixteenMemory as StableClient } from "../public/downloads/sixteen-memory-client.mjs";
+import { readFileSync } from "node:fs";
+import { createHash } from "node:crypto";
 
 const checkRecord = input => {
   assert.equal(input.user_id, "customer-42");
@@ -15,7 +18,7 @@ const checkRecord = input => {
 
 test("displayed JavaScript runs against the downloadable SDK without calling the network", async () => {
   const calls = [];
-  class ExampleClient extends SixteenMemory {
+  class ExampleClient extends StableClient {
     constructor(options) {
       super({ ...options, fetch: async (url, init) => {
         calls.push({ url, ...init });
@@ -32,6 +35,26 @@ test("displayed JavaScript runs against the downloadable SDK without calling the
   assert.equal(calls[0].headers.Authorization, "Bearer synthetic-test-key");
   checkRecord(JSON.parse(calls[0].body));
   assert.deepEqual(JSON.parse(calls[1].body), { user_id: "customer-42", query: "refund open", limit: 10 });
+});
+
+test("legacy download preserves candidate methods while the typed release excludes them", async () => {
+  const calls = [];
+  const options = { baseUrl: "https://memory.example", fetch: async (url, init) => {
+    calls.push({ url, ...init }); return Response.json({ data: [] });
+  } };
+  const legacy = new SixteenMemory(options);
+  await legacy.ingest({ user_id: "synthetic-user" });
+  await legacy.search({ query: "synthetic" });
+  assert.equal(calls[0].url, "https://memory.example/v1/ingestions");
+  assert.equal(calls[1].url, "https://memory.example/v1/search");
+  assert.equal(new StableClient(options).ingest, undefined);
+  const manifest = JSON.parse(readFileSync(new URL("../public/downloads/manifest.json", import.meta.url)));
+  for (const [file, hash] of Object.entries(manifest.sha256)) {
+    assert.equal(createHash("sha256").update(readFileSync(new URL("../public/downloads/" + file, import.meta.url))).digest("hex"), hash);
+  }
+  const spec = JSON.parse(readFileSync(new URL("../public/downloads/openapi.json", import.meta.url)));
+  assert.equal(spec.info.version, "0.1.0");
+  assert.ok(!Object.keys(spec.paths).some(path => /ingestion|reindex|evidence/.test(path)));
 });
 
 test("displayed REST bodies match required online fields and documented routes", () => {

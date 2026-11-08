@@ -3,6 +3,8 @@ export const consoleUrl = "https://console.sixteenmemory.com/";
 export const quickstartUrl = "https://console.sixteenmemory.com/quickstart";
 export const apiHealthUrl = "https://console.sixteenmemory.com/health";
 export const sdkDownloadUrl = "/downloads/sixteen-memory-sdk.mjs";
+export const sdkPackageUrl = "/downloads/sixteen-memory-sdk-0.1.0.tgz";
+export const openapiUrl = "/downloads/openapi.json";
 
 const zh = {
   skip: "跳至正文",
@@ -49,11 +51,11 @@ const zh = {
       },
       {
         "id": "sdk",
-        "name": "JavaScript SDK",
-        "state": "源码预览",
-        "body": "下载无运行依赖的客户端源码，用 Node.js 接入。示例只使用线上基础接口；自动抽取等实验方法尚未在线启用。",
-        "href": sdkDownloadUrl,
-        "action": "下载 SDK 源码",
+        "name": "TypeScript / JavaScript SDK",
+        "state": "下载包可用",
+        "body": "带请求和响应类型的 Node.js 客户端，无运行时依赖。配套 OpenAPI 3.1；稳定包不包含尚未上线的实验接口。",
+        "href": sdkPackageUrl,
+        "action": "下载类型化 SDK",
         "download": true
       },
       {
@@ -194,11 +196,11 @@ const en = {
       },
       {
         "id": "sdk",
-        "name": "JavaScript SDK",
-        "state": "Source preview",
-        "body": "Download the dependency-free client for Node.js. Examples use online core endpoints; experimental methods such as extraction are not enabled online.",
-        "href": sdkDownloadUrl,
-        "action": "Download SDK source",
+        "name": "TypeScript / JavaScript SDK",
+        "state": "Download available",
+        "body": "Typed Node.js requests and responses with no runtime dependencies. Includes OpenAPI 3.1; unreleased experimental endpoints are excluded.",
+        "href": sdkPackageUrl,
+        "action": "Download typed SDK",
         "download": true
       },
       {

@@ -13,6 +13,7 @@ test("SDK preserves authorization, versions, source and scope without retries", 
   await client.exportPage({ cursor: "after", user_id: "u1" });
   assert.equal(requests[0].url, "https://memory.example/v1/memories");
   assert.equal(requests[0].headers.Authorization, "Bearer test-key");
+  assert.equal(requests[0].redirect, "error");
   assert.equal(JSON.parse(requests[0].body).user_id, "u1");
   assert.equal(requests[1].url, "https://memory.example/v1/memories/memory%2Fid");
   assert.equal(JSON.parse(requests[1].body).expected_version, 2);

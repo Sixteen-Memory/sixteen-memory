@@ -4,6 +4,7 @@ import { createVideoHero } from "./video-hero-controller";
 import { content, consoleUrl, quickstartUrl } from "./content.mjs";
 import { primaryNavigation, routeHref } from "./site-pages.mjs";
 import DeveloperMenu from "./DeveloperMenu";
+import BrandLogo from "./BrandLogo";
 import "./video-hero.css";
 
 type Props = {
@@ -94,10 +95,7 @@ export default function VideoHero({ language, paused, onLanguage, copy }: Props)
             className="night-wordmark"
             aria-label="SixteenMemory home"
           >
-            <span className="night-wordmark-name">Sixteen<em>Memory</em></span>
-            <span className="night-wordmark-caption">
-              {language === "zh" ? "拾陆记忆" : "CONTEXT THAT CONTINUES"}
-            </span>
+            <BrandLogo/>
           </a>
           <nav aria-label={language === "zh" ? "主导航" : "Main navigation"}>
             {primaryNavigation.map(item => item.path === "/docs" ? <DeveloperMenu key={item.path} language={language}/> : <a key={item.path} href={routeHref(item.path, language)}>{item[language]}</a>)}

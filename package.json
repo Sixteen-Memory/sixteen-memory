@@ -4,7 +4,7 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
-    "setup": "npm ci --prefix product && npm ci --prefix homepage",
+    "setup": "npm ci --prefix product && npm ci --prefix product/openapi && npm ci --prefix homepage",
     "prepare:product": "npm --prefix product run prepare:local",
     "build:website": "npm --prefix homepage run build",
     "build:product": "npm --prefix product run build",
@@ -12,6 +12,7 @@
     "check:product": "npm --prefix product test",
     "check:vercel-ai": "npm --prefix product/integrations/vercel-ai test",
     "check:vercel-ai:runtime": "npm --prefix product/integrations/vercel-ai run test:runtime",
+    "check:api": "npm --prefix product/openapi test",
     "check:docs": "node scripts/check-docs.mjs",
     "example:basic": "node product/examples/customer-continuity.mjs",
     "dev:website": "npm --prefix homepage run dev --",

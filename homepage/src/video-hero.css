@@ -68,7 +68,7 @@
 }
 .night-nav {
   font-family: Manrope, "PingFang SC", "Microsoft YaHei", sans-serif;
-  height: 88px;
+  height: 120px;
   padding: 12px 36px;
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
@@ -97,36 +97,10 @@
 }
 .night-nav nav a:hover { color: var(--white); }
 .night-wordmark {
-  display: flex;
+  display: inline-flex;
   justify-self: start;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 58px;
-  text-align: center;
-}
-.night-wordmark-name {
-  font-family: "Instrument Serif", serif;
-  font-size: 36px;
-  font-weight: 400;
-  line-height: 1;
-  letter-spacing: -.02em;
-  white-space: nowrap;
-}
-.night-wordmark-name em { font-style: italic; }
-.night-wordmark-caption {
-  font-family: Manrope, "PingFang SC", "Microsoft YaHei", sans-serif;
-  display: block;
-  font-size: 10px;
-  font-weight: 400;
-  line-height: 1.4;
-  letter-spacing: .3em;
-  padding-left: .3em;
-  margin-top: 9px;
-}
-html[lang="en"] .night-wordmark-caption {
-  font-size: 8px;
-  letter-spacing: .18em;
 }
 .night-actions {
   justify-self: end;
@@ -163,7 +137,7 @@ html[lang="en"] .night-wordmark-caption {
 }
 .night-copy-perspective {
   position: absolute;
-  top: 129px;
+  top: 152px;
   left: 0;
   right: 0;
   perspective: calc(900 * var(--u));
@@ -360,7 +334,7 @@ html[lang="zh-CN"] .night-copy h1 > span {
     min-height: 500px;
   }
   .night-copy-perspective {
-    top: 95px;
+    top: 144px;
   }
   .night-copy h1 {
     font-size: 60px;
@@ -383,7 +357,7 @@ html[lang="zh-CN"] .night-copy h1 > span {
     min-height: 0;
   }
   .night-nav {
-    height: 84px;
+    height: 108px;
     padding: 12px 18px;
     grid-template-columns: 1fr auto;
     border-bottom: 0;
@@ -391,20 +365,6 @@ html[lang="zh-CN"] .night-copy h1 > span {
   }
   .night-nav nav {
     display: none;
-  }
-  .night-wordmark {
-    align-items: flex-start;
-    text-align: left;
-    min-height: 56px;
-  }
-  .night-wordmark-name {
-    font-size: 31px;
-  }
-  .night-wordmark-caption {
-    font-size: 9px;
-    letter-spacing: .24em;
-    padding-left: 1px;
-    margin-top: 7px;
   }
   .night-actions {
     gap: 6px;
@@ -420,7 +380,7 @@ html[lang="zh-CN"] .night-copy h1 > span {
     width: 14px;
   }
   .night-copy-perspective {
-    top: 106px;
+    top: 136px;
     left: 0;
     right: 0;
     padding: 0 17px;
@@ -507,9 +467,6 @@ html[lang="zh-CN"] .night-copy h1 > span {
   }
 }
 @media (max-width: 359px) {
-  .night-wordmark {
-    font-size: 17px;
-  }
   .night-actions > * {
     padding-inline: 10px;
   }
@@ -536,11 +493,11 @@ html[lang="zh-CN"] .night-copy h1 > span {
     min-height: 100svh;
   }
   [data-artwork="user-memory16-preview"] .night-nav {
-    height: 62px;
+    height: 84px;
     padding-block: 10px;
   }
   [data-artwork="user-memory16-preview"] .night-copy-perspective {
-    top: 82px;
+    top: 104px;
   }
   [data-artwork="user-memory16-preview"] .night-copy h1 {
     font-size: 38px;

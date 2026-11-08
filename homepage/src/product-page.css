@@ -148,7 +148,6 @@
   .night-actions .mobile-navigation:hover { transform: none; }
 }
 @media (max-width: 359px) {
-  .night-wordmark-name { font-size: 27px; }
   .night-actions { gap: 0; }
   .night-actions > .night-language { padding: 0; }
 }
@@ -164,7 +163,6 @@
   .night-nav nav { gap: 12px; }
   .night-nav nav a { font-size: 11px; }
   .night-actions > * { padding: 0 10px; }
-  .night-wordmark-name { font-size: 32px; }
 }
 @media (max-width: 520px) {
   .footer-product-links { gap: 18px; flex-wrap: wrap; }
