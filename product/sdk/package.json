@@ -1,0 +1,17 @@
+{
+  "name": "@sixteen-memory/sdk",
+  "version": "0.1.0",
+  "description": "Typed server-side client for the SixteenMemory v0.1 API",
+  "private": true,
+  "license": "UNLICENSED",
+  "type": "module",
+  "engines": { "node": ">=20" },
+  "main": "./client.mjs",
+  "types": "./client.d.mts",
+  "exports": {
+    ".": { "types": "./client.d.mts", "import": "./client.mjs" },
+    "./openapi.json": "./openapi.json"
+  },
+  "files": ["client.mjs", "client.d.mts", "schema.d.ts", "openapi.json", "README.md", "LICENSE"],
+  "sideEffects": false
+}

@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { ArrowDown, ArrowRight, ArrowUpRight, BookOpen, ChevronRight, Code2, Copy, Database, Fingerprint, Layers3, Search, ShieldCheck } from "lucide-react";
-import { consoleUrl, contactEmail, quickstartUrl, sdkDownloadUrl } from "./content.mjs";
+import { consoleUrl, contactEmail, quickstartUrl, sdkDownloadUrl, sdkPackageUrl, openapiUrl } from "./content.mjs";
 import { endpoints, snippets } from "./developer-examples.mjs";
 import { capabilities, primaryNavigation, routeHref, sitePages, states, statusDate } from "./site-pages.mjs";
 import DeveloperMenu from "./DeveloperMenu";
+import BrandLogo from "./BrandLogo";
 
 type Language = "zh" | "en";
 type Page = (typeof sitePages)[number];
@@ -16,7 +17,7 @@ export function SiteHeader({ language, path, onLanguage }: { language: Language;
   const links = (compact = false) => primaryNavigation.map(link => link.path === "/docs" ? <DeveloperMenu key={link.path} language={language} compact={compact}/> : <a key={link.path} href={routeHref(link.path, language)}
     aria-current={path === link.path || (link.path === "/product/memory" && path.startsWith("/product/")) ? "page" : undefined}>{link[language]}</a>);
   return <header className="site-header">
-    <a className="site-logo" href={routeHref("/", language)} aria-label="SixteenMemory home">Sixteen<em>Memory</em><span>{zh ? "拾陆记忆" : "CONTEXT THAT CONTINUES"}</span></a>
+    <a className="site-logo" href={routeHref("/", language)} aria-label="SixteenMemory home"><BrandLogo/></a>
     <nav aria-label={zh ? "主导航" : "Main navigation"}>{links()}</nav>
     <div className="site-actions">
       <button className="site-language" onClick={onLanguage} aria-label={zh ? "Switch to English" : "切换至中文"}>{zh ? "EN" : "中"}</button>
@@ -32,7 +33,7 @@ export function SiteHeader({ language, path, onLanguage }: { language: Language;
 export function SiteMap({ language }: { language: Language }) {
   const zh = language === "zh";
   return <div className="site-map">
-    <div><p>SixteenMemory</p><span>{zh ? "记住重要信息，延续每一次任务。" : "Keep what matters. Continue the work."}</span></div>
+    <div><BrandLogo/><span>{zh ? "记住重要信息，延续每一次任务。" : "Keep what matters. Continue the work."}</span></div>
     {[
       { title: zh ? "产品" : "Product", paths: ["/product/memory", "/product/retrieval", "/status"] },
       { title: zh ? "开发" : "Build", paths: ["/docs", "/integrations", "/usage"] },
@@ -84,7 +85,8 @@ function CodeExample({ language }: { language: Language }) {
 function DocsExtras({ id, language }: { id: string; language: Language }) {
   const zh = language === "zh";
   if (id === "getting-started") return <>
-    <div className="page-inline-links"><a href={sdkDownloadUrl} download>{zh ? "下载 SDK 源码" : "Download SDK source"}<ArrowDown size={15}/></a><a href={quickstartUrl} target="_blank" rel="noreferrer">{zh ? "打开线上 Quickstart" : "Open live Quickstart"}<ArrowUpRight size={15}/></a></div>
+    <div className="page-inline-links"><a href={sdkPackageUrl} download>{zh ? "下载类型化 SDK" : "Download typed SDK"}<ArrowDown size={15}/></a><a href={openapiUrl} download>OpenAPI 3.1<ArrowDown size={15}/></a><a href={sdkDownloadUrl} download>{zh ? "旧版 JS 源码" : "Legacy JS source"}<ArrowDown size={15}/></a><a href={quickstartUrl} target="_blank" rel="noreferrer">Quickstart<ArrowUpRight size={15}/></a></div>
+    <pre className="docs-install"><code>{`npm install https://www.sixteenmemory.com${sdkPackageUrl}\n\nimport { SixteenMemory, type Memory } from "@sixteen-memory/sdk";`}</code></pre>
     <CodeExample language={language}/>
     <div className="endpoint-list docs-endpoints" id="api-reference">{endpoints.map(([method, path, purpose]) => <div key={method + path}><span>{method}</span><code>{path}</code><p>{purpose.split(" / ")[zh ? 0 : 1]}</p></div>)}</div>
   </>;
@@ -109,7 +111,8 @@ function Integrations({ language }: { language: Language }) {
   const zh = language === "zh";
   return <div className="integration-cards">{[
     { icon: Code2, name: "REST API", detail: zh ? "从应用服务端调用，不绑定 Agent 框架。" : "Call from your application server without an agent-framework dependency.", href: routeHref("/docs", language), action: zh ? "查看文档" : "Read docs" },
-    { icon: Code2, name: "JavaScript SDK", detail: zh ? "无运行时依赖的客户端源码。保留错误码，不自动重试写操作。" : "Client source with no runtime dependencies. Preserves errors without automatically retrying writes.", href: sdkDownloadUrl, action: zh ? "下载源码" : "Download source", download: true },
+    { icon: Code2, name: "TypeScript / JavaScript SDK", detail: zh ? "类型化请求和响应，无运行时依赖。通过官网下载包安装，尚未发布到 npm 注册表。" : "Typed requests and responses with no runtime dependencies. Install the website package; not published to the npm registry.", href: sdkPackageUrl, action: zh ? "下载 SDK" : "Download SDK", download: true },
+    { icon: BookOpen, name: "OpenAPI 3.1", detail: zh ? "线上 v0.1 的字段、权限、错误和分页说明。不包含尚未上线的智能接口。" : "Fields, permissions, errors and pagination for online v0.1. Unreleased intelligence endpoints are excluded.", href: openapiUrl, action: zh ? "下载规范" : "Download specification", download: true },
     { icon: Database, name: zh ? "管理控制台" : "Management console", detail: zh ? "检查记忆、来源、版本、Key 与请求记录。" : "Inspect memories, sources, versions, keys and request records.", href: consoleUrl, action: zh ? "打开控制台" : "Open console" }
   ].map(entry => <article key={entry.name}><entry.icon size={24}/><h3>{entry.name}</h3><p>{entry.detail}</p><a href={entry.href} download={entry.download || undefined} target={entry.href.startsWith("https:") ? "_blank" : undefined} rel={entry.href.startsWith("https:") ? "noreferrer" : undefined}>{entry.action}<ArrowUpRight size={15}/></a></article>)}</div>;
 }

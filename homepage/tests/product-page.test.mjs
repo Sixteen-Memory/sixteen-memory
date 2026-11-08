@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
-import { apiHealthUrl, consoleUrl, content, quickstartUrl, sdkDownloadUrl } from "../src/content.mjs";
+import { apiHealthUrl, consoleUrl, content, quickstartUrl, sdkPackageUrl } from "../src/content.mjs";
 
 const source = readFileSync(new URL("../src/ProductPage.tsx", import.meta.url), "utf8");
 const app = readFileSync(new URL("../src/App.tsx", import.meta.url), "utf8");
@@ -48,7 +48,7 @@ test("developer surface includes API, docs, SDK, console, request records and tr
     assert.equal(mcp.href, null);
     assert.match(mcp.body, /MCP Server/);
     assert.ok(copy.resources.items.filter(item => item.id !== "mcp").every(item => item.href && item.action));
-    assert.equal(copy.resources.items.find(item => item.id === "sdk").href, sdkDownloadUrl);
+    assert.equal(copy.resources.items.find(item => item.id === "sdk").href, sdkPackageUrl);
   }
   assert.match(source, /id="resources"/);
   assert.match(source, /resource-grid/);
@@ -97,11 +97,11 @@ test("navigation exposes the public site framework on mobile and provides direct
   assert.match(css, /\.resource-grid \{ grid-template-columns: 1fr;/);
 });
 
-test("downloaded client comes from the existing SDK and examples use the actual filename", () => {
-  const sdk = readFileSync(new URL("../public/downloads/sixteen-memory-sdk.mjs", import.meta.url), "utf8");
-  assert.equal(sdk, readFileSync(new URL("../../product/sdk/index.mjs", import.meta.url), "utf8"));
+test("stable download matches the SDK and examples import the packaged client", () => {
+  const sdk = readFileSync(new URL("../public/downloads/sixteen-memory-client.mjs", import.meta.url), "utf8");
+  assert.equal(sdk, readFileSync(new URL("../../product/sdk/client.mjs", import.meta.url), "utf8"));
   const examples = readFileSync(new URL("../src/developer-examples.mjs", import.meta.url), "utf8");
-  assert.match(examples, /from "\.\/sixteen-memory-sdk\.mjs"/);
+  assert.match(examples, /from "@sixteen-memory\/sdk"/);
   assert.doesNotMatch(examples, /\/api\/v1|api\.sixteenmemory\.com|sdk\/index/);
   assert.match(source, /download=\{item.download/);
   assert.match(source, /copyState === "error"/);

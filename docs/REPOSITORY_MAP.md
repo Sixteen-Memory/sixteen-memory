@@ -15,6 +15,7 @@
 | Configure generation or embeddings | [providers.ts](../product/worker/providers.ts) + [embedding-config.ts](../product/worker/embedding-config.ts) |
 | Edit the console | [product/src](../product/src/) |
 | Change client methods | [SDK](../product/sdk/README.md) |
+| Edit OpenAPI or generate SDK types | [OpenAPI](../product/openapi/README.md) |
 | Run an end-to-end continuity example | [Examples](../product/examples/README.md) |
 | Integrate with Vercel AI SDK 7 | [Vercel AI SDK adapter](../product/integrations/vercel-ai/README.md) |
 
@@ -47,6 +48,7 @@ The website follows the same principle: `src/` contains pages, `public/` holds a
 | Documentation, README, or evidence paths | `npm run check:docs` |
 | Website code | `npm run check:website`, then inspect affected pages |
 | Worker or SDK rules | `npm run check:product` and relevant local runtime checks |
+| Published API schemas or SDK types | `npm run check:api` |
 | Database structure | Migration checks and compatibility notes; do not directly downgrade to an incompatible Worker |
 | Real-model or retrieval quality | Separately approve data, models, and budget before evaluation |
 

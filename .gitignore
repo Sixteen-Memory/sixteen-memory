@@ -32,3 +32,8 @@ output/
 *.zip
 *.tgz
 product/eval/round1/preflight.json
+homepage/public/downloads/sixteen-memory-client.mjs
+homepage/public/downloads/sixteen-memory-client.d.mts
+homepage/public/downloads/schema.d.ts
+homepage/public/downloads/openapi.json
+homepage/public/downloads/manifest.json

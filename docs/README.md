@@ -11,7 +11,8 @@
 | [Quickstart](QUICKSTART.md) | Installation, local website and product startup, keys, and ports |
 | [Code map](REPOSITORY_MAP.md) | Module responsibilities, reading order, and where changes belong |
 | [Examples](../product/examples/README.md) | Basic continuity flows and separately authorized intelligent examples |
-| [SDK guide](../product/sdk/README.md) | JavaScript client methods, availability, and error handling |
+| [SDK guide](../product/sdk/README.md) | Typed TypeScript / JavaScript package, methods, availability, and errors |
+| [OpenAPI](../product/openapi/README.md) | Versioned specification, generated types, and local API checks |
 | [Vercel AI SDK adapter](../product/integrations/vercel-ai/README.md) | Server-side retrieval middleware, read-only tools, explicit writes, and tests |
 
 ## 02 / Understand the system

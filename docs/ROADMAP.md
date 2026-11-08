@@ -15,6 +15,7 @@ not change the recorded production version or publish an npm package.
 - [x] Chinese and English lexical retrieval.
 - [x] User-scoped keys, role checks, and revocable console sessions.
 - [x] Console, request records, JavaScript SDK source, and examples.
+- [x] OpenAPI 3.1 for online v0.1, generated TypeScript types, and a downloadable zero-dependency SDK package.
 - [x] Private Vercel AI SDK 7 adapter with retrieval middleware, read-only tools, explicit writes, and local compatibility tests.
 - [x] Independent website, product pages, developer documentation, and bilingual navigation.
 - [x] Private company repository, personal contributions, and collaboration guides.
@@ -42,7 +43,7 @@ These are directions, not delivery-date commitments. Ordinary website and reposi
 ## Not available
 
 - Profile API or read-only MCP server.
-- Published npm/Python SDK packages or an OpenAPI specification. The Vercel AI SDK adapter is private source, not a registry release.
+- npm registry and Python SDK releases. The typed JS/TS package is distributed through website downloads; the Vercel AI SDK adapter remains private source.
 - Webhooks, feedback endpoints, or a unified asynchronous task framework.
 - Self-service signup, customer billing, organization membership, or SSO.
 - Enterprise SLA, public compliance certification, validated production capacity, or customer outcome claims.

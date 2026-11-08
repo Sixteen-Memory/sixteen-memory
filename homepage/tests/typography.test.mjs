@@ -26,15 +26,12 @@ test("body typography stays local while the header has its own licensed typeface
   assert.doesNotMatch(css + hero, /@import|url\(["']?https:\/\/fonts\./);
 });
 
-test("left wordmark keeps its original typography without changing page headings", () => {
-  assert.match(rule(hero, ".night-wordmark-name"), /font-family:\s*"Instrument Serif", serif/);
-  assert.match(rule(hero, ".night-wordmark-name"), /font-weight:\s*400/);
-  assert.match(rule(hero, ".night-wordmark-name"), /font-size:\s*36px/);
-  assert.match(rule(hero, ".night-wordmark-name em"), /font-style:\s*italic/);
+test("official logo replaces the old typed wordmark while navigation keeps its typography", () => {
   assert.match(rule(hero, ".night-nav"), /font-family:\s*Manrope/);
   assert.match(rule(hero, ".night-nav nav a"), /font-size:\s*13px/);
   const source = readFileSync(new URL("../src/VideoHero.tsx", import.meta.url), "utf8");
-  assert.match(source, /Sixteen<em>Memory<\/em>/);
+  assert.match(source, /<BrandLogo\/>/);
+  assert.doesNotMatch(source + hero, /night-wordmark-name|night-wordmark-caption|Sixteen<em>Memory/);
   assert.match(source, /aria-label="SixteenMemory home"/);
 });
 

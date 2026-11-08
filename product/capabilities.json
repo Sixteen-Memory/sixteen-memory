@@ -64,12 +64,14 @@
     },
     {
       "id": "js-source",
-      "title": "JavaScript SDK source preview",
+      "title": "Typed TypeScript / JavaScript SDK and OpenAPI",
       "status": "live",
-      "public_claim": "Download client source for the live core endpoints. This is not a published npm package.",
+      "public_claim": "Download the typed server SDK and OpenAPI 3.1 specification for online v0.1. The package is hosted on the website, not the npm registry.",
       "evidence": [
         "homepage/README.md",
-        "product/sdk/index.mjs"
+        "product/sdk/client.mjs",
+        "product/openapi/openapi.json",
+        "product/test/openapi-runtime.mjs"
       ],
       "publishable_as_available": true
     },
@@ -161,9 +163,9 @@
     },
     {
       "id": "sdk-release",
-      "title": "OpenAPI and Python/TypeScript packages",
+      "title": "npm registry and Python SDK releases",
       "status": "planned",
-      "public_claim": "Planned. REST Quickstart documentation and JavaScript source are currently provided.",
+      "public_claim": "Planned. A typed TypeScript/JavaScript download and OpenAPI document are available through the website.",
       "evidence": [
         "docs/ROADMAP.md"
       ],

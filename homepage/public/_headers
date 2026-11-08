@@ -6,3 +6,10 @@
   Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; media-src 'self' blob:; connect-src 'self'; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'
 /assets/*
   Cache-Control: public, max-age=86400
+/downloads/*
+  Cache-Control: public, max-age=0, must-revalidate
+/downloads/openapi.json
+  Content-Type: application/json; charset=utf-8
+/downloads/*.tgz
+  Content-Type: application/gzip
+  Content-Disposition: attachment

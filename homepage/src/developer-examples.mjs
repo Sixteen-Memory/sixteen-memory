@@ -1,5 +1,5 @@
 export const snippets = {
-  js: `import { SixteenMemory } from "./sixteen-memory-sdk.mjs";
+  js: `import { SixteenMemory } from "@sixteen-memory/sdk";
 
 const memory = new SixteenMemory({
   baseUrl: "https://console.sixteenmemory.com",
