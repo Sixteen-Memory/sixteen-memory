@@ -1,15 +1,13 @@
 import { useEffect, useState, type FormEvent } from "react";
-import { api, errorMessage } from "./api";
-import type { Decision } from "../worker/intelligence-domain";
+import { api, errorMessage, type IngestionJob } from "./api";
 
-type Job = { id: string; state: string; expires_at: string; proposal: { decisions: Decision[] } | null; results: { memory_id: string; action: string }[] };
 const stateName: Record<string, string> = { running: "处理中", review: "待确认", applied: "已写入", rejected: "已拒绝", deleted: "已清理", expired: "已过期", failed: "失败，不自动重试" };
 const actionName = { add: "新增", merge: "合并依据", supersede: "替代旧状态" };
 export function IngestionPanel({ userId, canWrite, onChanged }: { userId: string; canWrite: boolean; onChanged: () => void }) {
   const [content, setContent] = useState("");
   const [ref, setRef] = useState("");
-  const [mode, setMode] = useState("review");
-  const [jobs, setJobs] = useState<Job[]>([]);
+  const [mode, setMode] = useState<"review" | "auto">("review");
+  const [jobs, setJobs] = useState<IngestionJob[]>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [requestId, setRequestId] = useState(() => crypto.randomUUID());
@@ -35,7 +33,7 @@ export function IngestionPanel({ userId, canWrite, onChanged }: { userId: string
         <label>对话发生时间（ISO）<input required value={observedAt} onChange={e => { setObservedAt(e.target.value); setRequestId(crypto.randomUUID()); }} /></label>
         <label>来源标识<input required maxLength={300} value={ref} onChange={e => { setRef(e.target.value); setRequestId(crypto.randomUUID()); }} placeholder="session-001" /></label>
         <label>对话消息 JSON<textarea required rows={7} value={content} onChange={e => { setContent(e.target.value); setRequestId(crypto.randomUUID()); }} placeholder={'[{"id":"m1","role":"user","content":"请用中文与我沟通"}]'} /></label>
-        <label>写入模式<select value={mode} onChange={e => { setMode(e.target.value); setRequestId(crypto.randomUUID()); }}><option value="review">先审阅，再确认写入（推荐）</option><option value="auto">符合规则自动写入，冲突仍需确认</option></select></label>
+        <label>写入模式<select value={mode} onChange={e => { setMode(e.target.value === "auto" ? "auto" : "review"); setRequestId(crypto.randomUUID()); }}><option value="review">先审阅，再确认写入（推荐）</option><option value="auto">符合规则自动写入，冲突仍需确认</option></select></label>
         <div className="actions"><button className="primary" disabled={busy || !userId}>{busy ? "处理中…" : "提取记忆"}</button><button type="button" className="secondary" disabled={busy} onClick={() => { setRequestId(crypto.randomUUID()); setError("已切换到新请求。请先检查旧任务是否已完成，避免重复调用模型。"); }}>新建请求标识</button></div>
       </form>}
       {error && <p className="error" role="alert">{error}</p>}

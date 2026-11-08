@@ -21,7 +21,7 @@ export function fixtureFetch(rows = [record()]) {
     assert.equal(init.headers.Authorization, `Bearer ${key}`);
     assert.equal(init.redirect, 'manual');
     if (pathname === '/v1/search') {
-      assert.equal(body.mode, 'lexical');
+      assert.equal(body.mode, undefined); // The documented API defaults to lexical retrieval.
       return Response.json({ data: rows.filter(row => row.user_id === body.user_id) });
     }
     if (pathname === '/v1/memories' && init.method === 'POST') {

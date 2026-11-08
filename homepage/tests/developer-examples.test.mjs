@@ -5,6 +5,7 @@ import { SixteenMemory } from "../public/downloads/sixteen-memory-sdk.mjs";
 import { SixteenMemory as StableClient } from "../public/downloads/sixteen-memory-client.mjs";
 import { readFileSync } from "node:fs";
 import { createHash } from "node:crypto";
+import { sdkPackageUrl } from "../src/content.mjs";
 
 const checkRecord = input => {
   assert.equal(input.user_id, "customer-42");
@@ -49,6 +50,9 @@ test("legacy download preserves candidate methods while the typed release exclud
   assert.equal(calls[1].url, "https://memory.example/v1/search");
   assert.equal(new StableClient(options).ingest, undefined);
   const manifest = JSON.parse(readFileSync(new URL("../public/downloads/manifest.json", import.meta.url)));
+  const { version } = JSON.parse(readFileSync(new URL("../../product/sdk/package.json", import.meta.url)));
+  assert.equal(manifest.sdk_version, version);
+  assert.equal(sdkPackageUrl, "/downloads/" + manifest.package);
   for (const [file, hash] of Object.entries(manifest.sha256)) {
     assert.equal(createHash("sha256").update(readFileSync(new URL("../public/downloads/" + file, import.meta.url))).digest("hex"), hash);
   }

@@ -1,10 +1,10 @@
-SixteenMemory typed SDK 0.1.0
+SixteenMemory typed SDK 0.2.0
 
 Install the downloadable package from your server-side application:
-npm install https://www.sixteenmemory.com/downloads/sixteen-memory-sdk-0.1.0.tgz
+npm install https://www.sixteenmemory.com/downloads/sixteen-memory-sdk-0.2.0.tgz
 import { SixteenMemory } from "@sixteen-memory/sdk";
 
-No runtime dependencies. Node.js 20+. ESM JavaScript and TypeScript.
+No runtime dependencies. Node.js 20.3+. ESM JavaScript and TypeScript.
 The package includes generated API types and OpenAPI 3.1.
 It is distributed here, not published to the npm registry.
 Base URL: https://console.sixteenmemory.com

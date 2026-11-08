@@ -16,7 +16,8 @@ npm test
 `npm test` detects stale generated files, validates successful requests and
 responses against the actual v0.1 Worker fixture, checks errors, pagination,
 scope and version conflicts, and compiles positive and negative TypeScript
-examples. The answer provider is never contacted; its success shape receives a
+examples. The optional search limit remains optional in generated types even
+though the server supplies a default. The answer provider is never contacted; its success shape receives a
 synthetic schema check and the disabled-provider response is tested at runtime.
 
 The published document includes service health, identity, memory lifecycle,

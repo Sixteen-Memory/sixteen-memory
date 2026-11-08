@@ -405,7 +405,7 @@ export interface components {
         /** @description Only lexical search is supported in this API version. A scoped key always stays within its user. Omitting user_id with an administrator credential searches the whole project. */
         SearchInput: {
             /** @default 10 */
-            limit: number;
+            limit?: number;
             query: string;
             user_id?: string;
         };

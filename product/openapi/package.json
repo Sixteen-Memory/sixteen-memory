@@ -5,7 +5,7 @@
   "scripts": {
     "generate": "node generate.mjs",
     "check": "node generate.mjs --check",
-    "test": "npm run check && node ../test/openapi-runtime.mjs && ../node_modules/.bin/tsc --project ../sdk/tsconfig.test.json && node test-package.mjs"
+    "test": "npm run check && node ../test/openapi-runtime.mjs && ../node_modules/.bin/tsc --project ../sdk/tsconfig.test.json && ../node_modules/.bin/tsc --project ../sdk/tsconfig.development-test.json && node test-package.mjs"
   },
   "devDependencies": {
     "@apidevtools/swagger-parser": "13.1.0",

@@ -9,6 +9,10 @@ This source and release-record snapshot was assembled on November 6, 2026. It is
 The private Vercel AI SDK adapter entry was added on November 8, 2026. This does
 not change the recorded production version or publish an npm package.
 
+The same day's 0.2.0 integration candidate unifies SDK transport, framework
+adapter and console types, and adds an authenticated HTTP handler with real
+local storage tests. Those package versions are private and not deployed.
+
 ## Implemented foundation
 
 - [x] Explicit create, read, list, update, history, deactivate, delete, and paginated export.
@@ -17,6 +21,7 @@ not change the recorded production version or publish an npm package.
 - [x] Console, request records, JavaScript SDK source, and examples.
 - [x] OpenAPI 3.1 for online v0.1, generated TypeScript types, and a downloadable zero-dependency SDK package.
 - [x] Private Vercel AI SDK 7 adapter with retrieval middleware, read-only tools, explicit writes, and local compatibility tests.
+- [x] Shared SDK transport, authenticated normal/streaming chat handler, console cookie integration, and clean two-package installation checks.
 - [x] Independent website, product pages, developer documentation, and bilingual navigation.
 - [x] Private company repository, personal contributions, and collaboration guides.
 

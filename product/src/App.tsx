@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import { ArrowDownToLine, ArrowRight, BookOpen, Check, ChevronRight, CircleAlert, Clock3, Copy, Database, FileClock, KeyRound, ListFilter, LogOut, Plus, RefreshCw, Search, ShieldCheck, SquarePen, Trash2, Undo2, X } from "lucide-react";
-import { api, errorMessage, type Session } from "./api";
+import { api, errorMessage, type Session, type RetrievalMode } from "./api";
 import { Dialog } from "./Dialog";
 import { MemoryEditor } from "./MemoryEditor";
 import { IngestionPanel } from "./IngestionPanel";
@@ -40,7 +40,7 @@ function Login({ onLogin }: { onLogin: (session: Session) => void }) {
 function Console({ session, logout }: { session: Session; logout: () => void }) {
   const [view, setView] = useState<View>("memories");
   const [userId, setUserId] = useState(session.user_id ?? "");
-  const [filter, setFilter] = useState("all");
+  const [filter, setFilter] = useState<"all" | "active" | "revoked">("all");
   const [rows, setRows] = useState<MemoryRecord[]>([]);
   const [cursor, setCursor] = useState<string | null>(null);
   const [selected, setSelected] = useState<MemoryRecord | null>(null);
@@ -54,7 +54,7 @@ function Console({ session, logout }: { session: Session; logout: () => void }) 
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<(MemoryRecord & { score: number })[]>([]);
   const [searched, setSearched] = useState(false);
-  const [searchMode, setSearchMode] = useState("lexical");
+  const [searchMode, setSearchMode] = useState<RetrievalMode>("lexical");
   const [retrieval, setRetrieval] = useState("lexical");
   const [answer, setAnswer] = useState("");
   const [keys, setKeys] = useState<KeyRecord[]>([]);
@@ -62,7 +62,7 @@ function Console({ session, logout }: { session: Session; logout: () => void }) 
   const [keyForm, setKeyForm] = useState(false);
   const [keyName, setKeyName] = useState("");
   const [keyUser, setKeyUser] = useState("");
-  const [keyRole, setKeyRole] = useState("write");
+  const [keyRole, setKeyRole] = useState<"read" | "write">("write");
   const [newKey, setNewKey] = useState("");
   const [revokeKey, setRevokeKey] = useState<KeyRecord | null>(null);
   const refreshVersion = useRef(0);
@@ -135,7 +135,7 @@ function Console({ session, logout }: { session: Session; logout: () => void }) 
       </div></div>
       {error && <div className="banner error" role="alert"><CircleAlert size={17} /><span>{error}</span><button className="icon-button" aria-label="关闭提示" onClick={() => setError("")}><X size={16} /></button></div>}
       {notice && <div className="toast" role="status"><Check size={16} />{notice}</div>}
-      {(view === "memories" || view === "search" || view === "ingest") && <div className="filters"><ListFilter size={17} /><label className="inline-label">用户<input aria-label="筛选用户" value={userId} disabled={session.role !== "admin"} onChange={e => setUserId(e.target.value)} placeholder="全部用户" /></label>{view === "memories" && <div className="segmented" aria-label="记忆状态">{[["all", "全部"], ["active", "有效"], ["revoked", "已撤销"]].map(([value, label]) => <button key={value} aria-pressed={filter === value} onClick={() => setFilter(value)}>{label}</button>)}</div>}</div>}
+      {(view === "memories" || view === "search" || view === "ingest") && <div className="filters"><ListFilter size={17} /><label className="inline-label">用户<input aria-label="筛选用户" value={userId} disabled={session.role !== "admin"} onChange={e => setUserId(e.target.value)} placeholder="全部用户" /></label>{view === "memories" && <div className="segmented" aria-label="记忆状态">{([["all", "全部"], ["active", "有效"], ["revoked", "已撤销"]] as const).map(([value, label]) => <button key={value} aria-pressed={filter === value} onClick={() => setFilter(value)}>{label}</button>)}</div>}</div>}
       {view === "memories" && <div className={selected ? "memory-layout with-detail" : "memory-layout"}>
         <section className="memory-list" aria-label="记忆列表"><div className="list-header"><span>内容 / 来源</span><span>状态 / 更新时间</span></div>
           {busy && rows.length === 0 ? <div className="empty">正在读取</div> : rows.length === 0 ? <div className="empty"><Database size={34} /><h2>暂无记忆</h2>{canWrite && <button className="secondary" onClick={() => setEditor("new")}><Plus size={16} />新增记忆</button>}</div> : rows.map(row => <button key={row.id} className={`memory-row ${selected?.id === row.id ? "selected" : ""}`} onClick={() => setSelected(row)}><div><p>{row.content}</p><div className="metadata"><span>{row.user_id}</span><span>{sourceName[row.source.type]}</span><span>{row.source.ref}</span></div></div><div className="row-status"><span className={`status ${row.status}`}>{row.status === "active" ? "有效" : "已撤销"}</span><small>{time(row.updated_at)}</small><small>v{row.version}</small></div></button>)}
@@ -150,7 +150,7 @@ function Console({ session, logout }: { session: Session; logout: () => void }) 
           </div></aside>}
       </div>}
       {view === "ingest" && <IngestionPanel key={userId} userId={userId} canWrite={canWrite} onChanged={() => { setSelected(null); setResults([]); setNotice("记忆状态已更新"); }} />}
-      {view === "search" && <section className="search-view"><label>检索模式<select aria-label="检索模式" value={searchMode} onChange={e => { setSearchMode(e.target.value); setResults([]); setSearched(false); setAnswer(""); }}><option value="lexical">词法</option><option value="semantic">语义（需要模型配置）</option><option value="hybrid">混合（需要模型配置）</option></select></label><form className="search-form" onSubmit={search}><Search size={20} /><input required aria-label="检索问题" value={query} onChange={e => setQuery(e.target.value)} placeholder="查询需要接续的信息" /><button className="primary" disabled={busy}>检索<ArrowRight size={16} /></button></form>
+      {view === "search" && <section className="search-view"><label>检索模式<select aria-label="检索模式" value={searchMode} onChange={e => { const value = e.target.value; if (value === "lexical" || value === "semantic" || value === "hybrid") setSearchMode(value); setResults([]); setSearched(false); setAnswer(""); }}><option value="lexical">词法</option><option value="semantic">语义（需要模型配置）</option><option value="hybrid">混合（需要模型配置）</option></select></label><form className="search-form" onSubmit={search}><Search size={20} /><input required aria-label="检索问题" value={query} onChange={e => setQuery(e.target.value)} placeholder="查询需要接续的信息" /><button className="primary" disabled={busy}>检索<ArrowRight size={16} /></button></form>
         <div className="search-meta"><span>{searched ? `${results.length} 条结果` : "尚未查询"}</span><span>{(searched ? retrieval : searchMode) === "hybrid" ? "混合检索" : (searched ? retrieval : searchMode) === "semantic" ? "语义检索" : "词法检索"} · 仅有效记忆</span></div>
         {results.map(row => <article className="result" key={row.id}><header><span className="status active">{row.user_id}</span><small>v{row.version} · {sourceName[row.source.type]}</small></header><p>{row.content}</p><footer><span>{row.source.ref}</span><button className="icon-button" title="复制记忆 ID" aria-label="复制记忆 ID" onClick={() => void copy(row.id)}><Copy size={15} /></button></footer></article>)}
         {searched && !results.length && <div className="empty"><Search size={32} /><h2>没有匹配的有效记忆</h2></div>}
@@ -163,7 +163,7 @@ function Console({ session, logout }: { session: Session; logout: () => void }) 
     {confirm && selected && <Dialog title={confirm === "delete" ? "删除记忆" : "撤销记忆"} close={() => setConfirm(null)}><form className="form-stack" onSubmit={event => { event.preventDefault(); void operation(() => confirm === "delete" ? api.delete(selected.id, selected.version) : api.revoke(selected.id, selected.version, reason), confirm === "delete" ? "已删除" : "已撤销").then(() => { setConfirm(null); setSelected(null); void refresh(); }).catch(() => undefined); }}>
       <p>{confirm === "delete" ? "正文、来源、历史和在线检索索引将被删除，无法在控制台恢复。平台备份可能仍处于保留期。" : "撤销后不再参与检索，来源和历史仍保留。"}</p>{confirm === "revoke" && <label>撤销原因<input required value={reason} onChange={e => setReason(e.target.value)} maxLength={500} /></label>}
       {error && <p className="error" role="alert">{error}</p>}<footer><button className="secondary" type="button" onClick={() => setConfirm(null)}>取消</button><button className="primary danger-bg" disabled={busy}>{confirm === "delete" ? "确认删除" : "确认撤销"}</button></footer></form></Dialog>}
-    {keyForm && <Dialog title="创建 API Key" close={() => setKeyForm(false)}><form className="form-stack" onSubmit={event => { event.preventDefault(); void operation(async () => { const value = await api.createKey({ name: keyName, user_id: keyUser, role: keyRole }); setNewKey(value.key); setKeyForm(false); setKeyName(""); setKeyUser(""); void refresh(); }, "Key 已创建").catch(() => undefined); }}><label>名称<input required value={keyName} onChange={e => setKeyName(e.target.value)} /></label><label>用户范围<input required value={keyUser} onChange={e => setKeyUser(e.target.value)} /></label><label>权限<select value={keyRole} onChange={e => setKeyRole(e.target.value)}><option value="read">只读</option><option value="write">读写</option></select></label>{error && <p className="error" role="alert">{error}</p>}<footer><button type="button" className="secondary" onClick={() => setKeyForm(false)}>取消</button><button className="primary" disabled={busy}>创建</button></footer></form></Dialog>}
+    {keyForm && <Dialog title="创建 API Key" close={() => setKeyForm(false)}><form className="form-stack" onSubmit={event => { event.preventDefault(); void operation(async () => { const value = await api.createKey({ name: keyName, user_id: keyUser, role: keyRole }); setNewKey(value.key); setKeyForm(false); setKeyName(""); setKeyUser(""); void refresh(); }, "Key 已创建").catch(() => undefined); }}><label>名称<input required value={keyName} onChange={e => setKeyName(e.target.value)} /></label><label>用户范围<input required value={keyUser} onChange={e => setKeyUser(e.target.value)} /></label><label>权限<select value={keyRole} onChange={e => setKeyRole(e.target.value === "read" ? "read" : "write")}><option value="read">只读</option><option value="write">读写</option></select></label>{error && <p className="error" role="alert">{error}</p>}<footer><button type="button" className="secondary" onClick={() => setKeyForm(false)}>取消</button><button className="primary" disabled={busy}>创建</button></footer></form></Dialog>}
     {newKey && <Dialog title="API Key 已创建" close={() => setNewKey("")}><div className="form-stack"><p>完整密钥仅在这里显示一次。关闭后无法再次查看。</p><code className="key-value">{newKey}</code><footer><button className="secondary" onClick={() => void copy(newKey)}><Copy size={16} />复制</button><button className="primary" onClick={() => setNewKey("")}>完成</button></footer></div></Dialog>}
     {revokeKey && <Dialog title="撤销 API Key" close={() => setRevokeKey(null)}><div className="form-stack"><p>撤销“{revokeKey.name}”后，使用它的请求与登录会话将失效。</p>{error && <p className="error" role="alert">{error}</p>}<footer><button className="secondary" onClick={() => setRevokeKey(null)}>取消</button><button className="primary danger-bg" disabled={busy} onClick={() => void operation(() => api.revokeKey(revokeKey.id), "Key 已撤销").then(() => { setRevokeKey(null); void refresh(); }).catch(() => undefined)}>确认撤销</button></footer></div></Dialog>}
   </div>;

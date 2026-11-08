@@ -1,13 +1,19 @@
 # TypeScript / JavaScript SDK
 
 A zero-runtime-dependency, server-side ESM client for the online SixteenMemory
-v0.1 API. Requires Node.js 20 or newer. The company repository remains private;
+v0.1 API. Requires Node.js 20.3 or newer. The company repository remains private;
 this client download is not an open-source or npm registry release.
 
 ## Install
 
+SDK 0.2.0 is the private integration candidate. It is not yet published to the
+website or npm. Build a local package from an authorized checkout:
+
 ```sh
-npm install https://www.sixteenmemory.com/downloads/sixteen-memory-sdk-0.1.0.tgz
+mkdir -p output/packages
+npm pack ./product/sdk --pack-destination output/packages --ignore-scripts
+# In your consuming application:
+npm install /path/to/output/packages/sixteen-memory-sdk-0.2.0.tgz
 ```
 
 ```ts
@@ -48,6 +54,7 @@ Use user-scoped keys; administrator keys can search the whole project.
 | Group | Methods |
 | :--- | :--- |
 | Service and identity | `health`, `me` |
+| Same-origin console sessions | `login`, `logout`; Node does not manage cookies automatically |
 | Memory | `add`, `get`, `list`, `search`, `update`, `history`, `revoke`, `delete`, `exportPage` |
 | Administrator only | `keys`, `createKey`, `revokeKey`, `requests` |
 | Optional provider | `answer` requires server configuration and may incur costs; it is never called automatically |
@@ -55,7 +62,8 @@ Use user-scoped keys; administrator keys can search the whole project.
 Request and response types come from the included `openapi.json`. Exported types
 include `Memory`, `Source`, `CreateMemoryInput`, `UpdateMemoryInput`,
 `SearchInput`, `SearchResult`, `MemoryPage`, `ExportPage`, `HistoryEntry`,
-`PageOptions`, `ClientOptions`, `paths`, `operations`, and `components`.
+`PageOptions`, `ClientOptions`, `CallOptions`, `Identity`, `KeyRecord`,
+`AuditEntry`, `paths`, `operations`, and `components`.
 The low-level `request` method returns `unknown`; callers must check its shape.
 TypeScript checks calls at compile time, not responses from arbitrary servers.
 
@@ -69,9 +77,17 @@ Deactivation leaves a record readable but excludes it from search.
 Deletion removes online data and history, not confirmed backup copies.
 
 The client never retries automatically and refuses HTTP redirects.
-`MemoryApiError` preserves HTTP `status` and service `code`; network failures,
-timeouts and invalid JSON may throw native exceptions. Do not log unsanitized
-memory text or credentials.
+`MemoryApiError` preserves HTTP `status` and service `code`.
+`MemoryTransportError` classifies `aborted`, `timeout`, `network_error`,
+`request_too_large`, `response_too_large` and `invalid_response`, without raw
+causes or URLs. Invalid inputs such as non-serializable JSON can still throw
+native exceptions before a request. Do not log raw service messages or credentials.
+
+Every method accepts an optional final `{ signal }` argument. The caller's
+abort signal is combined with `timeoutMs`. JSON requests are capped at 64 KiB;
+responses default to 16 MiB, configurable through `maxResponseBytes`. Large
+history responses over that limit fail explicitly, never silently truncate.
+The framework adapter uses a tighter 256 KiB response limit. There are no retries.
 
 ```ts
 try {
@@ -93,6 +109,8 @@ A changed payload returns 409; deletion or expiry returns 410 during that period
 
 In the private repository, `product/sdk/index.mjs` retains the original source
 client and its development ingestion, evidence, filter and reindex paths.
+`index.d.mts` describes that private entry using development service types.
+It is compiled in the product's Bundler environment, not packaged for external use.
 Those features are **not included in this release package** and are not online.
 `product/sdk/client.mjs` is the stable client. The old single-file website URL,
 `/downloads/sixteen-memory-sdk.mjs`, remains available as a bundled legacy client.
@@ -115,3 +133,12 @@ npm --prefix homepage run prepare:sdk
 
 The OpenAPI tooling is development-only and has its own lockfile.
 The release package contains no tools, tests, provider settings or dependencies.
+
+## Integrated validation
+
+From the repository root, `npm run check:integration` checks SDK types and
+transport, product build, framework adapter, cookie-based console API, both
+local Worker versions, HTTP chat, and clean two-package installation.
+`npm run example:integration` runs the self-contained local integration.
+The official mock language model is clearly labeled; neither command contacts
+paid providers or modifies production data.
