@@ -106,6 +106,8 @@ test("security headers restrict uploads and third-party scripts", () => {
   assert.match(headers, /connect-src 'self'/);
   assert.match(headers, /form-action 'none'/);
   assert.match(headers, /frame-ancestors 'none'/);
+  assert.match(headers, /\/downloads\/\*\.d\.mts[\s\S]*Content-Type: text\/plain; charset=utf-8/);
+  assert.match(headers, /\/downloads\/\*\.d\.ts[\s\S]*Content-Type: text\/plain; charset=utf-8/);
 });
 
 test("lower editorial sections keep real accessible scroll reveals", () => {

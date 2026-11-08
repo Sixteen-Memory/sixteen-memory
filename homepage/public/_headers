@@ -10,6 +10,10 @@
   Cache-Control: public, max-age=0, must-revalidate
 /downloads/openapi.json
   Content-Type: application/json; charset=utf-8
+/downloads/*.d.mts
+  Content-Type: text/plain; charset=utf-8
+/downloads/*.d.ts
+  Content-Type: text/plain; charset=utf-8
 /downloads/*.tgz
   Content-Type: application/gzip
   Content-Disposition: attachment
