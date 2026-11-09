@@ -3,7 +3,7 @@ export const consoleUrl = "https://console.sixteenmemory.com/";
 export const quickstartUrl = "https://console.sixteenmemory.com/quickstart";
 export const apiHealthUrl = "https://console.sixteenmemory.com/health";
 export const sdkDownloadUrl = "/downloads/sixteen-memory-sdk.mjs";
-export const sdkPackageUrl = "/downloads/sixteen-memory-sdk-0.2.0.tgz";
+export const sdkPackageUrl = "/downloads/sixteen-memory-sdk-0.3.0.tgz";
 export const openapiUrl = "/downloads/openapi.json";
 
 const zh = {
@@ -53,7 +53,7 @@ const zh = {
         "id": "sdk",
         "name": "TypeScript / JavaScript SDK",
         "state": "下载包可用",
-        "body": "带请求和响应类型的 Node.js 客户端，无运行时依赖。配套 OpenAPI 3.1；稳定包不包含尚未上线的实验接口。",
+        "body": "带请求和响应类型的 Node.js 客户端，无运行时依赖。包含 v0.3 会话、证据及分页接口；模型功能仍由服务端配置控制。",
         "href": sdkPackageUrl,
         "action": "下载类型化 SDK",
         "download": true
@@ -79,10 +79,10 @@ const zh = {
       {
         "id": "mcp",
         "name": "MCP",
-        "state": "规划中 · 未上线",
-        "body": "计划为支持 MCP 的 Agent 提供受权限控制的召回工具。当前没有可连接的 MCP Server；写入、更新和删除仍走明确授权的 API。",
-        "href": null,
-        "action": "暂不提供连接地址",
+        "state": "只读预览 · OAuth 待完成",
+        "body": "已提供 7 个只读工具，使用用户范围 Bearer Key。OAuth 和受控写工具未开放；写入、更新和删除仍走明确授权 API。",
+        "href": quickstartUrl,
+        "action": "连接方式见 Quickstart",
         "download": false
       }
     ]
@@ -135,7 +135,7 @@ const zh = {
     liveTitle: "线上基础产品",
     live: ["显式记忆完整基础流程", "限定用户范围的 Key", "管理控制台与请求记录", "JavaScript SDK 开发预览与 Quickstart"],
     nextTitle: "进入外部试点前",
-    next: ["自动抽取和语义检索的真实模型验证；MCP 召回入口", "多组织身份、SSO 与成员管理", "备份恢复、容量、延迟和费用测试", "同条件 Mem0 对照与真实客户试点"],
+    next: ["模型质量验收；MCP OAuth 与受控写工具", "多组织身份、SSO 与成员管理", "备份恢复、容量、延迟和费用测试", "同条件 Mem0 对照与真实客户试点"],
     boundary: "当前控制台是开发预览。没有公开客户结果、合规认证或性能承诺。"
   },
   cta: {
@@ -198,7 +198,7 @@ const en = {
         "id": "sdk",
         "name": "TypeScript / JavaScript SDK",
         "state": "Download available",
-        "body": "Typed Node.js requests and responses with no runtime dependencies. Includes OpenAPI 3.1; unreleased experimental endpoints are excluded.",
+        "body": "Typed v0.3 methods and async pagination with no runtime dependencies. OpenAPI covers the core subset; server flags control model features.",
         "href": sdkPackageUrl,
         "action": "Download typed SDK",
         "download": true
@@ -224,10 +224,10 @@ const en = {
       {
         "id": "mcp",
         "name": "MCP",
-        "state": "Planned · not live",
-        "body": "A permission-scoped recall tool for MCP clients is planned. No MCP Server is available yet. Writes, updates and deletes remain explicitly authorized API operations.",
-        "href": null,
-        "action": "No connection endpoint yet",
+        "state": "Read-only preview · OAuth pending",
+        "body": "Seven read-only tools use scoped bearer keys. OAuth and controlled writes are not enabled; mutations remain explicit API operations.",
+        "href": quickstartUrl,
+        "action": "Connection guide",
         "download": false
       }
     ]
@@ -280,7 +280,7 @@ const en = {
     liveTitle: "Online foundation",
     live: ["Explicit-memory lifecycle", "User-scoped credentials", "Management console and request records", "JavaScript SDK developer preview and Quickstart"],
     nextTitle: "Before an external pilot",
-    next: ["Real-model extraction, semantic search and MCP recall entry", "Multi-organization identity, SSO and membership", "Backup, recovery, capacity, latency and cost tests", "Comparable Mem0 study and a real customer pilot"],
+    next: ["Model quality acceptance and MCP OAuth/controlled writes", "Multi-organization identity, SSO and membership", "Backup, recovery, capacity, latency and cost tests", "Comparable Mem0 study and a real customer pilot"],
     boundary: "The console is a developer preview. There are no public customer results, compliance certifications or performance guarantees."
   },
   cta: {

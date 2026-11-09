@@ -3,8 +3,8 @@
 A server-side AI SDK 7 adapter using the shared typed SDK for scoped retrieval,
 read-only tools, explicit writes, and an authenticated HTTP chat handler.
 
-> **Developer preview · private source**<br>
-> This package is not published to npm and is not a production-release claim. It targets the development API candidate while its retrieval and explicit-write paths are also checked against the recorded v0.1.0 source fixture.
+> **Developer preview · versioned download**<br>
+> This package is distributed as a versioned website archive, not through npm. It targets the development API candidate while its retrieval and explicit-write paths are also checked against the recorded v0.1.0 source fixture.
 
 ## Install from the private repository
 
@@ -37,7 +37,7 @@ npm install ai@^7 zod@^4.1.8
 npm install -D @types/node@^22 @types/json-schema@7.0.15
 ```
 
-The adapter has a peer dependency on `@sixteen-memory/sdk@^0.2.0`.
+The adapter has a peer dependency on `@sixteen-memory/sdk@^0.3.0`.
 From the repository root, prepare both archives without publishing:
 
 ```sh
@@ -46,11 +46,10 @@ npm --prefix product/integrations/vercel-ai run build
 npm pack ./product/sdk --pack-destination output/packages --ignore-scripts
 npm pack ./product/integrations/vercel-ai --pack-destination output/packages --ignore-scripts
 # In the consuming application, install both archives together:
-npm install /path/to/output/packages/sixteen-memory-sdk-0.2.0.tgz /path/to/output/packages/sixteen-memory-vercel-ai-0.2.0.tgz
+npm install /path/to/output/packages/sixteen-memory-sdk-0.3.0.tgz /path/to/output/packages/sixteen-memory-vercel-ai-0.3.0.tgz
 ```
 
-Imports use `@sixteen-memory/sdk` and `@sixteen-memory/vercel-ai`. Neither
-0.2.0 archive has a public registry or website release. TypeScript consumers
+Imports use `@sixteen-memory/sdk` and `@sixteen-memory/vercel-ai`. Both 0.3.0 archives are website downloads, not public-registry packages. TypeScript consumers
 need Node and JSON Schema declarations for the installed official AI SDK types.
 
 Do not use an invented public package command. Publishing requires separate naming, access, license, changelog, and registry approval.
@@ -200,7 +199,7 @@ npm run test:console # Actual console API module with cookie sessions
 npm run test:package # Two clean archives installed offline with public-registry cache
 ```
 
-The runtime test uses local Miniflare/SQLite against the recorded v0.1.0 source fixture and the current v0.2.1 candidate. It checks idempotent writes, retrieval, framework middleware, read/write keys, cross-user isolation, updates, deactivation, deletion, and stale-context avoidance. Provider calls and production requests are disabled.
+The runtime test uses local Miniflare/SQLite against the recorded v0.1.0 source fixture and the current v0.3.0 Worker (legacy test label `v021`). It checks idempotent writes, retrieval, framework middleware, read/write keys, cross-user isolation, updates, deactivation, deletion, and stale-context avoidance. Provider calls and production requests are disabled.
 
 `test:e2e` starts a temporary loopback HTTP server and both real local API
 versions. It maps synthetic application sessions to scoped keys, explicitly
@@ -209,3 +208,14 @@ Alice's data, updates and deactivates the record, exports/deletes it and confirm
 there is no stale recall or automatic assistant-answer storage. All temporary
 storage and sockets are cleaned up. This is real application/storage integration
 with an official mock model, not real-model quality or production acceptance.
+
+
+## Complete no-model lifecycle example
+
+Install both versioned archives together, then download
+`/downloads/vercel-lifecycle.mjs` from the website. Set `SIXTEEN_BASE_URL`,
+`SIXTEEN_API_KEY` and `SIXTEEN_USER_ID` to an authorized synthetic user scope.
+Run `node vercel-lifecycle.mjs`. It checks models are disabled, stores an explicit
+user message, searches, deletes using the shared SDK, and checks no stale result.
+The installed-package acceptance suite runs this same file unchanged.
+Deletion stays an application operation; no model write tools were added.

@@ -42,3 +42,11 @@ homepage/public/downloads/sixteen-memory-client.d.mts
 homepage/public/downloads/schema.d.ts
 homepage/public/downloads/openapi.json
 homepage/public/downloads/manifest.json
+
+# Generated approved SDK delivery artifacts
+homepage/public/downloads/service-types.d.ts
+homepage/public/downloads/*-guide.md
+homepage/public/downloads/lifecycle.mjs
+homepage/public/downloads/lifecycle.py
+homepage/public/downloads/async-lifecycle.py
+homepage/public/downloads/vercel-lifecycle.mjs

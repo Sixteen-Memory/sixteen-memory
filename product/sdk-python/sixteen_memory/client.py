@@ -1,8 +1,9 @@
 import json
 import math
 import re
+import socket
 from http.client import HTTPException
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 from urllib.error import HTTPError, URLError
 from urllib.parse import quote, urlencode, urlsplit
 from urllib.request import HTTPRedirectHandler, Request, build_opener
@@ -32,13 +33,46 @@ def _id(value: str) -> str:
     return quote(value, safe="")
 
 
+def _params(**values):
+    try:
+        return urlencode({name: json.dumps(value, ensure_ascii=False, allow_nan=False, separators=(",", ":"))
+                          if name == "filter" else value
+                          for name, value in values.items() if value is not None})
+    except (TypeError, ValueError):
+        raise MemoryTransportError("invalid_input") from None
+
+
+def _page(page, seen, field):
+    if not isinstance(page, dict) or not isinstance(page.get(field), list) or "next_cursor" not in page:
+        raise MemoryTransportError("invalid_response")
+    cursor = page["next_cursor"]
+    if cursor is not None and (not isinstance(cursor, str) or not cursor or cursor in seen or len(seen) >= 1000):
+        raise MemoryTransportError("invalid_pagination")
+    if cursor is not None:
+        seen.add(cursor)
+    return cursor
+
+
+def _pages(fetch, field="data", cursor=""):
+    seen = {cursor} if cursor else set()
+    while True:
+        page = fetch(cursor)
+        cursor = _page(page, seen, field)
+        yield page
+        if cursor is None:
+            return
+
+
 class SixteenMemory:
     """Use only on a trusted server, with a key bound to the authenticated user."""
 
     def __init__(self, base_url: str, api_key: str, timeout: float = 30.0,
                  max_response_bytes: int = 16 * 1024 * 1024):
         try:
+            if not isinstance(base_url, str) or any(ord(char) < 33 for char in base_url):
+                raise ValueError()
             url = urlsplit(base_url)
+            _ = url.port  # Validate malformed or out-of-range ports at construction.
             valid = (url.scheme == "https" or
                      (url.scheme == "http" and url.hostname in ("localhost", "127.0.0.1", "::1")))
             valid = valid and bool(url.hostname) and not (url.username or url.password or url.query or url.fragment)
@@ -95,7 +129,12 @@ class SixteenMemory:
                     code = "request_failed"
                 raise MemoryAPIError(status, code)
             return result
-        except (HTTPError, URLError, OSError, HTTPException):
+        except (TimeoutError, socket.timeout):
+            raise MemoryTransportError("timeout") from None
+        except URLError as error:
+            code = "timeout" if isinstance(error.reason, (TimeoutError, socket.timeout)) else "network_error"
+            raise MemoryTransportError(code) from None
+        except (OSError, HTTPException):
             raise MemoryTransportError("network_error") from None
 
     def health(self) -> Dict[str, Any]:
@@ -126,8 +165,8 @@ class SixteenMemory:
     def evidence(self, memory_id: str) -> Any:
         return self._request("/v1/memories/" + _id(memory_id) + "/evidence")
 
-    def list(self, user_id: str, cursor: str = "", status: str = "all") -> Dict[str, Any]:
-        return self._request("/v1/memories?" + urlencode({"user_id": user_id, "cursor": cursor, "status": status}))
+    def list(self, user_id: str, cursor: str = "", status: str = "all", *, filter=None, at=None) -> Dict[str, Any]:
+        return self._request("/v1/memories?" + _params(user_id=user_id, cursor=cursor, status=status, filter=filter, at=at))
 
     def search(self, user_id: str, query: str, **options: Any) -> Dict[str, Any]:
         return self._request("/v1/search", "POST", dict(options, user_id=user_id, query=query))
@@ -159,8 +198,8 @@ class SixteenMemory:
     def answer(self, user_id: str, query: str, **options: Any) -> Dict[str, Any]:
         return self._request("/v1/answer", "POST", dict(options, user_id=user_id, query=query))
 
-    def export_page(self, user_id: str, cursor: str = "") -> Dict[str, Any]:
-        return self._request("/v1/export?" + urlencode({"user_id": user_id, "cursor": cursor}))
+    def export_page(self, user_id: str, cursor: str = "", *, filter=None, at=None, status="all") -> Dict[str, Any]:
+        return self._request("/v1/export?" + _params(user_id=user_id, cursor=cursor, filter=filter, at=at, status=status))
 
     def create_conversation(self, **data: Any) -> Dict[str, Any]:
         return self._request("/v1/conversations", "POST", data)
@@ -200,3 +239,29 @@ class SixteenMemory:
 
     def graph(self, user_id: str) -> Dict[str, Any]:
         return self._request("/v1/knowledge/graph?" + urlencode({"user_id": user_id}))
+
+    def list_pages(self, user_id: str, **options):
+        cursor = options.pop("cursor", "")
+        yield from _pages(lambda next_cursor: self.list(user_id, cursor=next_cursor, **options), cursor=cursor)
+
+    def list_all(self, user_id: str, **options):
+        return [row for page in self.list_pages(user_id, **options) for row in page["data"]]
+
+    def export_pages(self, user_id: str, **options):
+        cursor = options.pop("cursor", "")
+        yield from _pages(lambda next_cursor: self.export_page(user_id, cursor=next_cursor, **options), cursor=cursor)
+
+    def export_all(self, user_id: str, **options):
+        return [row for page in self.export_pages(user_id, **options) for row in page["data"]]
+
+    def conversations_pages(self, user_id: str, cursor: str = ""):
+        yield from _pages(lambda next_cursor: self.conversations(user_id, next_cursor), cursor=cursor)
+
+    def conversations_all(self, user_id: str):
+        return [row for page in self.conversations_pages(user_id) for row in page["data"]]
+
+    def conversation_pages(self, conversation_id: str, cursor: str = ""):
+        yield from _pages(lambda next_cursor: self.conversation(conversation_id, next_cursor), "messages", cursor)
+
+    def conversation_messages_all(self, conversation_id: str):
+        return [row for page in self.conversation_pages(conversation_id) for row in page["messages"]]

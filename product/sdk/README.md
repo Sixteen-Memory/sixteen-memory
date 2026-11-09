@@ -1,19 +1,19 @@
 # TypeScript / JavaScript SDK
 
 A zero-runtime-dependency, server-side ESM client for the online SixteenMemory
-v0.1 API. Requires Node.js 20.3 or newer. The company repository remains private;
+v0.3 API. Requires Node.js 20.3 or newer. The company repository remains private;
 this client download is not an open-source or npm registry release.
 
 ## Install
 
-SDK 0.2.0 is the private integration candidate. It is not yet published to the
-website or npm. Build a local package from an authorized checkout:
+SDK 0.3.0 is delivered as a versioned website archive, not through the npm registry.
+Build from an authorized checkout or install the website archive:
 
 ```sh
 mkdir -p output/packages
 npm pack ./product/sdk --pack-destination output/packages --ignore-scripts
 # In your consuming application:
-npm install /path/to/output/packages/sixteen-memory-sdk-0.2.0.tgz
+npm install /path/to/output/packages/sixteen-memory-sdk-0.3.0.tgz
 ```
 
 ```ts
@@ -46,6 +46,8 @@ const updated = await client.update(saved.id, {
 ```
 
 For JavaScript, omit the `type Memory` import and type annotations.
+The base SDK rejects external non-HTTPS URLs, embedded URL credentials, query/fragment
+configuration and malformed keys. Loopback HTTP is allowed for local tests.
 API keys belong in the server environment, never in browser code or URLs.
 Use user-scoped keys; administrator keys can search the whole project.
 
@@ -77,11 +79,12 @@ Deactivation leaves a record readable but excludes it from search.
 Deletion removes online data and history, not confirmed backup copies.
 
 The client never retries automatically and refuses HTTP redirects.
-`MemoryApiError` preserves HTTP `status` and service `code`.
+`MemoryApiError` preserves HTTP `status` and a bounded validated service `code`,
+never the raw server message. Invalid codes become `request_failed`.
 `MemoryTransportError` classifies `aborted`, `timeout`, `network_error`,
-`request_too_large`, `response_too_large` and `invalid_response`, without raw
+`request_too_large`, `response_too_large`, `invalid_response` and `invalid_pagination`, without raw
 causes or URLs. Invalid inputs such as non-serializable JSON can still throw
-native exceptions before a request. Do not log raw service messages or credentials.
+`invalid_input` before a request. Do not log raw service messages or credentials.
 
 Every method accepts an optional final `{ signal }` argument. The caller's
 abort signal is combined with `timeoutMs`. JSON requests are capped at 64 KiB;
@@ -105,20 +108,35 @@ Keep the identical create payload, including JSON property order, when retrying
 with a `request_id`. The server keeps that ID per credential for 30 days.
 A changed payload returns 409; deletion or expiry returns 410 during that period.
 
-## Source compatibility
+## v0.3 methods and pagination
 
-In the private repository, `product/sdk/index.mjs` retains the original source
-client and its development ingestion, evidence, filter and reindex paths.
-`index.d.mts` describes that private entry using development service types.
-It is compiled in the product's Bundler environment, not packaged for external use.
-Those features are **not included in this release package** and are not online.
-`product/sdk/client.mjs` is the stable client. The old single-file website URL,
-`/downloads/sixteen-memory-sdk.mjs`, remains available as a bundled legacy client.
+The installed package now includes context/evidence/review, ingestion/reindex,
+conversations, knowledge, wiki and graph methods. Private-source `index.mjs`
+reexports the same runtime. The generated OpenAPI covers the core subset;
+`service-types.d.ts` describes newer methods without importing Worker internals.
 
-For a direct typed ESM import outside npm, download
-`sixteen-memory-client.mjs`, `sixteen-memory-client.d.mts`, and `schema.d.ts`
-from the website's `/downloads/` directory and keep them together.
-`manifest.json` contains SHA-256 hashes for the published artifacts.
+Use `listPages`, `exportPages`, `conversationsPages` and `conversationPages` with
+`for await` to consume pages, or `listAll`, `exportAll`, `conversationsAll` and
+`conversationMessagesAll` to collect results. Filters/scope and abort signals are
+preserved. Malformed/repeated cursors fail; no more than 1,000 continuing cursors.
+Traversal is not a snapshot and `*All` materializes every returned row in memory.
+
+```ts
+for await (const page of client.listPages({ user_id: "example-user", filter: {
+  field: "category", op: "eq", value: "support"
+} })) {
+  // Consume page.data privately.
+}
+```
+
+Download `/downloads/lifecycle.mjs` and run it after installing this package and
+setting the three `SIXTEEN_*` variables. It uses unique synthetic data and verifies
+store -> retrieve -> delete -> no stale result. Never enable models just to run it.
+New method availability does not enable server models. Ingestion, answer and
+reindex require separately configured providers and can incur costs.
+
+For direct ESM imports, keep `sixteen-memory-client.mjs`, its `.d.mts`,
+`service-types.d.ts` and `schema.d.ts` together. Manifest hashes cover each file.
 
 ## Repository maintenance
 

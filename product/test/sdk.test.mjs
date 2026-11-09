@@ -4,7 +4,7 @@ import { MemoryApiError, SixteenMemory } from "../sdk/index.mjs";
 
 test("SDK preserves authorization, versions, source and scope without retries", async () => {
   const requests = [];
-  const client = new SixteenMemory({ baseUrl: "https://memory.example/", apiKey: "test-key", fetch: async (url, init) => {
+  const client = new SixteenMemory({ baseUrl: "https://memory.example/", apiKey: "synthetic-sdk-test-key-012345678901", fetch: async (url, init) => {
     requests.push({ url, ...init }); return Response.json({ id: "record" });
   } });
   await client.add({ request_id: "r1", user_id: "u1", content: "text" });
@@ -12,7 +12,7 @@ test("SDK preserves authorization, versions, source and scope without retries", 
   await client.delete("memory/id", 3);
   await client.exportPage({ cursor: "after", user_id: "u1" });
   assert.equal(requests[0].url, "https://memory.example/v1/memories");
-  assert.equal(requests[0].headers.Authorization, "Bearer test-key");
+  assert.equal(requests[0].headers.Authorization, "Bearer synthetic-sdk-test-key-012345678901");
   assert.equal(requests[0].redirect, "manual");
   assert.equal(JSON.parse(requests[0].body).user_id, "u1");
   assert.equal(requests[1].url, "https://memory.example/v1/memories/memory%2Fid");
@@ -24,7 +24,7 @@ test("SDK preserves authorization, versions, source and scope without retries", 
 
 test("SDK exposes server errors once, without duplicating mutations", async () => {
   let count = 0;
-  const client = new SixteenMemory({ baseUrl: "", apiKey: undefined, fetch: async () => {
+  const client = new SixteenMemory({ baseUrl: "https://memory.example", apiKey: undefined, fetch: async () => {
     count++; return Response.json({ error: { code: "version_conflict", message: "changed" } }, { status: 409 });
   } });
   await assert.rejects(client.update("id", {}), error => error instanceof MemoryApiError && error.status === 409 && error.code === "version_conflict");
@@ -38,7 +38,7 @@ test("default browser fetch retains its global receiver", async () => {
     return Promise.resolve(Response.json({ success: true }));
   };
   try {
-    const client = new SixteenMemory({ baseUrl: "", apiKey: undefined });
+    const client = new SixteenMemory({ baseUrl: "https://memory.example", apiKey: undefined });
     assert.equal((await client.get("record")).success, true);
   } finally { globalThis.fetch = original; }
 });

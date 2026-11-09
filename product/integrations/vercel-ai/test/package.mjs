@@ -45,7 +45,7 @@ try {
     assert.equal((await handler(new Request('https://app.example/chat', {method: 'POST'}))).status, 401);
   `], { cwd: directory, stdio: 'pipe' });
   const installed = JSON.parse(await readFile(join(directory, 'node_modules/@sixteen-memory/vercel-ai/package.json')));
-  assert.equal(installed.peerDependencies['@sixteen-memory/sdk'], '^0.2.0');
+  assert.equal(installed.peerDependencies['@sixteen-memory/sdk'], '^0.3.0');
   console.log('Both archives installed offline; shared SDK invoked by adapter; handler ESM and standalone TypeScript passed.');
 } finally {
   await rm(directory, { recursive: true, force: true });

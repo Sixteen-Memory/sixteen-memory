@@ -21,13 +21,13 @@ test("developer menu renders usable bilingual destinations and an honest MCP sta
         assert.match(html, /<summary>/);
         assert.doesNotMatch(html, /<details[^>]* open/);
         assert.equal((html.match(/data-entry=/g) ?? []).length, 7);
-        assert.equal((html.match(/<a class="developer-menu-entry"/g) ?? []).length, 6);
+        assert.equal((html.match(/<a class="developer-menu-entry"/g) ?? []).length, 7);
         assert.match(html, language === "zh" ? /href="\/docs\/#api-reference"/ : /href="\/docs\/\?lang=en#api-reference"/);
         assert.match(html, /data-entry="sdk" href="\/downloads\/sixteen-memory-sdk.mjs" download=""/);
         assert.match(html, /href="https:\/\/console.sixteenmemory.com\/" target="_blank" rel="noreferrer"/);
-        assert.match(html, /<div class="developer-menu-entry is-planned" data-entry="mcp">/);
+        assert.match(html, /data-entry="mcp"/);
         assert.doesNotMatch(html, /href="[^"]*mcp|role="menu"|Mem0|SLA|certified|CLI/);
-        assert.match(html, language === "zh" ? /只读召回入口尚未上线/ : /Read-only recall entry is not live/);
+        assert.match(html, language === "zh" ? /7 个只读工具/ : /7 read-only tools/);
       }
     }
   } finally {

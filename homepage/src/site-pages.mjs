@@ -3,7 +3,7 @@
 /** @typedef {{id:string,title:Bilingual,body:Bilingual,items:PageItem[]}} PageSection */
 /** @typedef {{path:string,nav:Bilingual,kicker:string,title:Bilingual,description:Bilingual,kind:string,sections:PageSection[],related:string[]}} SitePage */
 export const siteOrigin = "https://www.sixteenmemory.com";
-export const statusDate = "2026-11-08";
+export const statusDate = "2026-11-09";
 export const primaryNavigation = [
   { path: "/product/memory", zh: "产品", en: "Product" },
   { path: "/integrations", zh: "集成", en: "Integrations" },
@@ -20,7 +20,7 @@ export const normalizePath = path => path.replace(/\/+$/, "") || "/";
 export const label = (zh, en) => ({ zh, en });
 export const states = {
   live: label("线上可用", "Available online"),
-  local: label("开发中 · 未上线", "In development · not live"),
+  local: label("未启用 · 待验收", "Disabled · acceptance pending"),
   planned: label("规划中", "Planned")
 };
 // Only public capability descriptions belong here; never import operator settings.
@@ -30,10 +30,10 @@ export const capabilities = [
   { id: "lexical", state: "live", title: label("词法检索", "Lexical retrieval"), detail: label("按中文与英文词语查找当前有效记忆，随结果返回来源。", "Find active memories by Chinese and English terms, with sources included."), path: "/product/retrieval" },
   { id: "console", state: "live", title: label("控制台与开发接入", "Console and API access"), detail: label("管理台、REST、OpenAPI 3.1 与 TypeScript / JavaScript SDK 下载包。", "A management console, REST, OpenAPI 3.1 and a downloadable TypeScript / JavaScript SDK."), path: "/integrations" },
   { id: "extraction", state: "local", title: label("抽取与事实更新", "Extraction and fact updates"), detail: label("开发版本支持从对话提取候选事实；有歧义时交由人工检查。", "The development version extracts candidate facts from conversations and sends ambiguous changes for review."), path: "/product/memory" },
-  { id: "semantic", state: "local", title: label("千问语义与混合检索", "Qwen semantic and hybrid search"), detail: label("向量接入代码已准备，尚未完成真实模型效果检查，也未向线上开放。", "The embedding integration is prepared. Real-model quality has not been checked and the feature is not live."), path: "/product/retrieval" },
-  { id: "filters", state: "local", title: label("分类、元数据与时间筛选", "Categories, metadata and time filters"), detail: label("开发 API 支持组合筛选与有效时间窗口；不是历史快照查询。", "The development API supports compound filters and validity windows, not historical snapshots."), path: "/product/retrieval" },
-  { id: "profile", state: "planned", title: label("用户画像与只读 MCP", "Profiles and read-only MCP"), detail: label("希望让常用背景和偏好更容易被 Agent 使用，目前没有开放接口。", "Planned ways to supply recurring background and preferences to agents. No public endpoints yet."), path: "/integrations" },
-  { id: "sdk", state: "planned", title: label("更多 SDK 与通知能力", "More SDKs and notifications"), detail: label("Python 发布包、npm 注册表发布、Webhook 和反馈接口尚未提供。", "A Python package, npm registry release, webhooks and feedback endpoints are not available yet."), path: "/integrations" },
+  { id: "semantic", state: "local", title: label("千问语义与混合检索", "Qwen semantic and hybrid search"), detail: label("向量接入已通过小规模诊断，但尚未完成真实模型效果检查和完整质量验收，线上保持关闭。", "A small real-provider diagnostic passed, but complete quality acceptance remains pending and production models stay disabled."), path: "/product/retrieval" },
+  { id: "filters", state: "live", title: label("分类、元数据与时间筛选", "Categories, metadata and time filters"), detail: label("线上 API 支持组合筛选与有效时间窗口；不是历史快照查询。", "The live API supports compound filters and validity windows, not historical snapshots."), path: "/product/retrieval" },
+  { id: "profile", state: "planned", title: label("MCP OAuth 与受控写", "MCP OAuth and controlled writes"), detail: label("只读 Bearer Key 入口已提供；OAuth 与受控写目前没有开放接口。", "Read-only bearer-key tools exist; OAuth and controlled-write endpoints are not yet available."), path: "/integrations" },
+  { id: "sdk", state: "planned", title: label("更多 SDK 与通知能力", "More SDKs and notifications"), detail: label("Python 和 Vercel AI 下载包已提供；注册表发布、Webhook 和反馈接口尚未提供。", "Python and Vercel AI archives are available; registry publication, webhooks and feedback remain planned."), path: "/integrations" },
   { id: "teams", state: "planned", title: label("团队与企业管理", "Teams and enterprise controls"), detail: label("组织成员、SSO、自助注册和计费仍待实现。", "Organization membership, SSO, self-service signup and billing remain planned."), path: "/usage" }
 ];
 /** @param {string} id @param {Bilingual} title @param {Bilingual} body @param {PageItem[]} items @returns {PageSection} */
@@ -66,12 +66,12 @@ export const sitePages = [
     label("先按用户范围找对信息，再由你的 Agent 决定如何使用。来源与当前内容一起返回，不代替业务判断。", "Find the right information within the user's scope, then let your agent decide how to use it. Sources travel with the content."),
     "retrieval", [
       section("live-search", label("从可用的检索开始。", "Start with the search available now."),
-        label("线上 v0.1.0 使用中文与英文词法检索。已停用或到期清理的记忆不会进入结果；搜索不跨越普通 Key 的用户范围。", "Online v0.1.0 uses Chinese and English lexical retrieval. Deactivated or expired-and-removed records are excluded, and searches stay within regular keys' user scopes."), [
+        label("线上 v0.3.0 使用中文与英文词法检索。已停用或到期清理的记忆不会进入结果；搜索不跨越普通 Key 的用户范围。", "Online v0.3.0 uses Chinese and English lexical retrieval. Deactivated or expired-and-removed records are excluded, and searches stay within regular keys' user scopes."), [
           item(label("范围明确", "A clear scope"), label("请求传入 user_id，服务端再用 Key 权限检查，不能靠修改请求读取别人的记忆。", "Pass user_id in the request. The service checks it against key permissions rather than trusting the request alone."), "live"),
           item(label("来源随结果返回", "Sources in the response"), label("每条结果保留 ID、内容和来源，应用可以据此展示引用或继续查询历史。", "Each result retains its ID, content and source so your application can show references or inspect history."), "live")
         ]),
       section("next-search", label("语义与筛选，分步接入。", "Add semantics and filters in steps."),
-        label("以下为开发版本能力，不是当前线上服务承诺。它们仍需完成真实调用检查和发布。", "The following features exist in development, not as a promise about the current online service. They still need real-call checks and release."), [
+        label("组合筛选已上线；语义检索代码已部署但保持关闭，真实质量、延迟和费用仍需单独验收。", "Compound filters are live. Semantic code is deployed but disabled; quality, latency and cost need separate acceptance."), [
           item(label("千问 Embedding", "Qwen embeddings"), label("语义与混合检索接入已准备；检索质量、实际延迟和费用尚未对外公布。", "Semantic and hybrid integration is prepared. Retrieval quality, measured latency and costs are not published."), "local"),
           item(label("组合筛选", "Compound filters"), label("分类、平面元数据和时间字段可使用 AND、OR、NOT 组合；权限范围不会因此扩大。", "Combine categories, flat metadata and time fields with AND, OR and NOT without widening permissions."), "local"),
           item(label("有效时间", "Validity windows"), label("只检查当前保存版本是否在有效窗口内，不从过去的版本恢复答案。", "Check whether the current saved version falls within its validity window, without reconstructing past versions."), "local")
@@ -82,16 +82,16 @@ export const sitePages = [
     label("从 REST 或 JavaScript 客户端开始，把记忆放到已有工作流中。控制台负责查看与管理，业务逻辑仍留在你的应用。", "Begin with REST or the JavaScript client. Use the console for inspection and management while keeping business logic in your application."),
     "integrations", [
       section("available-tools", label("现在可以使用的入口。", "The ways in today."),
-        label("OpenAPI 和类型化 SDK 对应线上 v0.1 API。SDK 通过官网下载包安装，尚未发布到 npm 注册表。实验接口不在稳定包中。", "OpenAPI and the typed SDK target the online v0.1 API. Install the package from this website; it is not in the npm registry. Experimental endpoints are excluded from the stable package.")),
-      section("planned-tools", label("更多入口，不做空的承诺。", "More ways in, clearly labeled."), label("这些方向已列入计划，但现在没有可连接的服务或安装包。", "These are planned directions, not services or packages you can connect to today."), [
-        item(label("只读 MCP", "Read-only MCP"), label("计划提供带权限范围的记忆召回工具。目前没有 MCP Server 地址。", "A scoped recall tool is planned. There is no MCP Server URL yet."), "planned"),
-        item(label("Python SDK", "Python SDK"), label("Python 发布包尚未提供；现在可使用 OpenAPI 描述生成客户端，或直接调用 REST。", "A Python release is not available yet. Use the OpenAPI document to generate a client or call REST directly."), "planned"),
+        label("JS 0.3 下载包包含会话、证据及自动分页。OpenAPI 仍描述核心子集，新接口另附类型；模型能力由服务端开关控制。", "JS 0.3 includes conversations, evidence and pagination. OpenAPI describes the core subset; newer methods have separate types. Server flags control model features.")),
+      section("planned-tools", label("更多入口，不做空的承诺。", "More ways in, clearly labeled."), label("只读 MCP 与 Python 下载包现已提供；授权写工具与通知仍待完成。", "Read-only MCP and Python archives are available; authorized write tools and notifications remain planned."), [
+        item(label("只读 MCP", "Read-only MCP"), label("入口为 /v1/mcp，7 个只读工具使用用户范围 Bearer Key。OAuth 与受控写未开放。", "Use /v1/mcp with a scoped bearer key for seven read-only tools. OAuth and controlled writes are not enabled."), "live"),
+        item(label("Python SDK", "Python SDK"), label("Python 0.3.1 wheel 提供同步、原生异步与分页；可下载完整生命周期示例，尚未发布 PyPI。", "Python 0.3.1 wheel supports sync, native async and pagination. Download tested lifecycle examples; not published to PyPI."), "live"),
         item(label("通知与反馈", "Notifications and feedback"), label("Webhook、反馈和统一后台任务仍待实现，不需要为不存在的接口预留集成。", "Webhooks, feedback and unified background jobs are not implemented yet."), "planned")
       ])
     ], ["/docs", "/usage", "/status"]),
   page("/docs", label("文档", "Docs"), "BUILD / DOCUMENTATION",
     label("第一次接入，\n从一条记忆开始。", "Your first integration.\nOne memory at a time."),
-    label("取得测试 Key，保存合成数据，检索，再查看来源和历史。这里的示例对应线上 v0.1.0 核心 API。", "Get a test key, save synthetic data, retrieve it, then inspect its source and history. These examples target the live v0.1.0 core API."),
+    label("取得测试 Key，保存合成数据，检索，再查看来源和历史。这里的示例对应线上 v0.3.0 核心 API。", "Get a test key, save synthetic data, retrieve it, then inspect its source and history. These examples target the live v0.3.0 core API."),
     "docs", [
       section("getting-started", label("三个接入步骤。", "Three steps to start."), label("Key 仅放在应用服务端或本机环境变量中，不嵌入网页、代码仓库或公开截图。", "Keep keys in your server or local environment, never in a webpage, repository or public screenshot."), [
         item(label("01 / 获取测试 Key", "01 / Get a test key"), label("由管理员提供绑定用户范围的凭证。当前没有自助注册入口，可通过公开邮箱讨论接入。", "An administrator supplies a user-scoped credential. There is no self-service signup yet; contact the public mailbox for access.")),
@@ -149,7 +149,7 @@ export const sitePages = [
     label("现在能用什么，\n下一步做什么。", "What works today.\nWhat comes next."),
     label("把线上功能、开发版本和计划分开。这里是功能可用性说明，不是实时服务监控或生产 SLA。", "Online features, development work and plans are listed separately. This is feature availability, not live service monitoring or a production SLA."),
     "status", [
-      section("availability", label("按能力查看进度。", "Availability by capability."), label("截至 2026 年 11 月 5 日：线上产品为 v0.1.0，开发版本为 v0.2.1。新版网站不会自动改变后端版本。", "As of November 5, 2026: the online product is v0.1.0 and the development version is v0.2.1. A website release does not change the backend version.")),
+      section("availability", label("按能力查看进度。", "Availability by capability."), label("截至 2026 年 11 月 9 日：线上 API 为 v0.3.0，JS/Vercel AI 0.3.0 与 Python 0.3.1 下载包可用；生产模型保持关闭。", "As of November 9, 2026: online API v0.3.0; JS/Vercel AI 0.3.0 and Python 0.3.1 downloads. Production models remain disabled.")),
       section("next", label("当前重点：接入和产品框架。", "Current focus: access and the product foundation."),
         label("优先补齐网站、文档、开发入口与管理流程。真实模型效果检查和更大范围的试点另行安排；没有用合成响应代表模型成绩。", "The priority is the website, docs, developer entry points and management workflows. Real-model quality checks and broader pilots are separate; synthetic responses are not model-quality results."))
     ], ["/product/memory", "/integrations", "/usage"])

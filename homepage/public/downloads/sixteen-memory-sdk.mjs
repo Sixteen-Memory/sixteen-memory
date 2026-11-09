@@ -22,12 +22,33 @@ function queryParams(filters) {
   }
   return params;
 }
+async function* pages(fetch, cursor = "", field = "data") {
+  const seen = new Set(cursor ? [cursor] : []);
+  while (true) {
+    const page = await fetch(cursor);
+    if (!page || !Array.isArray(page[field]) || !("next_cursor" in page)) throw new MemoryTransportError("invalid_response");
+    const next = page.next_cursor;
+    if (next !== null && (typeof next !== "string" || !next || seen.has(next) || seen.size >= 1e3)) throw new MemoryTransportError("invalid_pagination");
+    if (next !== null) seen.add(next);
+    yield page;
+    if (next === null) return;
+    cursor = next;
+  }
+}
 var SixteenMemory = class {
   constructor({ baseUrl, apiKey, fetch: fetcher = (...args) => globalThis.fetch(...args), timeoutMs = 15e3, maxResponseBytes = 16 * 1024 * 1024 }) {
-    if (!Number.isSafeInteger(timeoutMs) || timeoutMs < 1 || !Number.isSafeInteger(maxResponseBytes) || maxResponseBytes < 1) {
+    let parsed;
+    try {
+      if (typeof baseUrl !== "string" || /[\x00-\x20]/.test(baseUrl)) throw Error();
+      parsed = new URL(baseUrl);
+    } catch {
       throw new MemoryTransportError("invalid_config");
     }
-    this.baseUrl = baseUrl.replace(/\/$/, "");
+    const loopback = parsed.protocol === "http:" && ["localhost", "127.0.0.1", "[::1]"].includes(parsed.hostname);
+    if (!loopback && parsed.protocol !== "https:" || parsed.username || parsed.password || parsed.search || parsed.hash || !Number.isSafeInteger(timeoutMs) || timeoutMs < 1 || !Number.isSafeInteger(maxResponseBytes) || maxResponseBytes < 1 || apiKey !== void 0 && (typeof apiKey !== "string" || !/^[A-Za-z0-9_.-]{32,256}$/.test(apiKey))) {
+      throw new MemoryTransportError("invalid_config");
+    }
+    this.baseUrl = parsed.origin + parsed.pathname.replace(/\/$/, "");
     this.apiKey = apiKey;
     this.fetcher = fetcher;
     this.timeoutMs = timeoutMs;
@@ -36,7 +57,13 @@ var SixteenMemory = class {
   /** @param {string} path @param {{method?: string, body?: unknown, signal?: AbortSignal}} options */
   async request(path, { method = "GET", body, signal } = {}) {
     if (signal?.aborted) throw new MemoryTransportError("aborted");
-    const serialized = body === void 0 ? void 0 : JSON.stringify(body);
+    if (typeof path !== "string" || !path.startsWith("/") || path.startsWith("//") || /[\\\r\n]/.test(path)) throw new MemoryTransportError("invalid_input");
+    let serialized;
+    try {
+      serialized = body === void 0 ? void 0 : JSON.stringify(body);
+    } catch {
+      throw new MemoryTransportError("invalid_input");
+    }
     if (serialized && new TextEncoder().encode(serialized).byteLength > 64 * 1024) {
       throw new MemoryTransportError("request_too_large");
     }
@@ -91,11 +118,10 @@ var SixteenMemory = class {
         if (!response.ok) throw new MemoryApiError(response.status, "request_failed", "Request failed");
         throw new MemoryTransportError("invalid_response");
       }
-      if (!response.ok) throw new MemoryApiError(
-        response.status,
-        typeof result?.error?.code === "string" ? result.error.code : "request_failed",
-        typeof result?.error?.message === "string" ? result.error.message : "Request failed"
-      );
+      if (!response.ok) {
+        const code = typeof result?.error?.code === "string" && /^[a-z0-9_]{1,100}$/.test(result.error.code) ? result.error.code : "request_failed";
+        throw new MemoryApiError(response.status, code, `SixteenMemory API error: ${code} (${response.status})`);
+      }
       return result;
     } catch (error) {
       if (signal?.aborted) throw new MemoryTransportError("aborted");
@@ -158,10 +184,86 @@ var SixteenMemory = class {
   requests(call = {}) {
     return this.request("/v1/requests", call);
   }
-};
-
-// ../product/sdk/index.mjs
-var SixteenMemory2 = class extends SixteenMemory {
+  async *listPages(options = {}, call = {}) {
+    yield* pages((cursor) => this.list({ ...options, cursor }, call), options.cursor);
+  }
+  async listAll(options = {}, call = {}) {
+    const data = [];
+    for await (const page of this.listPages(options, call)) data.push(...page.data);
+    return data;
+  }
+  async *exportPages(options = {}, call = {}) {
+    yield* pages((cursor) => this.exportPage({ ...options, cursor }, call), options.cursor);
+  }
+  async exportAll(options = {}, call = {}) {
+    const data = [];
+    for await (const page of this.exportPages(options, call)) data.push(...page.data);
+    return data;
+  }
+  createConversation(input, call = {}) {
+    return this.request("/v1/conversations", { ...call, method: "POST", body: input });
+  }
+  appendConversation(id, input, call = {}) {
+    return this.request(`/v1/conversations/${encodeURIComponent(id)}/messages`, { ...call, method: "POST", body: input });
+  }
+  conversation(id, cursor = "", call = {}) {
+    return this.request(`/v1/conversations/${encodeURIComponent(id)}?` + new URLSearchParams({ cursor }), call);
+  }
+  async *conversationPages(id, cursor = "", call = {}) {
+    yield* pages((next) => this.conversation(id, next, call), cursor, "messages");
+  }
+  async conversationMessagesAll(id, call = {}) {
+    const messages = [];
+    for await (const page of this.conversationPages(id, "", call)) messages.push(...page.messages);
+    return messages;
+  }
+  conversations(user_id, cursor = "", call = {}) {
+    return this.request("/v1/conversations?" + new URLSearchParams({ user_id, cursor }), call);
+  }
+  async *conversationsPages(user_id, cursor = "", call = {}) {
+    yield* pages((next) => this.conversations(user_id, next, call), cursor);
+  }
+  async conversationsAll(user_id, call = {}) {
+    const data = [];
+    for await (const page of this.conversationsPages(user_id, "", call)) data.push(...page.data);
+    return data;
+  }
+  searchConversations(input, call = {}) {
+    return this.request("/v1/conversations/search", { ...call, method: "POST", body: input });
+  }
+  deleteConversation(id, expected_version, call = {}) {
+    return this.request(`/v1/conversations/${encodeURIComponent(id)}`, { ...call, method: "DELETE", body: { expected_version } });
+  }
+  organize(input, call = {}) {
+    return this.request("/v1/knowledge/organize", { ...call, method: "POST", body: input });
+  }
+  knowledgeRuns(user_id, call = {}) {
+    return this.request("/v1/knowledge/runs?" + new URLSearchParams({ user_id }), call);
+  }
+  knowledgeRun(id, call = {}) {
+    return this.request(`/v1/knowledge/runs/${encodeURIComponent(id)}`, call);
+  }
+  resolveKnowledge(id, approve, call = {}) {
+    return this.request(`/v1/knowledge/runs/${encodeURIComponent(id)}/resolve`, { ...call, method: "POST", body: { approve } });
+  }
+  wiki(user_id, call = {}) {
+    return this.request("/v1/wiki?" + new URLSearchParams({ user_id }), call);
+  }
+  wikiPage(user_id, slug, call = {}) {
+    return this.request(`/v1/wiki/${encodeURIComponent(slug)}?` + new URLSearchParams({ user_id }), call);
+  }
+  graph(user_id, call = {}) {
+    return this.request("/v1/knowledge/graph?" + new URLSearchParams({ user_id }), call);
+  }
+  context(input, call = {}) {
+    return this.request("/v1/context", { ...call, method: "POST", body: input });
+  }
+  searchEvidence(input, call = {}) {
+    return this.request("/v1/evidence/search", { ...call, method: "POST", body: input });
+  }
+  reviewMemories(input, call = {}) {
+    return this.request("/v1/memory-review", { ...call, method: "POST", body: input });
+  }
   ingest(input, call = {}) {
     return this.request("/v1/ingestions", { ...call, method: "POST", body: input });
   }
@@ -184,5 +286,5 @@ var SixteenMemory2 = class extends SixteenMemory {
 export {
   MemoryApiError,
   MemoryTransportError,
-  SixteenMemory2 as SixteenMemory
+  SixteenMemory
 };

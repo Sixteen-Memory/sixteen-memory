@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>拾陆记忆 · 接入文档</title>
 <style>body{font:15px/1.8 Arial,"PingFang SC",sans-serif;margin:0;color:#2c3540;background:#fafbfc}main{max-width:850px;margin:auto;padding:45px 24px}h1{font-size:28px}h2{font-size:20px;margin-top:35px}pre{background:#edf1f3;padding:18px;overflow-x:auto;border-radius:5px;font-size:12px}code{font-family:ui-monospace,monospace}table{border-collapse:collapse;width:100%;font-size:13px}td,th{text-align:left;border-bottom:1px solid #dee4e7;padding:10px}a{color:#24695a}.note{border-left:3px solid #b17b55;padding-left:15px}</style></head>
-<body><main><a href="/">返回控制台</a><h1>Sixteen Memory</h1><p>API v0.2.1 · 本地候选，未发布至线上 v0.1.0</p>
+<body><main><a href="/">返回控制台</a><h1>Sixteen Memory</h1><p>API v0.3.0 · 开发预览；生产模型关闭</p>
 <p class="note">当前是开发预览。自动抽取和语义检索需要管理员配置并启用供应商，真实模型效果尚待验收。企业 SSO 和生产容量验收尚未完成。首次接入使用合成数据。</p>
 <h2>1. 创建凭证</h2><p>管理员在 API Keys 页面创建绑定到用户标识的读取或读写 Key。完整密钥仅显示一次。不要将 Key 放在前端代码、链接或公开仓库。</p>
 <h2>2. 保存记忆</h2><pre>curl "$BASE_URL/v1/memories" \
@@ -62,4 +62,13 @@ POST /v1/reindex
 <h2>来源与变更</h2><p>来源类型为 conversation、business 或 manual。系统保存提交的依据，不保证依据本身真实。更新保留之前的正文与来源；撤销不删除历史；删除移除在线正文、历史和检索索引。平台恢复副本可能仍有保留期。</p>
 <h2>限制与错误</h2><p>每请求64 KiB，单条正文和来源正文各8,000字符，每项目10,000条当前记录，检索1至50条，列表每页50条。导出时持续传入 next_cursor，直到为空。</p><p>401：凭证无效；403：没有操作权限；404：记录不存在或不属于当前范围；409：版本或请求标识冲突；410：原记录已删除；413：请求过大；422：字段无效；503：存储不可用或回答模型未配置。</p>
 <h2>模型调用</h2><p>仅词法检索不调用模型；语义/混合检索会发送查询至Embedding供应商，抽取发送对话，重建索引发送记忆正文。“生成回答”会将查询和检索到的记忆发送到管理员配置的模型服务，可能产生费用。只应配置获得数据处理授权的模型供应商。</p>
+
+<h2>SDK 下载与完整示例</h2>
+<p>先创建限定用户范围的测试 Key，设置 SIXTEEN_BASE_URL、SIXTEEN_API_KEY 和 SIXTEEN_USER_ID。下载示例后在服务端运行；示例检查模型关闭并清理其合成数据。</p>
+<ul>
+<li><a href="https://www.sixteenmemory.com/downloads/sixteen-memory-sdk-0.3.0.tgz">JS SDK 0.3.0</a> · <a href="https://www.sixteenmemory.com/downloads/lifecycle.mjs">存储→检索→删除示例</a> · <a href="https://www.sixteenmemory.com/downloads/javascript-guide.md">完整指南</a></li>
+<li><a href="https://www.sixteenmemory.com/downloads/sixteen_memory-0.3.1-py3-none-any.whl">Python 0.3.1</a> · <a href="https://www.sixteenmemory.com/downloads/lifecycle.py">同步示例</a> · <a href="https://www.sixteenmemory.com/downloads/async-lifecycle.py">原生异步示例</a> · <a href="https://www.sixteenmemory.com/downloads/python-guide.md">安装指南</a></li>
+<li><a href="https://www.sixteenmemory.com/downloads/sixteen-memory-vercel-ai-0.3.0.tgz">Vercel AI 0.3.0</a>（与 JS SDK 一起安装） · <a href="https://www.sixteenmemory.com/downloads/vercel-lifecycle.mjs">完整示例</a></li>
+</ul><p>下载包不是 npm/PyPI 注册表发布。Python 同步客户端零依赖，异步需安装 [async] 依赖；不能直接在事件循环调用同步客户端。分页辅助函数不是历史快照；取消已提交写入不能撤销服务器结果，不会隐式重试。</p>
+<h2>MCP 只读接入</h2><p>POST /v1/mcp 使用绑定用户的 Bearer Key，不接受管理员 Key 或浏览器会话。提供 7 个只读工具；OAuth、授权同意流程与受控写工具尚未开放。不要将写操作伪装成只读工具。</p>
 </main></body></html>

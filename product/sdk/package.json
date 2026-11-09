@@ -1,17 +1,30 @@
 {
   "name": "@sixteen-memory/sdk",
-  "version": "0.2.0",
-  "description": "Typed server-side client for the SixteenMemory v0.1 API",
+  "version": "0.3.0",
+  "description": "Typed scoped client for SixteenMemory v0.3 with bounded transport and pagination",
   "private": true,
   "license": "UNLICENSED",
   "type": "module",
-  "engines": { "node": ">=20.3" },
+  "engines": {
+    "node": ">=20.3"
+  },
   "main": "./client.mjs",
   "types": "./client.d.mts",
   "exports": {
-    ".": { "types": "./client.d.mts", "import": "./client.mjs" },
+    ".": {
+      "types": "./client.d.mts",
+      "import": "./client.mjs"
+    },
     "./openapi.json": "./openapi.json"
   },
-  "files": ["client.mjs", "client.d.mts", "schema.d.ts", "openapi.json", "README.md", "LICENSE"],
+  "files": [
+    "client.mjs",
+    "client.d.mts",
+    "schema.d.ts",
+    "openapi.json",
+    "README.md",
+    "LICENSE",
+    "service-types.d.ts"
+  ],
   "sideEffects": false
 }

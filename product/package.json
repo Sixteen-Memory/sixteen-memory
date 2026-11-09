@@ -15,6 +15,7 @@
     "test:knowledge": "node test/knowledge-runtime.mjs",
     "test:python": "cd sdk-python && python3 -m unittest -v test_client",
     "test:python:runtime": "node test/python-runtime.mjs",
+    "test:ecosystem": "node test/ecosystem-runtime.mjs",
     "prepare:local": "node scripts/prepare-local.mjs",
     "build:pages": "node scripts/build-pages.mjs",
     "test:migration": "node test/migration.mjs",

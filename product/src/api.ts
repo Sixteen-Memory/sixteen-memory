@@ -4,8 +4,8 @@ import { SixteenMemory } from "../sdk/client.mjs";
 import type { Identity, CreateKeyInput } from "../sdk/client.mjs";
 import type { AuditRecord, HistoryRecord, KeyRecord, MemoryInput, MemoryRecord } from "../worker/domain";
 
-const client = new SixteenMemory({ baseUrl: "", apiKey: undefined, timeoutMs: 115000 });
-const development = new DevelopmentClient({ baseUrl: "", apiKey: undefined, timeoutMs: 115000 });
+const client = new SixteenMemory({ baseUrl: window.location.origin, apiKey: undefined, timeoutMs: 115000 });
+const development = new DevelopmentClient({ baseUrl: window.location.origin, apiKey: undefined, timeoutMs: 115000 });
 export type Session = Identity;
 export type { IngestionJob, RetrievalMode };
 export interface Page { data: MemoryRecord[]; next_cursor: string | null }

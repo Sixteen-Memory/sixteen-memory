@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.3.0 — SDK hardening release
+
+- Require SDK 0.3.0 with safe error/URL handling and the complete user API.
+- Include an executable explicit-write/search/delete lifecycle example.
+- Keep AI tools read-only; no OAuth or automatic writes.
+
+
 ## 0.2.0 — Private integration candidate
 
 - Use the typed core SDK as a required peer instead of a second HTTP transport.
