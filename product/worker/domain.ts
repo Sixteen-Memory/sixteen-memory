@@ -1,4 +1,4 @@
-export const VERSION = "0.2.1";
+export const VERSION = "0.3.0";
 export const MAX_BODY = 64 * 1024;
 export const MAX_CONTENT = 8000;
 export const MAX_MEMORIES = 10000;

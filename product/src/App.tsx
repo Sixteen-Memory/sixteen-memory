@@ -1,12 +1,14 @@
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
-import { ArrowDownToLine, ArrowRight, BookOpen, Check, ChevronRight, CircleAlert, Clock3, Copy, Database, FileClock, KeyRound, ListFilter, LogOut, Plus, RefreshCw, Search, ShieldCheck, SquarePen, Trash2, Undo2, X } from "lucide-react";
+import { ArrowDownToLine, ArrowRight, BookOpen, Check, ChevronRight, CircleAlert, Clock3, Copy, Database, FileClock, KeyRound, Layers, ListFilter, LogOut, Plus, RefreshCw, Search, ShieldCheck, SquarePen, Trash2, Undo2, X } from "lucide-react";
 import { api, errorMessage, type Session, type RetrievalMode } from "./api";
 import { Dialog } from "./Dialog";
 import { MemoryEditor } from "./MemoryEditor";
 import { IngestionPanel } from "./IngestionPanel";
+import { ContextPanel } from "./ContextPanel";
+import { KnowledgePanel } from "./KnowledgePanel";
 import type { AuditRecord, HistoryRecord, KeyRecord, MemoryRecord } from "../worker/domain";
 
-type View = "memories" | "search" | "ingest" | "keys" | "requests";
+type View = "memories" | "search" | "ingest" | "context" | "knowledge" | "keys" | "requests";
 const time = (value: string) => new Date(value).toLocaleString("zh-CN", { hour12: false });
 const sourceName = { manual: "人工确认", conversation: "对话", business: "业务事件" };
 const actionName: Record<string, string> = { extracted: "自动抽取", superseded: "事实替代", created: "保存", updated: "更新", revoked: "撤销", add: "保存", list: "列表", get: "读取", history: "历史", update: "更新", revoke: "撤销", delete: "删除", search: "检索", export: "导出", keys: "Key 列表", create_key: "创建 Key", revoke_key: "撤销 Key", me: "会话", audit: "请求记录" };
@@ -34,7 +36,7 @@ function Login({ onLogin }: { onLogin: (session: Session) => void }) {
     <label>API Key<input autoFocus type="password" required autoComplete="off" value={key} onChange={e => setKey(e.target.value)} /></label>
     {error && <p className="error" role="alert">{error}</p>}
     <button className="primary" disabled={busy}>{busy ? "连接中" : "进入工作区"}<ArrowRight size={16} /></button>
-  </form><small>v0.2.1 · 本地候选</small></main>;
+  </form><small>v0.3.0 · 开发预览</small></main>;
 }
 
 function Console({ session, logout }: { session: Session; logout: () => void }) {
@@ -65,7 +67,10 @@ function Console({ session, logout }: { session: Session; logout: () => void }) 
   const [keyRole, setKeyRole] = useState<"read" | "write">("write");
   const [newKey, setNewKey] = useState("");
   const [revokeKey, setRevokeKey] = useState<KeyRecord | null>(null);
+  const [opened, setOpened] = useState<MemoryRecord | null>(null);
+  const [contextRevision, setContextRevision] = useState(0);
   const refreshVersion = useRef(0);
+  const openVersion = useRef(0);
   const canWrite = session.role !== "read";
 
   const refresh = useCallback(async () => {
@@ -78,11 +83,13 @@ function Console({ session, logout }: { session: Session; logout: () => void }) 
         setRows(page.data); setCursor(page.next_cursor);
       } else if (view === "keys") { const data = await api.keys(); if (version === refreshVersion.current) setKeys(data); }
       else if (view === "requests") { const data = await api.requests(); if (version === refreshVersion.current) setRequests(data); }
+      else if (view === "context" || view === "knowledge") setContextRevision(value => value + 1);
     } catch (error) { if (version === refreshVersion.current) setError(errorMessage(error)); }
     finally { if (version === refreshVersion.current) setBusy(false); }
   }, [view, userId, filter]);
   useEffect(() => { void refresh(); setSelected(null); }, [refresh]);
   useEffect(() => { setResults([]); setAnswer(""); setSearched(false); }, [userId]);
+  useEffect(() => { openVersion.current++; setOpened(null); }, [userId, view]);
   useEffect(() => {
     let active = true; setHistory([]);
     if (selected) api.history(selected.id).then(data => { if (active) setHistory(data); }).catch(error => { if (active) setError(errorMessage(error)); });
@@ -113,9 +120,16 @@ function Console({ session, logout }: { session: Session; logout: () => void }) 
     finally { setBusy(false); }
   }
   async function copy(value: string) { try { await navigator.clipboard.writeText(value); setNotice("已复制"); } catch { setError("复制失败"); } }
+  async function openMemory(id: string) {
+    const version = ++openVersion.current;
+    try { const row = await api.get(id); if (version === openVersion.current) setOpened(row); }
+    catch (error) { if (version === openVersion.current) setError(errorMessage(error)); }
+  }
   const navigation = [
     { id: "memories" as const, name: "记忆", icon: Database },
     { id: "search" as const, name: "检索", icon: Search },
+    { id: "context" as const, name: "上下文", icon: Layers },
+    { id: "knowledge" as const, name: "知识", icon: BookOpen },
     { id: "ingest" as const, name: "抽取", icon: Plus },
     ...(session.role === "admin" ? [{ id: "keys" as const, name: "API Keys", icon: KeyRound }, { id: "requests" as const, name: "请求记录", icon: FileClock }] : []),
   ];
@@ -124,18 +138,20 @@ function Console({ session, logout }: { session: Session; logout: () => void }) 
     <aside className="sidebar"><div className="brand"><img src="/brand.png" alt="" /><strong>sixteen<span>memory</span></strong></div>
       <div className="workspace"><span className="workspace-icon">16</span><div><strong>{session.project_id}</strong><small>开发预览</small></div></div>
       <nav aria-label="主导航">{navigation.map(item => <button key={item.id} className={view === item.id ? "nav-item active" : "nav-item"} aria-current={view === item.id ? "page" : undefined} onClick={() => { setView(item.id); setError(""); }}><item.icon size={18} />{item.name}</button>)}</nav>
-      <div className="sidebar-bottom"><a className="nav-item" href="/quickstart.html" target="_blank" rel="noreferrer"><BookOpen size={18} />接入文档</a><button className="nav-item" onClick={logout}><LogOut size={18} />退出</button><small>v0.2.1 · 本地候选</small></div>
+      <div className="sidebar-bottom"><a className="nav-item" href="/quickstart.html" target="_blank" rel="noreferrer"><BookOpen size={18} />接入文档</a><button className="nav-item" onClick={logout}><LogOut size={18} />退出</button><small>v0.3.0 · 开发预览</small></div>
     </aside>
     <main className="main">
       <header className="topbar"><div className="breadcrumb"><span>{session.project_id}</span><ChevronRight size={14} /><strong>{navigation.find(item => item.id === view)?.name}</strong></div><div className="account-actions"><span className="role"><ShieldCheck size={14} />{session.role === "admin" ? "管理员" : session.role === "write" ? "读写" : "只读"}</span><a className="icon-button mobile-account" href="/quickstart.html" title="接入文档" aria-label="接入文档"><BookOpen size={17} /></a><button className="icon-button mobile-account" onClick={logout} title="退出" aria-label="退出"><LogOut size={17} /></button></div></header>
-      <div className="page-heading"><div><p className="eyebrow">WORKSPACE / {view.toUpperCase()}</p><h1>{view === "memories" ? "记忆库" : view === "search" ? "检索" : view === "ingest" ? "对话抽取" : view === "keys" ? "API Keys" : "请求记录"}</h1></div><div className="actions">
+      <div className="page-heading"><div><p className="eyebrow">WORKSPACE / {view.toUpperCase()}</p><h1>{view === "memories" ? "记忆库" : view === "search" ? "检索" : view === "context" ? "上下文" : view === "knowledge" ? "会话与知识" : view === "ingest" ? "对话抽取" : view === "keys" ? "API Keys" : "请求记录"}</h1></div><div className="actions">
         <button className="icon-button" title="刷新" aria-label="刷新" onClick={() => void refresh()} disabled={busy}><RefreshCw size={18} className={busy ? "spin" : ""} /></button>
         {view === "memories" && <><button className="secondary" onClick={() => void exportData()} disabled={busy}><ArrowDownToLine size={16} />导出</button>{canWrite && <button className="primary" onClick={() => setEditor("new")}><Plus size={17} />新增记忆</button>}</>}
         {view === "keys" && <button className="primary" onClick={() => setKeyForm(true)}><Plus size={17} />创建 Key</button>}
       </div></div>
       {error && <div className="banner error" role="alert"><CircleAlert size={17} /><span>{error}</span><button className="icon-button" aria-label="关闭提示" onClick={() => setError("")}><X size={16} /></button></div>}
       {notice && <div className="toast" role="status"><Check size={16} />{notice}</div>}
-      {(view === "memories" || view === "search" || view === "ingest") && <div className="filters"><ListFilter size={17} /><label className="inline-label">用户<input aria-label="筛选用户" value={userId} disabled={session.role !== "admin"} onChange={e => setUserId(e.target.value)} placeholder="全部用户" /></label>{view === "memories" && <div className="segmented" aria-label="记忆状态">{([["all", "全部"], ["active", "有效"], ["revoked", "已撤销"]] as const).map(([value, label]) => <button key={value} aria-pressed={filter === value} onClick={() => setFilter(value)}>{label}</button>)}</div>}</div>}
+      {(view === "memories" || view === "search" || view === "ingest" || view === "context" || view === "knowledge") && <div className="filters"><ListFilter size={17} /><label className="inline-label">用户<input aria-label="筛选用户" value={userId} disabled={session.role !== "admin"} onChange={e => setUserId(e.target.value)} placeholder="全部用户" /></label>{view === "memories" && <div className="segmented" aria-label="记忆状态">{([["all", "全部"], ["active", "有效"], ["revoked", "已撤销"]] as const).map(([value, label]) => <button key={value} aria-pressed={filter === value} onClick={() => setFilter(value)}>{label}</button>)}</div>}</div>}
+      {view === "context" && <ContextPanel key={`${userId}:${contextRevision}`} userId={userId} onOpen={id => void openMemory(id)} />}
+      {view === "knowledge" && <KnowledgePanel key={`${userId}:${contextRevision}`} userId={userId} canWrite={canWrite} />}
       {view === "memories" && <div className={selected ? "memory-layout with-detail" : "memory-layout"}>
         <section className="memory-list" aria-label="记忆列表"><div className="list-header"><span>内容 / 来源</span><span>状态 / 更新时间</span></div>
           {busy && rows.length === 0 ? <div className="empty">正在读取</div> : rows.length === 0 ? <div className="empty"><Database size={34} /><h2>暂无记忆</h2>{canWrite && <button className="secondary" onClick={() => setEditor("new")}><Plus size={16} />新增记忆</button>}</div> : rows.map(row => <button key={row.id} className={`memory-row ${selected?.id === row.id ? "selected" : ""}`} onClick={() => setSelected(row)}><div><p>{row.content}</p><div className="metadata"><span>{row.user_id}</span><span>{sourceName[row.source.type]}</span><span>{row.source.ref}</span></div></div><div className="row-status"><span className={`status ${row.status}`}>{row.status === "active" ? "有效" : "已撤销"}</span><small>{time(row.updated_at)}</small><small>v{row.version}</small></div></button>)}
@@ -160,6 +176,11 @@ function Console({ session, logout }: { session: Session; logout: () => void }) 
       {view === "requests" && <section className="table-section"><div className="table-scroll"><table><thead><tr><th>时间</th><th>操作</th><th>状态</th><th>耗时</th><th>操作人</th></tr></thead><tbody>{requests.map(item => <tr key={item.id}><td>{time(item.created_at)}</td><td>{actionName[item.action] ?? item.action}</td><td><span className={`status ${item.status < 400 ? "active" : "revoked"}`}>{item.status}</span></td><td className="mono">{item.duration_ms} ms</td><td className="mono">{item.actor}</td></tr>)}</tbody></table></div>{!requests.length && <div className="empty">暂无请求记录</div>}</section>}
     </main>
     {editor && <MemoryEditor entry={editor === "new" ? undefined : editor} userId={session.user_id ?? userId} close={() => setEditor(null)} saved={done} />}
+    {opened && <Dialog title="记忆详情" close={() => setOpened(null)}><div className="form-stack">
+      <p>{opened.content}</p><small>{opened.user_id} · v{opened.version} · {opened.status === "active" ? "有效" : "已撤销"}</small>
+      <h3>原始依据</h3><blockquote>{opened.source.text}</blockquote><p className="mono">{opened.source.ref}</p>
+      {canWrite && <footer><button className="secondary" onClick={() => { setEditor(opened); setOpened(null); }}><SquarePen size={15} />更新</button></footer>}
+    </div></Dialog>}
     {confirm && selected && <Dialog title={confirm === "delete" ? "删除记忆" : "撤销记忆"} close={() => setConfirm(null)}><form className="form-stack" onSubmit={event => { event.preventDefault(); void operation(() => confirm === "delete" ? api.delete(selected.id, selected.version) : api.revoke(selected.id, selected.version, reason), confirm === "delete" ? "已删除" : "已撤销").then(() => { setConfirm(null); setSelected(null); void refresh(); }).catch(() => undefined); }}>
       <p>{confirm === "delete" ? "正文、来源、历史和在线检索索引将被删除，无法在控制台恢复。平台备份可能仍处于保留期。" : "撤销后不再参与检索，来源和历史仍保留。"}</p>{confirm === "revoke" && <label>撤销原因<input required value={reason} onChange={e => setReason(e.target.value)} maxLength={500} /></label>}
       {error && <p className="error" role="alert">{error}</p>}<footer><button className="secondary" type="button" onClick={() => setConfirm(null)}>取消</button><button className="primary danger-bg" disabled={busy}>{confirm === "delete" ? "确认删除" : "确认撤销"}</button></footer></form></Dialog>}

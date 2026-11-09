@@ -110,6 +110,9 @@ try{
       const r=await search(f("category","eq","support"),{mode,limit:1},"smart");
       assert.equal(r.status,200,JSON.stringify(r));assert.equal(r.body.data.length,1);assert.equal(r.body.data[0].category,"support");
     }
+    const context=await api("POST","/v1/context",{user_id:"filters",query:"合同",mode:"hybrid",threshold:1,filter:f("category","eq","support")},"smart");
+    assert.equal(context.status,200);assert.equal(context.body.memories.length,1);
+    assert.equal(context.body.memories[0].sources[0].text,"合同状态资料");
     const before=calls;
     assert.equal((await search(f("category","eq","none"),{mode:"semantic"},"smart")).body.data.length,0);
     assert.equal(calls,before,"empty filtered set does not invoke embeddings");
@@ -182,6 +185,21 @@ try{
     const row=await api("GET",`/v1/memories/${boolean.id}`);
     assert.equal(row.status,200);assert.deepEqual(row.body.metadata,{priority:true,tag:"b"});
     assert.equal((await search(f("metadata.priority","eq",true))).body.data[0].id,boolean.id);
+  });
+  await run("merged supporting quotes are searchable only at the current memory version",async()=>{
+    slot="user.home_city";city="苏州";
+    const first=await ingest("source-merge1","source-merge","2026-11-01T09:00:00Z");
+    assert.equal(first.body.state,"applied");
+    const id=first.body.results[0].memory_id;
+    const second=await api("POST","/v1/ingestions",{user_id:"source-merge",request_id:"source-merge2",ref:"supplemental",
+      mode:"auto",observed_at:"2026-11-02T09:00:00Z",messages:[{id:"m1",role:"user",content:"我常住苏州，SupplementToken"}]},"smart");
+    assert.equal(second.body.state,"applied");assert.equal(second.body.results[0].action,"merge");
+    const search=()=>api("POST","/v1/evidence/search",{user_id:"source-merge",query:"SupplementToken"},"smart");
+    const hit=await search();assert.equal(hit.body.data.length,1);assert.equal(hit.body.data[0].kind,"supporting");assert.equal(hit.body.data[0].memory_id,id);
+    const current=(await api("GET",`/v1/memories/${id}`,undefined,"smart")).body;
+    const update=await api("PATCH",`/v1/memories/${id}`,{...current,content:"人工确认新地址",expected_version:1,reason:"来源已变化"},"smart");
+    assert.equal(update.status,200);assert.equal((await search()).body.data.length,0);
+    assert.equal((await api("GET",`/v1/memories/${id}/evidence`,undefined,"smart")).body.supporting.length,1,"historical evidence is retained but not searched as current");
   });
   console.log(JSON.stringify({status:"passed",groups:groups.length,tests:groups,real_model_calls:0,fake_provider_calls:calls,quality_acceptance:"not_run"},null,2));
 }finally{await mf.dispose();await rm(directory,{recursive:true,force:true});}

@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sixteen-memory"
+version = "0.3.0"
+description = "Explicit, scoped client for the SixteenMemory API."
+requires-python = ">=3.9"
+license = "LicenseRef-Proprietary"
+readme = "README.md"
+dependencies = []
+
+[tool.setuptools.packages.find]
+include = ["sixteen_memory"]
+
+[tool.setuptools.package-data]
+sixteen_memory = ["py.typed"]

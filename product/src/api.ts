@@ -10,6 +10,21 @@ export type Session = Identity;
 export type { IngestionJob, RetrievalMode };
 export interface Page { data: MemoryRecord[]; next_cursor: string | null }
 export const api = {
+  createConversation: (...args: Parameters<DevelopmentClient["createConversation"]>) => development.createConversation(...args),
+  appendConversation: (...args: Parameters<DevelopmentClient["appendConversation"]>) => development.appendConversation(...args),
+  conversation: (...args: Parameters<DevelopmentClient["conversation"]>) => development.conversation(...args),
+  conversations: (...args: Parameters<DevelopmentClient["conversations"]>) => development.conversations(...args),
+  searchConversations: (...args: Parameters<DevelopmentClient["searchConversations"]>) => development.searchConversations(...args),
+  deleteConversation: (...args: Parameters<DevelopmentClient["deleteConversation"]>) => development.deleteConversation(...args),
+  organize: (...args: Parameters<DevelopmentClient["organize"]>) => development.organize(...args),
+  knowledgeRuns: (...args: Parameters<DevelopmentClient["knowledgeRuns"]>) => development.knowledgeRuns(...args),
+  resolveKnowledge: (...args: Parameters<DevelopmentClient["resolveKnowledge"]>) => development.resolveKnowledge(...args),
+  wiki: (...args: Parameters<DevelopmentClient["wiki"]>) => development.wiki(...args),
+  graph: (...args: Parameters<DevelopmentClient["graph"]>) => development.graph(...args),
+  context: (...args: Parameters<DevelopmentClient["context"]>) => development.context(...args),
+  searchEvidence: (...args: Parameters<DevelopmentClient["searchEvidence"]>) => development.searchEvidence(...args),
+  reviewMemories: (...args: Parameters<DevelopmentClient["reviewMemories"]>) => development.reviewMemories(...args),
+  get: (id: string) => development.get(id),
   me: (): Promise<Session> => client.me(),
   login: (api_key: string): Promise<Session> => client.login(api_key),
   logout: () => client.logout(),

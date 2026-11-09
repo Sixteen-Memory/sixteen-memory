@@ -2,8 +2,13 @@ import { DurableObject } from "cloudflare:workers";
 import { IntelligenceStore } from "./intelligence-store";
 import { migrateAttributes, readAttributes, storedAttributes, type StoredAttributes } from "./memory-attributes";
 import { filterSql, parseFilter, searchConstraints, validitySql } from "./memory-filter";
+import { EvidenceIndex } from "./evidence-index";
+import { boundedInteger } from "./memory-context";
+import { reviewMemories } from "./memory-review";
+import { ConversationStore, type ConversationAction } from "./conversations";
+import { KnowledgeStore, type KnowledgeAction } from "./knowledge-store";
 import {
-  access, admin, ApiError, equalDigest, expectedVersion, fail, identifier, MAX_MEMORIES,
+  access, admin, ApiError, date, equalDigest, expectedVersion, fail, identifier, MAX_MEMORIES,
   memoryInput, text, tokens,
   type AuditRecord, type Identity, type KeyRecord, type MemoryRecord,
 } from "./domain";
@@ -13,8 +18,8 @@ type KeyRow = { [K in keyof KeyRecord]: KeyRecord[K] };
 type Grant = KeyRow & { digest: string };
 type AuditRow = { [K in keyof AuditRecord]: AuditRecord[K] };
 type HistoryRow = StoredAttributes & { version: number; action: string; content: string; source: string; status: "active" | "revoked"; reason: string; actor: string; created_at: string };
-export type Action = "me" | "list" | "search" | "get" | "history" | "add" | "update" | "revoke" | "delete" | "export" | "keys" | "create_key" | "revoke_key" | "audit" |
-  "write_prepare" | "preflight" | "model_budget" | "ingest_candidates" | "ingest_begin" | "ingest_get" | "ingest_fail" | "ingest_finish" | "ingest_resolve" | "ingest_list" | "evidence" | "semantic_rows" | "reindex_rows" | "reindex_commit";
+export type Action = ConversationAction | KnowledgeAction | "me" | "list" | "search" | "get" | "history" | "add" | "update" | "revoke" | "delete" | "export" | "keys" | "create_key" | "revoke_key" | "audit" |
+  "write_prepare" | "preflight" | "model_budget" | "ingest_candidates" | "ingest_begin" | "ingest_get" | "ingest_fail" | "ingest_finish" | "ingest_resolve" | "ingest_list" | "evidence" | "semantic_rows" | "reindex_rows" | "reindex_commit" | "evidence_search" | "memory_review";
 export type Outcome = { ok: true; json: string } | { ok: false; status: number; code: string; message: string };
 export interface Auth { digest: string; session: boolean; root: boolean; root_digest: string }
 const record = (row: Row): MemoryRecord => ({ ...row, ...readAttributes(row), source: JSON.parse(row.source) });
@@ -22,6 +27,9 @@ const record = (row: Row): MemoryRecord => ({ ...row, ...readAttributes(row), so
 export class MemoryProject extends DurableObject<Env> {
   private sql: SqlStorage;
   private intelligence: IntelligenceStore;
+  private evidenceIndex: EvidenceIndex;
+  private conversations: ConversationStore;
+  private knowledge: KnowledgeStore;
 
   constructor(ctx: DurableObjectState, env: Env) {
     super(ctx, env);
@@ -56,7 +64,10 @@ export class MemoryProject extends DurableObject<Env> {
       );
     `);
     migrateAttributes(this.sql);
-    this.intelligence = new IntelligenceStore(this.sql, row => this.index({ ...row, status: row.status as "active" | "revoked" }), (row, action, reason, who) => this.history({ ...row, status: row.status as "active" | "revoked" }, action, reason, who));
+    this.intelligence = new IntelligenceStore(this.sql, row => this.index({ ...row, status: row.status as "active" | "revoked" }), (row, action, reason, who) => this.history({ ...row, status: row.status as "active" | "revoked" }, action, reason, who), user => this.knowledge.invalidate(user));
+    this.evidenceIndex = new EvidenceIndex(this.sql, fn => ctx.storage.transactionSync(fn));
+    this.conversations = new ConversationStore(this.sql, user => this.intelligence.touch(user));
+    this.knowledge = new KnowledgeStore(this.sql, this.conversations, user => this.intelligence.epoch(user));
   }
 
   private identity(auth: Auth): Identity {
@@ -130,6 +141,7 @@ export class MemoryProject extends DurableObject<Env> {
   private index(row: Row) {
     this.sql.exec("DELETE FROM search_index WHERE id=?", row.id);
     if (row.status === "active") this.sql.exec("INSERT INTO search_index(id,terms) VALUES (?,?)", row.id, tokens(row.content, 8000).join(" "));
+    this.evidenceIndex.index(row);
   }
 
   private history(row: Row, action: string, reason: string, who: Identity) {
@@ -142,6 +154,7 @@ export class MemoryProject extends DurableObject<Env> {
     const row = this.sql.exec<{ user_id: string }>("SELECT user_id FROM memories WHERE id=?", id).toArray()[0];
     if (row) this.intelligence.erase(id, row.user_id);
     this.sql.exec("DELETE FROM search_index WHERE id=?", id);
+    this.evidenceIndex.erase(id);
     this.sql.exec("DELETE FROM history WHERE memory_id=?", id);
     this.sql.exec("DELETE FROM memories WHERE id=?", id);
     // Keep only the retry tombstone until its expiry, preventing an old retry from resurrecting deleted data.
@@ -154,13 +167,16 @@ export class MemoryProject extends DurableObject<Env> {
       this.sql.exec("DELETE FROM retries WHERE expires_at<=?", now);
       this.sql.exec("DELETE FROM sessions WHERE expires_at<=?", now);
       this.intelligence.purge(now);
+      this.conversations.purge(now);
+      this.knowledge.purge(now);
     });
   }
 
   private async schedule() {
-    const next = this.sql.exec<{ expires: string | null }>(
-      "SELECT MIN(expires_at) AS expires FROM (SELECT expires_at FROM memories UNION ALL SELECT expires_at FROM sessions UNION ALL SELECT expires_at FROM retries UNION ALL SELECT expires_at FROM ingest_jobs WHERE state IN ('review','running'))",
-    ).one().expires;
+    // Workers SQLite limits compound SELECT terms. Fixed table names only.
+    const next = ["memories", "sessions", "retries", "ingest_jobs", "conversations", "conversation_retries", "knowledge_runs"]
+      .map(table => this.sql.exec<{ expires: string | null }>(`SELECT MIN(expires_at) AS expires FROM ${table}${["ingest_jobs", "knowledge_runs"].includes(table) ? " WHERE state IN ('review','running')" : ""}`).one().expires)
+      .filter((value): value is string => value !== null).sort()[0];
     if (next) await this.ctx.storage.setAlarm(Math.max(Date.now() + 1000, Date.parse(next)));
     else await this.ctx.storage.deleteAlarm();
   }
@@ -169,6 +185,8 @@ export class MemoryProject extends DurableObject<Env> {
 
   private dispatch(who: Identity, action: Action, input: Record<string, unknown>, digest: string): unknown {
     const now = new Date().toISOString();
+    if (action.startsWith("conversation_")) return this.conversations.dispatch(who, action as ConversationAction, input, digest);
+    if (action.startsWith("knowledge_") || action.startsWith("wiki_")) return this.knowledge.dispatch(who, action as KnowledgeAction, input, digest);
     if (action === "write_prepare") {
       if (input._id) {
         const row = this.get(identifier(input._id, "记忆ID"), who, true);
@@ -187,6 +205,18 @@ export class MemoryProject extends DurableObject<Env> {
       return { replay: false };
     }
     if (["preflight","model_budget","ingest_candidates","ingest_begin","ingest_get","ingest_fail","ingest_finish","ingest_resolve","ingest_list","evidence","semantic_rows","reindex_rows","reindex_commit"].includes(action)) return this.intelligence.dispatch(who, action, input, digest);
+    if (action === "evidence_search" || action === "memory_review") {
+      const user = identifier(input.user_id, "用户标识");
+      access(who, user);
+      if (action === "evidence_search") return this.evidenceIndex.search(user, text(input.query, "查询", 1000),
+        boundedInteger(input.limit, 10, 1, 50, "limit"), input, now);
+      const staleBefore = input.stale_before === undefined ? new Date(Date.parse(now) - 90 * 86400_000).toISOString() : date(input.stale_before, "依据时间界限");
+      if (staleBefore > now) fail(422, "future_cutoff", "依据时间界限不能晚于当前时间");
+      const valid = validitySql(now);
+      const rows = this.sql.exec<Row>(`SELECT m.* FROM memories m WHERE m.user_id=? AND m.status='active' AND ${valid.sql} ORDER BY m.id LIMIT 1001`, user, ...valid.args).toArray();
+      if (rows.length > 1000) fail(409, "review_capacity", "检查预览每用户最多1000条当前有效记忆");
+      return reviewMemories(rows.map(record), now, staleBefore);
+    }
     if (action === "me") return { ...who, project_id: this.env.PROJECT_ID };
     if (action === "keys") {
       admin(who);

@@ -1,6 +1,6 @@
 {
   "name": "sixteen-memory-product",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -11,15 +11,21 @@
     "test": "node --test test/*.test.mjs",
     "test:runtime": "node test/runtime.mjs",
     "test:round1": "node test/round1-runtime.mjs",
+    "test:components": "node test/memory-components-runtime.mjs",
+    "test:knowledge": "node test/knowledge-runtime.mjs",
+    "test:python": "cd sdk-python && python3 -m unittest -v test_client",
+    "test:python:runtime": "node test/python-runtime.mjs",
     "prepare:local": "node scripts/prepare-local.mjs",
     "build:pages": "node scripts/build-pages.mjs",
     "test:migration": "node test/migration.mjs",
     "eval:preflight": "node eval/run.mjs"
   },
   "dependencies": {
+    "@modelcontextprotocol/sdk": "1.32.2",
     "lucide-react": "0.468.0",
     "react": "19.3.1",
-    "react-dom": "19.3.1"
+    "react-dom": "19.3.1",
+    "zod": "4.6.7"
   },
   "devDependencies": {
     "@types/node": "^22",

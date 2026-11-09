@@ -162,6 +162,11 @@ This is a recorded status snapshot, not live monitoring. The recorded production
 
 Committing code does not validate real-model quality, customer outcomes, production capacity, or recovery procedures. Read the [roadmap and current status](docs/ROADMAP.md).
 
+The November 9 local candidate adds source-evidence search, bounded context
+assembly, and read-only memory checks, with console and development SDK support.
+See [the API guide](product/MEMORY_COMPONENTS.md) and
+[Mem0/Anthropic comparison](docs/MEMORY_RESEARCH_2026-11-09.md).
+
 ## Development and collaboration
 
 ```sh
@@ -177,3 +182,10 @@ npm run build:product    # Type checks, frontend build, and Worker dry run
 - **Open source belongs in a separate repository.** This repository has no open-source license. Third-party dependencies and fonts retain their own licenses.
 
 [Contributing](CONTRIBUTING.md) · [Security](SECURITY.md) · [Repository ownership](docs/GITHUB_REPOSITORY_PLAN.md)
+
+## v0.3 knowledge workspace
+
+[Complete conversations, source-linked Wiki/topic graph, and read-only MCP](product/KNOWLEDGE_RELEASE.md)
+join the [Python SDK](product/sdk-python/README.md) and the existing memory APIs.
+See [actual release and verification status](product/RELEASE_0.3.0_VERIFICATION.md).
+Model-driven paths are not enabled merely by publishing code.

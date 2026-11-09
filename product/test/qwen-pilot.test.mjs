@@ -78,7 +78,12 @@ test("Qwen local pilot runs the actual Worker through intercepted fixture respon
       assert.equal(body.enable_thinking,false);
       let content;
       const p=JSON.parse(body.messages[1].content);
-      if (p.messages) {
+      if (p.items) {
+        content=JSON.stringify({supported:p.items.map(()=>true)});
+      } else if (p.sources) {
+        const source=p.sources.find(s=>s.role==="user");
+        content=JSON.stringify({pages:[{slug:"policy",title:"Policy",claims:[{text:source.text,citations:[{source_key:source.key,quote:source.text}]}]}],edges:[]});
+      } else if (p.messages) {
         const message=p.messages[0].content;
         const fact=(value,key)=>({content:value,fact_key:key,confidence:.99,evidence:[{message_id:"m1",quote:message}]});
         const facts=message.includes("退款")?[fact("用户申请退款，尚未确认完成","user.refund_status")]:
@@ -98,7 +103,7 @@ test("Qwen local pilot runs the actual Worker through intercepted fixture respon
     };
   `);
   const env = { ...process.env, QWEN_PILOT_CONFIG: configFile, QWEN_PILOT_APPROVED: "yes", QWEN_PILOT_APPROVED_MAX_COST_CNY: "0.1" };
-  const run = extra => spawnSync(process.execPath, ["--import", pathToFileURL(preload).href, resolve("eval/qwen-provider-pilot.mjs"), "--execute"], {
+  const run = (extra, args = []) => spawnSync(process.execPath, ["--import", pathToFileURL(preload).href, resolve("eval/qwen-provider-pilot.mjs"), "--execute", ...args], {
     env: { ...env, ...extra }, encoding: "utf8", timeout: 30000,
   });
   try {
@@ -111,6 +116,13 @@ test("Qwen local pilot runs the actual Worker through intercepted fixture respon
     assert.equal(result.usage_complete, true);
     assert.equal(result.steps.length, 5);
     assert.ok(!completed.stdout.includes(credential));
+    const knowledge = run({}, ["--knowledge"]);
+    assert.equal(knowledge.status, 0, knowledge.stderr + knowledge.stdout);
+    const knowledgeResult = JSON.parse(knowledge.stdout);
+    assert.equal(knowledgeResult.real_provider_calls, 6);
+    assert.equal(knowledgeResult.status, "requires_independent_quality_review");
+    assert.equal(knowledgeResult.steps.length, 3);
+    assert.ok(knowledgeResult.steps.every(step => step.state === "applied" && step.pages.length === 1));
     for (const mode of ["http", "usage"]) {
       const failed = run({ FIXTURE_ERROR: mode });
       assert.notEqual(failed.status, 0);

@@ -45,6 +45,9 @@ try {
     if (version === 'v021') {
       assert.deepEqual(await api.ingestions('alice'), []);
       assert.equal((await api.evidence(saved.id)).version, updated.version);
+      assert.equal((await api.context({ user_id: 'alice', query: 'Detailed' })).memories[0].id, saved.id);
+      assert.equal((await api.searchEvidence({ user_id: 'alice', query: 'Concise' })).data[0].memory_id, saved.id);
+      assert.equal((await api.reviewMemories({ user_id: 'alice' })).changed, 0);
       await assert.rejects(api.search('detailed', 'alice', 'semantic'), error => error.status === 503);
     }
     await assert.rejects(api.list({ user_id: 'bob' }), error => error.status === 404);

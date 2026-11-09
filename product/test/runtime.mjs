@@ -110,7 +110,7 @@ let loginCookie;
 try {
   await run("Pages service binding and public health", async () => {
     const value = await request("GET", "/health", undefined, "");
-    assert.equal(value.status, 200); assert.equal(value.body.version, "0.2.1");
+    assert.equal(value.status, 200); assert.equal(value.body.version, "0.3.0");
     assert.equal(value.body.model_configured, false);
     assert.equal(value.headers.get("Cache-Control"), "no-store");
     assert.equal((await mf.dispatchFetch(origin + "/")).status, 200);

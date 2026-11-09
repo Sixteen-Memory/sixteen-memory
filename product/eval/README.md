@@ -79,6 +79,22 @@ It tests the local product path only; the full five-group comparison is separate
 
 Offline adapter checks:
 
+The same Qwen runner accepts `--knowledge` for three small source-linked wiki
+diagnostics (at most six text calls, no embeddings). It retains generated pages
+in the private report, tests exact idempotency and source-deletion invalidation,
+and reports `requires_independent_quality_review`, never automatic quality
+acceptance. The same explicit cost-approval guards apply. Reconfirm public rates
+and the allowed account before execution.
+
+```sh
+QWEN_PILOT_CONFIG=.local/qwen-pilot/settings.json node eval/qwen-provider-pilot.mjs --knowledge
+```
+
+This command is preflight only without `--execute` and approval variables.
+Review generated claims for supported meaning, preserved conditions, unverified
+assistant claims and missing coverage. The generating model and a same-provider
+verifier are not independent quality judges.
+
 ```sh
 node eval/smoke.mjs
 node eval/run.mjs --pipeline-smoke
