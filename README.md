@@ -189,3 +189,7 @@ npm run build:product    # Type checks, frontend build, and Worker dry run
 join the [Python SDK](product/sdk-python/README.md) and the existing memory APIs.
 See [actual release and verification status](product/RELEASE_0.3.0_VERIFICATION.md).
 Model-driven paths are not enabled merely by publishing code.
+
+For the updated Mem0/Anthropic comparison and first real-provider findings,
+see [post-release comparison](docs/MEMORY_COMPARISON_V030.md) and
+[Qwen diagnostic receipt](product/QWEN_ACCEPTANCE_2026-11-09.md).

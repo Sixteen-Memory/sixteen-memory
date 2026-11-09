@@ -128,10 +128,12 @@
       "id": "qwen",
       "title": "Qwen semantic and hybrid retrieval",
       "status": "blocked",
-      "public_claim": "The adapter is implemented. Approved credentials and real-effectiveness validation remain prerequisites; semantic retrieval is not offered on the live service.",
+      "public_claim": "Local real-Qwen memory extraction/change/history/search/answer diagnostics and a small text-embedding-v4 paraphrase/deletion diagnostic passed. Knowledge generation completed after compatibility fixes but failed coverage and qualifier review. Production models remain disabled.",
       "evidence": [
         "product/PROVIDER_POLICY.md",
-        "product/test/embedding-provider.test.mjs"
+        "product/test/embedding-provider.test.mjs",
+        "product/QWEN_ACCEPTANCE_2026-11-09.md",
+        "product/QWEN_CONTINUATION_2026-11-09.md"
       ],
       "publishable_as_available": false
     },
@@ -161,10 +163,12 @@
       "id": "evaluation",
       "title": "Quality evaluation material",
       "status": "local",
-      "public_claim": "Synthetic cases and engineering regression checks exist. There are no independent blind-review, customer-outcome, or competitive-ranking results.",
+      "public_claim": "Synthetic/runtime checks and small real Qwen memory/embedding diagnostics exist. Real knowledge output showed omission and an unsupported strengthened qualifier; automatic knowledge quality is not accepted. No independent blind-review, customer-outcome or competitive-ranking result is established.",
       "evidence": [
         "product/eval/round1/README.md",
-        "product/eval/round1/preflight.mjs"
+        "product/eval/round1/preflight.mjs",
+        "docs/MEMORY_COMPARISON_V030.md",
+        "product/QWEN_CONTINUATION_2026-11-09.md"
       ],
       "publishable_as_available": false
     },

@@ -1,5 +1,10 @@
 # v0.3.0 verification and publication
 
+**Continuation update:** The user subsequently confirmed disabling free-quota
+protection for `qwen-flash` only. The memory-path diagnostic then passed; real
+knowledge generation revealed coverage and qualifier-fidelity failures, so
+production models remain disabled. See the [continuation receipt](QWEN_CONTINUATION_2026-11-09.md).
+
 Prepared November 9, 2026. Status: v0.3.0 source is merged and deployed to the existing Worker and Pages console. Model quality acceptance is not established.
 
 ## Observed checks
@@ -35,7 +40,7 @@ No claim of real-model acceptance, comparison superiority or load certification.
 - Public health on both custom and Pages domains returned `version=0.3.0`, `retrieval=lexical`, `extraction=explicit`, `model_configured=false`.
 - Existing `ADMIN_KEY` secret remained the only listed Worker secret. No DNS, model secret, npm/PyPI, or visibility change was performed.
 
-## Blocking model decision
+## Original blocking model decision (superseded below)
 
 The existing local Qwen settings explicitly record pending cost approval.
 Real provider requests have not been made. The user's permitted account,
@@ -51,3 +56,13 @@ The first custom-domain verification attempt reached health and memory evidence/
 A second run used the same HTTPS target through a curl-backed transport after observing Node TLS/socket instability. It passed health, memory evidence/context, conversation idempotency/scope/read-only checks, honest unconfigured knowledge failure, and official MCP client calls. It created one memory, one conversation and two scoped keys for `release-7b2e3f31-dce9-4288-80b2-415a4c44d2e0`; cleanup reported no errors. A follow-up reconciliation over both synthetic users found zero remaining memories, conversations or active keys. Real model calls: zero. Production customer-data reads: none.
 
 Browser verification after Pages deploy loaded `https://console.sixteenmemory.com`, showed the v0.3.0 developer-preview version label, and had no mobile login overflow at 390px. The expected unauthenticated `/v1/me` 401 appeared in the console log.
+
+## Post-release Qwen diagnostic update
+
+The user subsequently approved the personal Bailian profile and CNY 0.20
+cumulative local estimate. On November 9, six real embedding calls passed
+a two-query/three-record semantic diagnostic including post-delete exclusion.
+Two text-generation calls were refused by `AllocationQuota.FreeTierOnly`.
+This does not complete text/Wiki quality acceptance. Production remains
+unchanged with models disabled. See [full receipt](QWEN_ACCEPTANCE_2026-11-09.md)
+and [updated comparison](../docs/MEMORY_COMPARISON_V030.md).

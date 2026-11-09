@@ -2,6 +2,10 @@
 
 Date: November 9, 2026.
 
+**Historical first-iteration snapshot.** For current capabilities, the Mem0
+Platform Dream/Graph distinction and real-provider findings, read the
+[post-release comparison](MEMORY_COMPARISON_V030.md).
+
 This report describes the first November 9 iteration. The subsequent v0.3 work
 is documented in [conversations and knowledge](../product/KNOWLEDGE_RELEASE.md);
 its runtime and publication status are recorded separately.

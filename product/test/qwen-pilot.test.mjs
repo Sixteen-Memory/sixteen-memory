@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { mkdtemp, readFile, readdir, rm, writeFile } from "node:fs/promises";
+import { lstat, mkdtemp, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { spawnSync } from "node:child_process";
@@ -73,9 +73,16 @@ test("Qwen local pilot runs the actual Worker through intercepted fixture respon
         assert.ok(!("stream" in body));
         assert.equal(body.dimensions,1024);
         return Response.json({model:body.model,usage:{prompt_tokens:10,total_tokens:10},
-          data:body.input.map((_,index)=>({index,embedding:[1,...Array(1023).fill(0)]}))});
+          data:body.input.map((text,index)=>{
+            const dimension=/周六|收货/.test(text)?1:/巴黎/.test(text)?2:0;
+            return {index,embedding:Array.from({length:1024},(_,i)=>i===dimension?1:0)};
+          })});
       }
       assert.equal(body.enable_thinking,false);
+      if (body.response_format?.type === "json_object") {
+        assert.match(body.messages.map(message=>message.content).join("\\n"), /json/i,
+          "provider JSON mode requires an explicit JSON instruction");
+      }
       let content;
       const p=JSON.parse(body.messages[1].content);
       if (p.items) {
@@ -116,6 +123,9 @@ test("Qwen local pilot runs the actual Worker through intercepted fixture respon
     assert.equal(result.usage_complete, true);
     assert.equal(result.steps.length, 5);
     assert.ok(!completed.stdout.includes(credential));
+    assert.equal(result.synthetic_text_outputs_saved, false);
+    assert.ok(!(await readdir(result.output)).includes("text-results.jsonl"));
+    await writeFile(configFile, JSON.stringify({ ...settings, save_text_diagnostics: true }), { mode: 0o600 });
     const knowledge = run({}, ["--knowledge"]);
     assert.equal(knowledge.status, 0, knowledge.stderr + knowledge.stdout);
     const knowledgeResult = JSON.parse(knowledge.stdout);
@@ -123,6 +133,19 @@ test("Qwen local pilot runs the actual Worker through intercepted fixture respon
     assert.equal(knowledgeResult.status, "requires_independent_quality_review");
     assert.equal(knowledgeResult.steps.length, 3);
     assert.ok(knowledgeResult.steps.every(step => step.state === "applied" && step.pages.length === 1));
+    assert.equal(knowledgeResult.synthetic_text_outputs_saved, true);
+    const diagnosticFile = join(knowledgeResult.output, "text-results.jsonl");
+    const diagnostics = await readFile(diagnosticFile, "utf8");
+    assert.equal((await lstat(diagnosticFile)).mode & 0o077, 0);
+    assert.ok(!diagnostics.includes(credential));
+    assert.equal(diagnostics.trim().split("\n").length, 6);
+    const retrieval = run({}, ["--retrieval"]);
+    assert.equal(retrieval.status, 0, retrieval.stderr + retrieval.stdout);
+    const retrievalResult = JSON.parse(retrieval.stdout);
+    assert.equal(retrievalResult.real_provider_calls, 6);
+    assert.equal(retrievalResult.status, "passed");
+    assert.equal(retrievalResult.synthetic_memories_remaining, 0);
+    assert.equal(retrievalResult.steps.length, 3);
     for (const mode of ["http", "usage"]) {
       const failed = run({ FIXTURE_ERROR: mode });
       assert.notEqual(failed.status, 0);

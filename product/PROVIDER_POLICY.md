@@ -1,5 +1,10 @@
 # Provider policy
 
+**Continuation update:** The user subsequently confirmed disabling free-quota
+protection for `qwen-flash` only. The memory-path diagnostic then passed; real
+knowledge generation revealed coverage and qualifier-fidelity failures, so
+production models remain disabled. See the [continuation receipt](QWEN_CONTINUATION_2026-11-09.md).
+
 Public-product target providers: OpenAI GPT and Alibaba Qwen. **Semantic retrieval
 embeddings use Alibaba Qwen only.** Model IDs and public
 endpoints must remain operator-configured; do not bake an internal gateway or
@@ -38,7 +43,10 @@ documentation describes workspace/region-specific compatible endpoints; use the
 account's actual endpoint instead of assuming an old generic address.
 
 An OpenAI-compatible adapter is not proof that every GPT/Qwen model has been
-tested. Qwen and real embeddings have not been tested in this project. Text GPT
+tested. On November 9, 2026, a small real `text-embedding-v4` diagnostic passed.
+Real `qwen-flash` generation was refused by the account
+(`AllocationQuota.FreeTierOnly`), so text and knowledge acceptance remain blocked.
+See [diagnostic receipt](QWEN_ACCEPTANCE_2026-11-09.md). Text GPT
 generation is not an embedding service.
 
 ## Qwen embedding profile
@@ -58,3 +66,12 @@ generation is not an embedding service.
 
 The base URL is workspace- and region-specific and stays operator-configured.
 The project contains no Alibaba workspace ID, API key or concrete production model.
+
+## November 9 approved diagnostic boundary
+
+The user approved the existing personal Bailian profile and cumulative CNY 0.20
+local estimated evaluation budget. This does not authorize account recharge,
+account-wide billing-setting changes or recurring production spend. Eight
+inference requests were attempted: six embedding successes and two text 403s.
+The shared envelope retains reservations for failures without usage. Production
+secrets and enabled flags were not changed because full acceptance is incomplete.
