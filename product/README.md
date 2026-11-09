@@ -22,10 +22,12 @@ The [Vercel AI SDK 7 adapter](integrations/vercel-ai/README.md) was added to pri
 source on November 8, 2026. Its local tests cover both the recorded v0.1.0 source
 fixture and the v0.2.1 candidate; it is not a new production deployment or npm release.
 
-The November 9 candidate adds [source search, bounded context, and read-only
-memory review](MEMORY_COMPONENTS.md), with a console workspace and typed
-development SDK methods. The three routes work without models in lexical mode.
-They are not deployed or added to the stable SDK/OpenAPI package.
+The November 9 v0.3 deployment adds [source search, bounded context, read-only
+memory review](MEMORY_COMPONENTS.md), explicit complete conversations,
+source-linked knowledge pages, a topic graph, read-only MCP, and a Python client.
+Routes that do not need models are live. Model-driven organization remains
+disabled on production until provider/cost approval and quality acceptance.
+The stable v0.1 OpenAPI and website-download SDK remain compatibility artifacts.
 
 ## Run locally
 
@@ -87,7 +89,7 @@ Coverage includes login, key scopes, project isolation, concurrent version confl
 
 See the [roadmap](../docs/ROADMAP.md) for the distinction between the production baseline and development candidates. This is not a complete enterprise release. Outstanding work includes:
 
-- Real-model validation and production release of extraction, review, and semantic retrieval; general temporal reasoning is not implemented.
+- Real-model validation and production enablement of extraction, semantic retrieval, and automatic knowledge organization; general temporal reasoning is not implemented.
 - Multi-organization signup, SSO, and project membership. Each deployment currently has one fixed project.
 - Strict global quotas, comprehensive abuse controls, load validation, and regional network checks. Current rate limits use approximate per-location counters.
 - Cloud backup/recovery drills and reapplying deletions after restoration.

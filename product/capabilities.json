@@ -1,36 +1,36 @@
 {
   "schema": 1,
   "as_of": "2026-11-09",
-  "production_version": "0.1.0",
+  "production_version": "0.3.0",
   "candidate_version": "0.3.0",
-  "evidence_note": "Paths point to repository implementation or documentation, not proof of a live deployment. Private deployment receipts and provider credentials are intentionally excluded.",
+  "evidence_note": "Paths and release receipts record implementation and deployment state. Provider credentials and private logs remain excluded.",
   "items": [
     {
       "id": "conversations-knowledge-mcp-python",
       "as_of": "2026-11-09",
       "title": "Complete conversations, knowledge workspace, MCP and Python SDK",
-      "status": "local",
-      "public_claim": "v0.3 source implements explicit paginated conversation storage/search, two-pass source-linked wiki/topic-graph organization with review, an official-SDK read-only MCP endpoint and a Python client. Model configuration and quality acceptance are separate release gates; no general entity graph or scheduled paid maintenance.",
+      "status": "live",
+      "public_claim": "v0.3 live service supports explicit paginated conversation storage/search and a read-only official-SDK MCP endpoint. Source-linked wiki/topic-graph organization is deployed but disabled until model provider/cost approval; Python client source and local wheel are available, not PyPI.",
       "evidence": [
         "product/KNOWLEDGE_RELEASE.md",
         "product/RELEASE_0.3.0_VERIFICATION.md",
         "product/test/knowledge-runtime.mjs",
         "product/sdk-python/README.md"
       ],
-      "publishable_as_available": false
+      "publishable_as_available": true
     },
     {
       "id": "evidence-context-review",
       "as_of": "2026-11-09",
       "title": "Evidence retrieval, bounded context and read-only memory review",
-      "status": "local",
-      "public_claim": "The private candidate searches retained current-version source evidence, packs complete records within a character budget, and reports duplicate text, slot differences and old sources. Console and typed development SDK entry points are included; no learned consolidation, full-transcript search or live release.",
+      "status": "live",
+      "public_claim": "The live v0.3 service searches retained current-version source evidence, packs complete records within a character budget, and reports duplicate text, slot differences and old sources. No learned consolidation is claimed.",
       "evidence": [
         "product/MEMORY_COMPONENTS.md",
         "product/test/memory-components-runtime.mjs",
         "product/test/memory-context.test.mjs"
       ],
-      "publishable_as_available": false
+      "publishable_as_available": true
     },
     {
       "id": "vercel-ai-adapter",
@@ -180,11 +180,11 @@
     },
     {
       "id": "mcp",
-      "title": "Read-only MCP",
+      "title": "MCP OAuth and write tools",
       "status": "planned",
-      "public_claim": "Planned. There is no connectable MCP server.",
+      "public_claim": "Read-only scoped Streamable HTTP MCP is live in v0.3. OAuth onboarding, prompts, persistent MCP sessions and write tools are not available.",
       "evidence": [
-        "docs/ROADMAP.md"
+        "product/KNOWLEDGE_RELEASE.md"
       ],
       "publishable_as_available": false
     },
@@ -192,7 +192,7 @@
       "id": "sdk-release",
       "title": "npm registry and Python SDK releases",
       "status": "planned",
-      "public_claim": "Planned. A typed TypeScript/JavaScript download and OpenAPI document are available through the website.",
+      "public_claim": "Planned for registries. A typed TypeScript/JavaScript download, private-source development client, and dependency-free Python client source are available; no npm or PyPI publication.",
       "evidence": [
         "docs/ROADMAP.md"
       ],
