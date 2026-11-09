@@ -75,3 +75,13 @@ Text generation was refused by the model free-quota-only setting, so real
 extraction/Wiki acceptance and production enablement remain blocked. See the
 [receipt](../product/QWEN_ACCEPTANCE_2026-11-09.md) and
 [updated comparison](MEMORY_COMPARISON_V030.md).
+
+
+## Confirmed quota change and observed quality gaps
+
+The target `qwen-flash` free-only switch was turned off after explicit confirmation.
+The real memory pipeline passed a small diagnostic. Knowledge generation still
+showed omissions and an unsupported qualifier accepted by the same model's check;
+unattended generation is not accepted. Production models remain disabled.
+See the [continuation receipt](../product/QWEN_CONTINUATION_2026-11-09.md) and
+[optimization plan](MEMORY_OPTIMIZATION_PLAN.md).

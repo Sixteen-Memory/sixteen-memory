@@ -1,5 +1,10 @@
 # Qwen diagnostic receipt — November 9, 2026
 
+**Continuation update:** The user subsequently confirmed disabling free-quota
+protection for `qwen-flash` only. The memory-path diagnostic then passed; real
+knowledge generation revealed coverage and qualifier-fidelity failures, so
+production models remain disabled. See the [continuation receipt](QWEN_CONTINUATION_2026-11-09.md).
+
 ## Decision
 
 **Partial result, not end-to-end acceptance.** Real Qwen embeddings passed a

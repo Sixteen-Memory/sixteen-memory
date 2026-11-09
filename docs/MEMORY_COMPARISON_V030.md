@@ -1,5 +1,12 @@
 # SixteenMemory v0.3 versus Mem0 and Anthropic memory patterns
 
+**Later same-day update:** The `qwen-flash` billing blocker was removed after
+explicit confirmation. A real memory-path diagnostic passed, while knowledge
+quality failed on coverage and a strengthened qualifier. See the
+[continuation receipt](../product/QWEN_CONTINUATION_2026-11-09.md) and
+[prioritized optimization plan](MEMORY_OPTIMIZATION_PLAN.md). Below is the
+initial post-release snapshot; do not reuse its account-blocked status as current.
+
 Reviewed November 9, 2026, after v0.3 deployment and the first approved real-Qwen
 diagnostics. This replaces the capability conclusions of the
 [earlier same-day comparison](MEMORY_RESEARCH_2026-11-09.md), not its historical

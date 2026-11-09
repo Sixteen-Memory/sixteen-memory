@@ -1,5 +1,10 @@
 # v0.3.0 verification and publication
 
+**Continuation update:** The user subsequently confirmed disabling free-quota
+protection for `qwen-flash` only. The memory-path diagnostic then passed; real
+knowledge generation revealed coverage and qualifier-fidelity failures, so
+production models remain disabled. See the [continuation receipt](QWEN_CONTINUATION_2026-11-09.md).
+
 Prepared November 9, 2026. Status: v0.3.0 source is merged and deployed to the existing Worker and Pages console. Model quality acceptance is not established.
 
 ## Observed checks

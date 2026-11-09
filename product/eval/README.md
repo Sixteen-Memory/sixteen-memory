@@ -120,3 +120,15 @@ Failure with unknown usage retains its full reservation. All retries and distinc
 workflows from one approval must share that ledger; never reset it to restart
 the allowance. An interrupted process leaves a lock for manual reconciliation.
 The original per-run CNY 0.10 gate remains in addition to the cumulative gate.
+
+
+## Confirmed quota change and continuation
+
+[Continuation results](../QWEN_CONTINUATION_2026-11-09.md) supersede the original
+provider-blocked status. Optional `save_text_diagnostics: true` in private pilot
+settings retains only synthetic generated text in ignored 0600 JSONL files.
+It is off by default and never records keys, headers or full request prompts.
+The same cumulative ledger covers diagnostics and fixes; the latest aggregate
+is CNY 0.02106505 known usage plus unknown-call reservations across 31 calls.
+Memory-path assertions passed. Knowledge coverage and meaning preservation did
+not pass review; no competitive or automatic-quality claim is established.

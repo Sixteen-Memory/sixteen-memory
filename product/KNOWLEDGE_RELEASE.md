@@ -1,5 +1,10 @@
 # v0.3.0: conversations, knowledge and clients
 
+**Continuation update:** The user subsequently confirmed disabling free-quota
+protection for `qwen-flash` only. The memory-path diagnostic then passed; real
+knowledge generation revealed coverage and qualifier-fidelity failures, so
+production models remain disabled. See the [continuation receipt](QWEN_CONTINUATION_2026-11-09.md).
+
 Prepared November 9, 2026. Source version and deployment/quality status are
 different: check [release verification](RELEASE_0.3.0_VERIFICATION.md) for actual
 publication results. No model credential is part of this repository.

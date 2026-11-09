@@ -39,6 +39,9 @@
 
 ## 04 / Reference
 
+- [Prioritized memory optimization plan](MEMORY_OPTIMIZATION_PLAN.md)
+- [Qwen continuation after quota approval](../product/QWEN_CONTINUATION_2026-11-09.md)
+
 - [Post-release comparison: SixteenMemory, Mem0 and Anthropic](MEMORY_COMPARISON_V030.md)
 - [Approved real-Qwen diagnostic receipt](../product/QWEN_ACCEPTANCE_2026-11-09.md)
 

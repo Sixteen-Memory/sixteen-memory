@@ -188,6 +188,12 @@ async function transport(request) {
       if (![settings.text_model, ...(settings.allowed_text_response_models ?? [])].includes(value.model)) throw Error("Provider returned a different text model");
       if (value.choices?.[0]?.finish_reason !== "stop") throw Error("Text response did not finish normally");
       if (typeof value.choices?.[0]?.message?.content !== "string") throw Error("Text response content missing");
+      if (settings.save_text_diagnostics === true) {
+        // Synthetic outputs only, no request prompts or provider headers.
+        await appendFile(join(outputRoot, "text-results.jsonl"), JSON.stringify({
+          call: event.call, stage, content: value.choices[0].message.content,
+        }) + "\n", { mode: 0o600 });
+      }
       return Response.json({ ...value, model: aliases.text });
     }
     const rows = value.data;
@@ -368,6 +374,7 @@ try {
     billing_note: "Returned usage only; failed or timed-out requests may still be billed. Not an account billing cap.",
     deleted_synthetic_records: deleted, usage: usageEvents.map(({ request_sha256, ...event }) => event),
     cumulative_budget: cumulative?.summary() ?? null,
+    synthetic_text_outputs_saved: settings.save_text_diagnostics === true,
     credential_saved_in_output: false, provider_payloads_saved: false };
   await writeFile(join(outputRoot, "report.json"), JSON.stringify(report, null, 2), { mode: 0o600 });
   await cumulative?.close();

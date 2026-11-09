@@ -1,5 +1,10 @@
 # Provider policy
 
+**Continuation update:** The user subsequently confirmed disabling free-quota
+protection for `qwen-flash` only. The memory-path diagnostic then passed; real
+knowledge generation revealed coverage and qualifier-fidelity failures, so
+production models remain disabled. See the [continuation receipt](QWEN_CONTINUATION_2026-11-09.md).
+
 Public-product target providers: OpenAI GPT and Alibaba Qwen. **Semantic retrieval
 embeddings use Alibaba Qwen only.** Model IDs and public
 endpoints must remain operator-configured; do not bake an internal gateway or
