@@ -1,8 +1,10 @@
 import { ApiError, equalDigest, fail, hash, identifier, randomSecret, readJson, text, VERSION } from "./domain";
 import { MemoryProject, type Action, type Auth, type Outcome } from "./project";
-import { ingest, intelligentSearch, prepareExplicit, reindex } from "./intelligence";
+import { ingest, intelligentSearch, memoryContext, prepareExplicit, reindex } from "./intelligence";
 import { embeddingConfigured, extractionConfigured, type IntelligenceEnv } from "./providers";
 import { generationOptions } from "./generation-options";
+import { organizeKnowledge } from "./knowledge";
+import { mcpRequest } from "./mcp";
 export { MemoryProject };
 type RuntimeEnv = Env & IntelligenceEnv & { ADMIN_KEY?: string; MODEL_API_KEY?: string; MODEL_TOKEN_PARAMETER?: string; MODEL_THINKING?: string };
 const cookieName = "sixteen_session";
@@ -111,6 +113,42 @@ export default {
       }
       const auth = await authFor(request, rootDigest);
       const route = `${request.method} ${url.pathname}`;
+      if (url.pathname === "/v1/mcp") return secure(await mcpRequest(request, env, project, auth));
+      if (route === "POST /v1/knowledge/organize") return secure(Response.json(await organizeKnowledge(env, project, auth, await readJson(request))));
+      const conversationRoute = /^\/v1\/conversations\/([A-Za-z0-9-]+)(?:\/(messages))?$/.exec(url.pathname);
+      const knowledgeRun = /^\/v1\/knowledge\/runs\/([A-Za-z0-9-]+)(?:\/(resolve))?$/.exec(url.pathname);
+      if (route === "POST /v1/conversations" || route === "POST /v1/conversations/search" ||
+          route === "GET /v1/conversations" || route === "GET /v1/knowledge/runs" ||
+          route === "GET /v1/wiki" || route === "GET /v1/knowledge/graph" ||
+          /^GET \/v1\/wiki\/[a-z0-9-]+$/.test(route) || conversationRoute || knowledgeRun) {
+        let action: Action;
+        const body = request.method === "GET" ? Object.fromEntries(url.searchParams) : await readJson(request);
+        const digest = await hash(JSON.stringify({ route, body }));
+        if (route === "POST /v1/conversations") action = "conversation_add";
+        else if (route === "POST /v1/conversations/search") action = "conversation_search";
+        else if (route === "GET /v1/conversations") action = "conversation_list";
+        else if (route === "GET /v1/knowledge/runs") action = "knowledge_runs";
+        else if (route === "GET /v1/wiki") action = "wiki_list";
+        else if (route === "GET /v1/knowledge/graph") action = "knowledge_graph";
+        else if (/^GET \/v1\/wiki\/[a-z0-9-]+$/.test(route)) { action = "wiki_get"; body.slug = url.pathname.split("/").pop()!; }
+        else if (conversationRoute) {
+          body.id = conversationRoute[1];
+          if (request.method === "GET" && !conversationRoute[2]) action = "conversation_get";
+          else if (request.method === "POST" && conversationRoute[2]) action = "conversation_append";
+          else if (request.method === "DELETE" && !conversationRoute[2]) action = "conversation_delete";
+          else fail(404, "not_found", "未找到接口");
+        } else if (knowledgeRun) {
+          body.id = knowledgeRun[1];
+          if (request.method === "GET" && !knowledgeRun[2]) action = "knowledge_get_run";
+          else if (request.method === "POST" && knowledgeRun[2]) action = "knowledge_resolve";
+          else fail(404, "not_found", "未找到接口");
+        } else fail(404, "not_found", "未找到接口");
+        return secure(result(await project.execute(auth, action, body, digest)));
+      }
+      if (route === "POST /v1/context") return secure(Response.json(await memoryContext(env, project, auth, await readJson(request))));
+      if (route === "POST /v1/evidence/search" || route === "POST /v1/memory-review") {
+        return secure(result(await project.execute(auth, route.endsWith("memory-review") ? "memory_review" : "evidence_search", await readJson(request))));
+      }
       if (route === "POST /v1/ingestions") return secure(Response.json(await ingest(env, project, auth, await readJson(request))));
       if (route === "POST /v1/reindex") return secure(Response.json(await reindex(env, project, auth, await readJson(request))));
       if (route === "POST /v1/search" || route === "POST /v1/answer") {

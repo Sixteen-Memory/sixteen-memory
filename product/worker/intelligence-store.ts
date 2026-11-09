@@ -8,7 +8,7 @@ type Row = StoredAttributes & { id: string; user_id: string; content: string; so
 type Job = { id: string; actor: string; user_id: string; request_id: string; digest: string; state: string; plan: string | null; expires_at: string; created_at: string };
 const record = (row: Row): MemoryRecord => ({ ...row, ...readAttributes(row), source: JSON.parse(row.source), status: row.status as "active" | "revoked", origin: row.origin as "explicit" | "extracted" });
 export class IntelligenceStore {
-  constructor(private sql: SqlStorage, private index: (row: Row) => void, private history: (row: Row, action: string, reason: string, who: Identity) => void) {
+  constructor(private sql: SqlStorage, private index: (row: Row) => void, private history: (row: Row, action: string, reason: string, who: Identity) => void, private onChange: (user: string) => void) {
     const columns = sql.exec<{ name: string }>("PRAGMA table_info(memories)").toArray().map(x => x.name);
     if (!columns.includes("origin")) sql.exec("ALTER TABLE memories ADD COLUMN origin TEXT NOT NULL DEFAULT 'explicit'");
     if (!columns.includes("fact_key")) sql.exec("ALTER TABLE memories ADD COLUMN fact_key TEXT");
@@ -25,7 +25,7 @@ export class IntelligenceStore {
     if (!evidenceColumns.includes("memory_version")) sql.exec("ALTER TABLE memory_evidence ADD COLUMN memory_version INTEGER NOT NULL DEFAULT 1");
   }
   epoch(user: string) { return this.sql.exec<{ revision: number }>("SELECT revision FROM scope_epochs WHERE user_id=?", user).toArray()[0]?.revision ?? 0; }
-  touch(user: string) { this.sql.exec("INSERT INTO scope_epochs VALUES (?,1) ON CONFLICT(user_id) DO UPDATE SET revision=revision+1", user); }
+  touch(user: string) { this.sql.exec("INSERT INTO scope_epochs VALUES (?,1) ON CONFLICT(user_id) DO UPDATE SET revision=revision+1", user); this.onChange(user); }
   putVector(row: { id: string; user_id: string; version: number }, input: unknown) {
     this.sql.exec("DELETE FROM vectors WHERE memory_id=?", row.id);
     if (input) {
@@ -218,5 +218,6 @@ export class IntelligenceStore {
     if (this.sql.exec<{ n: number }>("SELECT count(*) n FROM memory_evidence WHERE memory_id=?", id).one().n >= 50) fail(409, "evidence_limit", "此记忆的补充依据已达50条");
     const version = this.sql.exec<{ version: number }>("SELECT version FROM memories WHERE id=?", id).one().version;
     this.sql.exec("INSERT INTO memory_evidence(id,memory_id,source,created_at,memory_version) VALUES (?,?,?,?,?)", crypto.randomUUID(), id, JSON.stringify(d.fact.source), new Date().toISOString(), version);
+    this.index(this.sql.exec<Row>("SELECT * FROM memories WHERE id=?", id).one());
   }
 }

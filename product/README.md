@@ -2,7 +2,7 @@
 
 [Quickstart](../docs/QUICKSTART.md) · [Architecture](../docs/ARCHITECTURE.md) · [Code map](../docs/REPOSITORY_MAP.md) · [Roadmap](../docs/ROADMAP.md)
 
-Development candidate v0.2.1. The recorded production baseline remains v0.1.0; the new intelligent paths have not replaced it. This service is separate from the website, demonstration prototype, and legacy competition service.
+Development source v0.3.0. Read the [release receipt](RELEASE_0.3.0_VERIFICATION.md) for deployment and model-validation status. This service is separate from the website, demonstration prototype, and legacy competition service.
 
 The public entry point is `https://console.sixteenmemory.com`. Deployment credentials and operating records are not included in the repository.
 
@@ -21,6 +21,11 @@ See the [P0 implementation notes](P0.md) for intelligent paths, test scope, and 
 The [Vercel AI SDK 7 adapter](integrations/vercel-ai/README.md) was added to private
 source on November 8, 2026. Its local tests cover both the recorded v0.1.0 source
 fixture and the v0.2.1 candidate; it is not a new production deployment or npm release.
+
+The November 9 candidate adds [source search, bounded context, and read-only
+memory review](MEMORY_COMPONENTS.md), with a console workspace and typed
+development SDK methods. The three routes work without models in lexical mode.
+They are not deployed or added to the stable SDK/OpenAPI package.
 
 ## Run locally
 
@@ -102,3 +107,10 @@ pages/        Domain entry and Service Binding
 test/         SDK and Workers runtime checks
 DEPLOYMENT.md Deployment boundaries and prerequisites
 ```
+
+## v0.3 additions
+
+[Complete conversations, source-linked Wiki/topic graph and MCP](KNOWLEDGE_RELEASE.md)
+are implemented with a console workspace and [Python SDK](sdk-python/README.md).
+Model-driven organization is separate from deployment: it requires approved
+provider configuration and independent quality review.

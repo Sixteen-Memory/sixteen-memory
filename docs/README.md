@@ -39,7 +39,13 @@
 
 ## 04 / Reference
 
+- [v0.3 conversations, knowledge and MCP](../product/KNOWLEDGE_RELEASE.md)
+- [Python SDK](../product/sdk-python/README.md)
+- [v0.3 release verification](../product/RELEASE_0.3.0_VERIFICATION.md)
+
 - [Mem0 research notes](MEM0_LEARNINGS_2026-11-06.md): a pinned source revision and the approaches we do or do not adopt.
+- [Agent memory research and comparison](MEMORY_RESEARCH_2026-11-09.md): Mem0 source, Anthropic's components, implemented improvements, and remaining gaps.
+- [Context and evidence APIs](../product/MEMORY_COMPONENTS.md): local source search, whole-record context budget, and read-only review.
 - [GitHub organization and repository](GITHUB_REPOSITORY_PLAN.md): company ownership, private visibility, and contributor identity.
 - [Evaluation tools](../product/eval/README.md): separate from routine development; real requests require explicit authorization.
 

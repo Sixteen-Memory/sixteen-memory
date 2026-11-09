@@ -4,6 +4,13 @@ import type { CallOptions, ClientOptions, SearchInput, PageOptions, Answer } fro
 import type { MemoryInput, MemoryRecord, HistoryRecord, Source } from "../worker/domain";
 import type { Decision, IngestionInput, ModelUsage, Plan, SearchResult } from "../worker/intelligence-domain";
 import type { MemoryFilter } from "../worker/memory-filter";
+import type { MemoryContext } from "../worker/memory-context";
+import type { EvidenceSearch } from "../worker/evidence-index";
+import type { MemoryReview } from "../worker/memory-review";
+import type { Conversation, ConversationPage, Message } from "../worker/conversations";
+import type { KnowledgeJob, KnowledgePage, KnowledgeEdge } from "../worker/knowledge-domain";
+export type { Conversation, ConversationPage, Message, KnowledgeJob, KnowledgePage, KnowledgeEdge };
+export type { MemoryContext, EvidenceSearch, MemoryReview };
 export { MemoryApiError, MemoryTransportError } from "./client.mjs";
 export type RetrievalMode = "lexical" | "semantic" | "hybrid";
 export type DevelopmentSearchInput = SearchInput & {
@@ -19,6 +26,22 @@ export interface IngestionJob {
 }
 type Overridden = "health" | "add" | "get" | "list" | "update" | "history" | "search" | "answer" | "exportPage";
 export interface SixteenMemory extends Omit<StableClient, Overridden> {
+  createConversation(input: { user_id: string; request_id: string; title: string; messages: Message[]; expires_at?: string | null }, call?: CallOptions): Promise<Conversation>;
+  appendConversation(id: string, input: { request_id: string; expected_version: number; messages: Message[] }, call?: CallOptions): Promise<Conversation>;
+  conversation(id: string, cursor?: string, call?: CallOptions): Promise<ConversationPage>;
+  conversations(user_id: string, cursor?: string, call?: CallOptions): Promise<{ data: Conversation[]; next_cursor: string | null }>;
+  searchConversations(input: { user_id: string; query: string; limit?: number }, call?: CallOptions): Promise<{ data: (Message & { conversation_id: string; conversation_version: number; title: string; score: number })[]; retrieval: string }>;
+  deleteConversation(id: string, expected_version: number, call?: CallOptions): Promise<{ deleted: true; id: string }>;
+  organize(input: { user_id: string; request_id: string; memory_ids?: string[]; conversation_ids?: string[]; mode?: "auto" | "review" }, call?: CallOptions): Promise<KnowledgeJob & { usage?: ModelUsage[]; unsupported_items?: number[] }>;
+  knowledgeRuns(user_id: string, call?: CallOptions): Promise<KnowledgeJob[]>;
+  knowledgeRun(id: string, call?: CallOptions): Promise<KnowledgeJob>;
+  resolveKnowledge(id: string, approve: boolean, call?: CallOptions): Promise<KnowledgeJob>;
+  wiki(user_id: string, call?: CallOptions): Promise<{ data: (KnowledgePage & { id: string; user_id: string; run_id: string })[] }>;
+  wikiPage(user_id: string, slug: string, call?: CallOptions): Promise<KnowledgePage & { id: string; user_id: string; run_id: string }>;
+  graph(user_id: string, call?: CallOptions): Promise<{ nodes: { id: string; slug: string; title: string }[]; edges: KnowledgeEdge[] }>;
+  context(input: DevelopmentSearchInput & { user_id: string; max_chars?: number; include_evidence?: boolean }, call?: CallOptions): Promise<MemoryContext & { usage: ModelUsage[] }>;
+  searchEvidence(input: Pick<DevelopmentSearchInput, "query" | "limit" | "filter" | "at"> & { user_id: string }, call?: CallOptions): Promise<EvidenceSearch>;
+  reviewMemories(input: { user_id: string; stale_before?: string }, call?: CallOptions): Promise<MemoryReview>;
   health(call?: CallOptions): Promise<{ status: "ok"; version: string; retrieval: string; extraction: string; model_configured: boolean }>;
   add(input: MemoryInput & { request_id: string }, call?: CallOptions): Promise<MemoryRecord>;
   get(id: string, call?: CallOptions): Promise<MemoryRecord>;

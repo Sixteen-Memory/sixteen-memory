@@ -50,3 +50,16 @@ test("list/export encode nested filters as JSON, not object stringification", as
   await client.exportPage({user_id:"u",filter});
   for(const u of urls) assert.deepEqual(JSON.parse(new URL(u).searchParams.get("filter")),filter);
 });
+test("development context, evidence and review keep scope and cancellation in shared transport", async () => {
+  const requests = [];
+  const client = new SixteenMemory({ baseUrl: "https://test.invalid", fetch: async (url, init) => {
+    requests.push({ url, init }); return Response.json({});
+  } });
+  const signal = new AbortController().signal;
+  await client.context({ user_id: "alice", query: "policy", max_chars: 900 }, { signal });
+  await client.searchEvidence({ user_id: "alice", query: "source" });
+  await client.reviewMemories({ user_id: "alice" });
+  assert.deepEqual(requests.map(r => new URL(r.url).pathname), ["/v1/context", "/v1/evidence/search", "/v1/memory-review"]);
+  for (const { init } of requests) { assert.equal(JSON.parse(init.body).user_id, "alice"); assert.equal(init.method, "POST"); }
+  assert.ok(requests[0].init.signal instanceof AbortSignal);
+});

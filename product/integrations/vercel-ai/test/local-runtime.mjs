@@ -18,7 +18,7 @@ export async function localRuntime() {
       const scriptPath = join(directory, name + '.js');
       await build({
         entryPoints: [fileURLToPath(new URL(source, import.meta.url))], outfile: scriptPath,
-        bundle: true, format: 'esm', platform: 'neutral', target: 'es2022', keepNames: true,
+        bundle: true, format: 'esm', platform: 'neutral', mainFields: ['module', 'main'], target: 'es2022', keepNames: true,
         external: ['cloudflare:workers', 'node:crypto'], logLevel: 'silent',
       });
       definitions.push({ name, scriptPath });

@@ -18,6 +18,14 @@
 | [providers.ts](providers.ts) | Generation and embedding provider calls |
 | [embedding-config.ts](embedding-config.ts) | Dimensions, API modes, and index identity |
 | [generation-options.ts](generation-options.ts) | Output-token and thinking-parameter compatibility |
+| [conversations.ts](conversations.ts) | Explicit complete-conversation storage, pagination, search, expiry, and deletion |
+| [knowledge.ts](knowledge.ts) | Two-pass model orchestration for source-linked organization |
+| [knowledge-domain.ts](knowledge-domain.ts) | Wiki/graph output validation and exact source citations |
+| [knowledge-store.ts](knowledge-store.ts) | Review jobs, derived pages/edges, source-version invalidation |
+| [evidence-index.ts](evidence-index.ts) | Current-version retained-source lexical index |
+| [memory-context.ts](memory-context.ts) | Complete-record context budgets and rank fusion |
+| [memory-review.ts](memory-review.ts) | Read-only duplicate, slot-difference, and source-age checks |
+| [mcp.ts](mcp.ts) | Stateless read-only Streamable HTTP MCP adapter |
 
 ## Maintenance rules
 
@@ -27,3 +35,6 @@
 - Do not silently treat model failure as success or switch providers automatically.
 - Do not mix old and new vectors after model, dimension, or configuration changes.
 - Explain migrations when changing storage structure; do not downgrade directly to incompatible code.
+- Complete conversations are explicit application writes, not implicit capture.
+- Wiki pages and graph edges are derived caches. Invalidate them whenever their user scope changes.
+- MCP requires a user-scoped Bearer key and exposes no writes or caller-controlled user scope.

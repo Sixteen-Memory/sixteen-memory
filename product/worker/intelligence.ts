@@ -1,10 +1,12 @@
-import { ApiError, fail, hash, memoryInput, text, type MemoryRecord } from "./domain";
+import { ApiError, fail, hash, identifier, memoryInput, text, type MemoryRecord } from "./domain";
 import { cosine, extractedFacts, ingestionInput, maintenanceDecisions, type ModelUsage, type Plan, type SearchResult, type Vector } from "./intelligence-domain";
 import { embed, embeddingConfigured, embeddingSignature, extractionConfigured, modelJson, type IntelligenceEnv } from "./providers";
 import type { Action, Auth, Outcome } from "./project";
 import { slotPrompt, SLOT_REVISION } from "./fact-slots";
 import { providedAttributes } from "./memory-attributes";
 import { searchConstraints } from "./memory-filter";
+import { boundedInteger, packContext } from "./memory-context";
+import type { EvidenceSearch } from "./evidence-index";
 
 type Project = { execute(auth: Auth, action: Action, input: Record<string, unknown>, digest?: string): Promise<Outcome> };
 async function execute<T>(project: Project, auth: Auth, action: Action, input: Record<string, unknown>, digest = ""): Promise<T> {
@@ -84,6 +86,25 @@ export async function prepareExplicit(env: IntelligenceEnv, project: Project, au
   await execute(project, auth, "model_budget", { user_id: user, calls: 1 });
   const result = await embed(env, [draft.content]);
   return { ...clean, _vector: result.vectors[0] };
+}
+
+export async function memoryContext(env: IntelligenceEnv, project: Project, auth: Auth, input: Record<string, unknown>) {
+  const user = identifier(input.user_id, "用户标识");
+  const maxChars = boundedInteger(input.max_chars, 6000, 512, 24000, "max_chars");
+  const limit = boundedInteger(input.limit, 10, 1, 20, "limit");
+  if (input.include_evidence !== undefined && typeof input.include_evidence !== "boolean") fail(422, "invalid_evidence_option", "include_evidence必须是布尔值");
+  const scope = await execute<{ user_id: string; epoch: number }>(project, auth, "preflight", { user_id: user });
+  const search = { ...input, user_id: scope.user_id, ...searchConstraints(input), limit: 50 };
+  const found = await intelligentSearch(env, project, auth, search);
+  const evidence = input.include_evidence === false ? { data: [] } :
+    await execute<EvidenceSearch>(project, auth, "evidence_search", search);
+  if (input.threshold !== undefined) {
+    const eligible = new Set(found.data.map(row => row.id));
+    evidence.data = evidence.data.filter(hit => eligible.has(hit.memory_id));
+  }
+  const after = await execute<{ epoch: number }>(project, auth, "preflight", { user_id: scope.user_id });
+  if (after.epoch !== scope.epoch) fail(409, "scope_changed", "组装上下文期间记忆已变化，请重新查询");
+  return { ...packContext(found, evidence.data, maxChars, limit), usage: found.usage ?? [] };
 }
 
 export async function ingest(env: IntelligenceEnv, project: Project, auth: Auth, raw: Record<string, unknown>) {

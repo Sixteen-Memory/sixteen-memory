@@ -33,8 +33,14 @@ try {
   assert.equal(migrated.content,old.content);assert.deepEqual(migrated.source,old.source);assert.equal(migrated.origin,"explicit");
   assert.deepEqual(migrated.metadata,{});assert.equal(migrated.category,null);assert.equal(migrated.event_time,null);
   assert.equal((await call(`/v1/memories/${old.id}/history`,null,"GET")).length,1);
+  const evidence = await call("/v1/evidence/search", { user_id: "u", query: "升级" });
+  assert.equal(evidence.data[0].memory_id, old.id);
+  assert.deepEqual(evidence.data[0].source, old.source);
+  assert.equal((await call("/v1/context", { user_id: "u", query: "升级" })).memories[0].id, old.id);
   const updated = await call(`/v1/memories/${old.id}`,{...old,content:"升级后更新",expected_version:1,reason:"迁移检查"},"PATCH");
   assert.equal(updated.version,2);
   await call(`/v1/memories/${old.id}`,{expected_version:2},"DELETE");
-  console.log(`PASS: ${process.env.MIGRATION_BASELINE ? "selected baseline" : "v0.1.0"} real SQLite state migrates to v0.2.1; source/history survive with attribute defaults and CRUD continues.`);
+  const conversation = await call("/v1/conversations", { user_id: "u", request_id: "migrated-c", title: "Post-upgrade conversation", messages: [{ id: "m1", role: "user", content: "Migration source survives.", observed_at: "2026-11-09T00:00:00Z" }] });
+  assert.equal((await call(`/v1/conversations/${conversation.id}`, null, "GET")).messages.length, 1);
+  console.log(`PASS: ${process.env.MIGRATION_BASELINE ? "selected baseline" : "v0.1.0"} real SQLite state migrates to v0.3.0; source/history survive with attribute defaults and CRUD continues.`);
 } finally { if(mf)await mf.dispose();await rm(temp,{recursive:true,force:true}); }
