@@ -3,7 +3,62 @@
 Date: November 9, 2026 (Asia/Shanghai). User requested fixes and publication.
 Release artifacts: JS SDK **0.3.0**, Vercel AI adapter **0.3.0**, Python **0.3.1**.
 The API version remains **0.3.0**; no Worker route/database migration is required.
-Deployment identifiers are appended after verified publication.
+Publication and limitations are recorded below.
+
+## Production receipt
+
+- PR **#10** merged at **21:04:14 Asia/Shanghai**, source
+  `a0d8befcde71d329c19a30c31a759babe216b50d`.
+  The merged tree exactly matched tested head `0c47922`.
+  No hosted CI checks or independent review verdict were present; verification
+  described here is local, not a GitHub CI pass.
+- Worker `sixteen-memory-product` version
+  `87c8536e-9582-40f1-886a-7fa80dcf70a0`, **100%** deployment
+  `dab67ff3-0cd9-45cb-b90c-61bd2d9c5078`, at **21:05:09**.
+- Console Pages production:
+  `056e6e45-77b8-4626-9f69-93e726736c64`, source `a0d8bef`.
+- Website Pages publication:
+  `1374406e-dd56-4ccd-8b26-bde1e6ed8ac3`, source `a0d8bef`.
+- A concurrent website-only task subsequently published
+  `e0c15a97-ebbd-4ffe-94e8-2f3a8fe1b85e`, source `bf2eca4`.
+  The local Git graph confirms `bf2eca4` descends from `a0d8bef` with only
+  homepage prerender/site-verification changes; SDK, Python, adapter, console
+  source and delivery script match. The current custom-domain manifest was
+  fetched again and exactly matched this release's complete manifest.
+  No rollback was performed over that parallel work.
+
+All **16** manifest-listed files were fetched and SHA-256 checked: JS/adapter
+archives, Python wheel, types, examples and guides. Most came from the custom
+domain; the legacy JS file needed a retry through the immutable deployment URL.
+The current custom-domain manifest retains their exact hashes. This verifies
+published bytes, not every customer's network or registry install.
+
+Console HTML and redirected `/quickstart` matched the published build.
+Public health repeatedly returned `ok`, **0.3.0**, `lexical`, `explicit`,
+`model_configured=false`. Worker bindings and runtime/migration settings
+compared exactly equal before/after; the only secret remained `ADMIN_KEY`.
+No database migration, model enablement, DNS, credential or billing change.
+
+**Live synthetic smoke remained incomplete.** Its health check passed, then a
+network error interrupted the memory group after one synthetic record and two
+temporary keys were created. Cleanup reported one unconfirmed key revocation.
+A separate scoped reconciliation observed no memory/conversation rows, revoked
+the remaining active test key, and verified **zero memories, zero conversations,
+zero active keys** at **21:09:22**. Reads could be retried; mutations were not
+blindly replayed. No customer collection was read.
+
+Local TLS/connection and partial-download failures occurred during verification;
+their root cause was not proven. Some website reads also returned a prior
+parallel deployment. Do not label the full live lifecycle or MCP smoke passed.
+Local installed-package/MCP tests and the publication metadata/hash checks are
+separate successful evidence. No paid model call was made; the pre-existing
+diagnostic ledger remained at 31 prior calls.
+
+Rollback references: prior Worker `c0bd964e-c561-46bf-a8c3-5b2dfce7328e`;
+prior Console `ccea3b0f-8493-4024-ab44-c64967673acb`; pre-task Website
+`b7982289-1bb3-4531-93f9-d27b54cbbd63`.
+Website rollback must account for the later parallel deployment, not erase its
+changes automatically. No code rollback or data restoration was executed.
 
 ## Scope and completed implementation
 
