@@ -5,6 +5,7 @@ import { ApiError, fail, VERSION, type Identity } from "./domain";
 import type { Action, Auth, Outcome } from "./project";
 import { memoryContext } from "./intelligence";
 import type { IntelligenceEnv } from "./providers";
+import { embeddingConfigured } from "./providers";
 
 type Project = { execute(auth: Auth, action: Action, input: Record<string, unknown>, digest?: string): Promise<Outcome> };
 const query = z.string().trim().min(1).max(1000);
@@ -64,6 +65,38 @@ export async function mcpRequest(request: Request, env: IntelligenceEnv, project
     description: "Read the cited topic-page graph, not a general entity database.",
     inputSchema: z.object({}).strict(), annotations,
   }, () => output(() => execute("knowledge_graph", { user_id })));
+  if (auth.oauth_resource && who.role === "write") {
+    const source = z.object({ type: z.enum(["manual", "conversation", "business"]), ref: z.string().min(1).max(300),
+      text: z.string().min(1).max(8000), observed_at: z.string().min(1).max(40) }).strict();
+    const common = { request_id: z.string().regex(/^[A-Za-z0-9][A-Za-z0-9_.:@-]{0,99}$/) };
+    const draft = { content: z.string().min(1).max(8000), source, expires_at: z.string().max(40).nullable().optional() };
+    const mutation = z.discriminatedUnion("operation", [
+      z.object({ ...common, operation: z.literal("add"), ...draft }).strict(),
+      z.object({ ...common, operation: z.literal("update"), memory_id: id, expected_version: z.number().int().positive(), reason: z.string().min(1).max(500), ...draft }).strict(),
+      z.object({ ...common, operation: z.literal("delete"), memory_id: id, expected_version: z.number().int().positive() }).strict(),
+    ]);
+    server.registerTool("propose_memory_change", {
+      description: "Create a pending add/update/delete proposal. Does NOT change memory. Return approval_url to the user for review in their own browser. Never approve on their behalf.",
+      inputSchema: z.object({ change: mutation }).strict(),
+      annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+    }, ({ change }) => output(async () => {
+      if (embeddingConfigured(env)) fail(409, "mcp_writes_disabled", "MCP写入当前仅支持无模型的词法配置");
+      const row = await execute("mcp_write_propose", change) as { id: string };
+      return { ...row, approval_url: new URL("/oauth/approval?id=" + row.id, request.url).href };
+    }));
+    server.registerTool("memory_change_status", {
+      description: "Inspect this OAuth grant's proposal status. Never returns an approval token.",
+      inputSchema: z.object({ id }).strict(), annotations,
+    }, args => output(() => execute("mcp_write_status", args)));
+    server.registerTool("commit_memory_change", {
+      description: "Apply only an exact proposal already approved by the user on the server's review page. Atomic once-only receipt; may delete content/history. No replacement payload is accepted.",
+      inputSchema: z.object({ id }).strict(),
+      annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
+    }, args => output(async () => {
+      if (embeddingConfigured(env)) fail(409, "mcp_writes_disabled", "MCP写入当前仅支持无模型的词法配置");
+      return execute("mcp_write_commit", args);
+    }));
+  }
   const transport = new WebStandardStreamableHTTPServerTransport({
     sessionIdGenerator: undefined, enableJsonResponse: true, maxRequestBodySize: 64 * 1024,
   });

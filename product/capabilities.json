@@ -187,12 +187,15 @@
     {
       "id": "mcp",
       "title": "MCP OAuth and write tools",
-      "status": "planned",
-      "public_claim": "Read-only scoped Streamable HTTP MCP is live in v0.3. OAuth onboarding, prompts, persistent MCP sessions and write tools are not available.",
+      "status": "live",
+      "public_claim": "Preregistered OAuth clients use authorization code with S256 PKCE and resource-bound short-lived access. Write grants expose propose/status/commit for core memory add/update/delete only after independent browser approval. No refresh token, dynamic registration, SSO or automatic approval; legacy keys keep read-only MCP.",
       "evidence": [
-        "product/KNOWLEDGE_RELEASE.md"
+        "product/MCP_OAUTH_RELEASE_2026-11-09.md",
+        "product/test/oauth-runtime.mjs",
+        "product/worker/oauth-store.ts"
       ],
-      "publishable_as_available": false
+      "publishable_as_available": true,
+      "as_of": "2026-11-09"
     },
     {
       "id": "sdk-release",

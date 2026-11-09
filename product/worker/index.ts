@@ -5,8 +5,9 @@ import { embeddingConfigured, extractionConfigured, type IntelligenceEnv } from 
 import { generationOptions } from "./generation-options";
 import { organizeKnowledge } from "./knowledge";
 import { mcpRequest } from "./mcp";
+import { oauthHttp, oauthPath, oauthOrigin, oauthChallenge } from "./oauth-http";
 export { MemoryProject };
-type RuntimeEnv = Env & IntelligenceEnv & { ADMIN_KEY?: string; MODEL_API_KEY?: string; MODEL_TOKEN_PARAMETER?: string; MODEL_THINKING?: string };
+type RuntimeEnv = Env & IntelligenceEnv & { ADMIN_KEY?: string; MODEL_API_KEY?: string; MODEL_TOKEN_PARAMETER?: string; MODEL_THINKING?: string; OAUTH_ISSUER?: string };
 const cookieName = "sixteen_session";
 
 function result(outcome: Outcome, extra?: HeadersInit) {
@@ -24,10 +25,10 @@ function secure(response: Response) {
   const headers = new Headers(response.headers);
   headers.set("Cache-Control", "no-store");
   headers.set("X-Content-Type-Options", "nosniff");
-  headers.set("Referrer-Policy", "no-referrer");
+  if (!headers.has("Referrer-Policy")) headers.set("Referrer-Policy", "no-referrer");
   headers.set("X-Frame-Options", "DENY");
   if (response.status === 429) headers.set("Retry-After", "60");
-  headers.set("Content-Security-Policy", "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'");
+  if (!headers.has("Content-Security-Policy")) headers.set("Content-Security-Policy", "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'");
   return new Response(response.body, { status: response.status, headers });
 }
 async function authFor(request: Request, rootDigest: string): Promise<Auth> {
@@ -36,7 +37,10 @@ async function authFor(request: Request, rootDigest: string): Promise<Auth> {
     const match = /^Bearer +([A-Za-z0-9_.-]{32,256})$/i.exec(header);
     if (!match) fail(401, "invalid_key", "凭证格式无效");
     const digest = await hash(match[1]);
-    return { digest, root: equalDigest(digest, rootDigest), session: false, root_digest: rootDigest };
+    const oauth = match[1].startsWith("sm_oauth_");
+    if (oauth && new URL(request.url).pathname !== "/v1/mcp") fail(403, "oauth_resource_only", "OAuth令牌仅限MCP资源");
+    return { digest, root: equalDigest(digest, rootDigest), session: false, root_digest: rootDigest,
+      ...(oauth ? { oauth_resource: new URL(request.url).origin + "/v1/mcp" } : {}) };
   }
   const token = sessionToken(request);
   if (!/^[a-f0-9]{64}$/.test(token)) fail(401, "login_required", "请先登录");
@@ -85,7 +89,7 @@ async function answerWithModel(env: RuntimeEnv, query: string, memories: unknown
 export default {
   async fetch(request: Request, env: RuntimeEnv): Promise<Response> {
     const url = new URL(request.url);
-    if (url.pathname !== "/health" && !url.pathname.startsWith("/v1/")) return secure(await env.ASSETS.fetch(request));
+    if (url.pathname !== "/health" && !url.pathname.startsWith("/v1/") && !oauthPath(url.pathname)) return secure(await env.ASSETS.fetch(request));
     try {
       if (url.pathname === "/health" && request.method === "GET") {
         return secure(Response.json({ status: "ok", version: VERSION, retrieval: embeddingConfigured(env) ? "hybrid_available" : "lexical", extraction: extractionConfigured(env) ? "assisted" : "explicit", model_configured: !!(env.MODEL_API_KEY && env.MODEL_NAME && env.MODEL_BASE_URL) }));
@@ -93,11 +97,12 @@ export default {
       const origin = request.headers.get("Origin");
       if (origin && origin !== url.origin) fail(403, "origin_denied", "不允许跨站请求");
       const ipKey = await hash(request.headers.get("CF-Connecting-IP") ?? "local");
-      const limiter = url.pathname === "/v1/session" && request.method === "POST" ? env.LOGIN_LIMITER : env.API_LIMITER;
+      const limiter = (url.pathname === "/v1/session" || url.pathname === "/oauth/consent") && request.method === "POST" ? env.LOGIN_LIMITER : env.API_LIMITER;
       if (!(await limiter.limit({ key: ipKey })).success) fail(429, "rate_limit", "请求过于频繁，请稍后再试");
       if (!env.ADMIN_KEY || env.ADMIN_KEY.length < 32) fail(503, "setup_required", "管理员凭证尚未配置");
       const rootDigest = await hash(env.ADMIN_KEY);
       const project = env.PROJECTS.getByName(identifier(env.PROJECT_ID, "项目标识"));
+      if (oauthPath(url.pathname)) return secure(await oauthHttp(request, oauthOrigin(env, request), project, rootDigest, () => authFor(request, rootDigest)));
       if (url.pathname === "/v1/session" && request.method === "POST") {
         const body = await readJson(request);
         const token = text(body.api_key, "API Key", 256);
@@ -113,7 +118,20 @@ export default {
       }
       const auth = await authFor(request, rootDigest);
       const route = `${request.method} ${url.pathname}`;
-      if (url.pathname === "/v1/mcp") return secure(await mcpRequest(request, env, project, auth));
+      if (url.pathname === "/v1/mcp") {
+        const response = await mcpRequest(request, env, project, auth);
+        if (response.status === 401) {
+          const headers = new Headers(response.headers); headers.set("WWW-Authenticate", oauthChallenge(oauthOrigin(env, request)));
+          return secure(new Response(response.body, { status: 401, headers }));
+        }
+        return secure(response);
+      }
+      if (url.pathname === "/v1/oauth/clients" && ["GET", "POST"].includes(request.method)) {
+        return secure(result(await project.execute(auth, request.method === "GET" ? "oauth_clients" : "oauth_client_add", request.method === "GET" ? {} : await readJson(request))));
+      }
+      if (/^\/v1\/oauth\/clients\/[a-z0-9-]+$/.test(url.pathname) && request.method === "DELETE") return secure(result(await project.execute(auth, "oauth_client_revoke", { id: url.pathname.split("/").pop() })));
+      if (url.pathname === "/v1/oauth/grants" && request.method === "GET") return secure(result(await project.execute(auth, "oauth_grants", {})));
+      if (/^\/v1\/oauth\/grants\/[a-z0-9-]+$/.test(url.pathname) && request.method === "DELETE") return secure(result(await project.execute(auth, "oauth_grant_revoke", { id: url.pathname.split("/").pop() })));
       if (route === "POST /v1/knowledge/organize") return secure(Response.json(await organizeKnowledge(env, project, auth, await readJson(request))));
       const conversationRoute = /^\/v1\/conversations\/([A-Za-z0-9-]+)(?:\/(messages))?$/.exec(url.pathname);
       const knowledgeRun = /^\/v1\/knowledge\/runs\/([A-Za-z0-9-]+)(?:\/(resolve))?$/.exec(url.pathname);
@@ -218,7 +236,8 @@ export default {
       }
       return secure(result(outcome));
     } catch (error) {
-      if (error instanceof ApiError) return secure(Response.json({ error: { code: error.code, message: error.message } }, { status: error.status }));
+      if (error instanceof ApiError) return secure(Response.json({ error: { code: error.code, message: error.message } }, { status: error.status,
+        ...(error.status === 401 && url.pathname === "/v1/mcp" ? { headers: { "WWW-Authenticate": oauthChallenge(oauthOrigin(env, request)) } } : {}) }));
       return secure(Response.json({ error: { code: "service_error", message: "服务暂时不可用，请稍后重试" } }, { status: 503 }));
     }
   },

@@ -39,6 +39,7 @@
 
 ## 04 / Reference
 
+- [MCP OAuth and controlled writes](../product/MCP_OAUTH_RELEASE_2026-11-09.md)
 - [Ecosystem hardening release](../product/ECOSYSTEM_RELEASE_2026-11-09.md)
 
 - [P1 integration ecosystem acceptance and gaps](../product/ECOSYSTEM_ACCEPTANCE_2026-11-09.md)

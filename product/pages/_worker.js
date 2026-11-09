@@ -1,7 +1,7 @@
 export default {
   async fetch(request, env) {
     const path = new URL(request.url).pathname;
-    if (path === "/health" || path.startsWith("/v1/")) return env.MEMORY_SERVICE.fetch(request);
+    if (path === "/health" || path.startsWith("/v1/") || path.startsWith("/oauth/") || path.startsWith("/.well-known/oauth-")) return env.MEMORY_SERVICE.fetch(request);
     const response = await env.ASSETS.fetch(request);
     const headers = new Headers(response.headers);
     headers.set("X-Content-Type-Options", "nosniff");

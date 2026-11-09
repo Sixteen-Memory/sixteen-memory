@@ -7,6 +7,7 @@ import { boundedInteger } from "./memory-context";
 import { reviewMemories } from "./memory-review";
 import { ConversationStore, type ConversationAction } from "./conversations";
 import { KnowledgeStore, type KnowledgeAction } from "./knowledge-store";
+import { OAuthStore, type OAuthAction } from "./oauth-store";
 import {
   access, admin, ApiError, date, equalDigest, expectedVersion, fail, identifier, MAX_MEMORIES,
   memoryInput, text, tokens,
@@ -18,10 +19,10 @@ type KeyRow = { [K in keyof KeyRecord]: KeyRecord[K] };
 type Grant = KeyRow & { digest: string };
 type AuditRow = { [K in keyof AuditRecord]: AuditRecord[K] };
 type HistoryRow = StoredAttributes & { version: number; action: string; content: string; source: string; status: "active" | "revoked"; reason: string; actor: string; created_at: string };
-export type Action = ConversationAction | KnowledgeAction | "me" | "list" | "search" | "get" | "history" | "add" | "update" | "revoke" | "delete" | "export" | "keys" | "create_key" | "revoke_key" | "audit" |
+export type Action = OAuthAction | ConversationAction | KnowledgeAction | "me" | "list" | "search" | "get" | "history" | "add" | "update" | "revoke" | "delete" | "export" | "keys" | "create_key" | "revoke_key" | "audit" |
   "write_prepare" | "preflight" | "model_budget" | "ingest_candidates" | "ingest_begin" | "ingest_get" | "ingest_fail" | "ingest_finish" | "ingest_resolve" | "ingest_list" | "evidence" | "semantic_rows" | "reindex_rows" | "reindex_commit" | "evidence_search" | "memory_review";
 export type Outcome = { ok: true; json: string } | { ok: false; status: number; code: string; message: string };
-export interface Auth { digest: string; session: boolean; root: boolean; root_digest: string }
+export interface Auth { digest: string; session: boolean; root: boolean; root_digest: string; oauth_resource?: string }
 const record = (row: Row): MemoryRecord => ({ ...row, ...readAttributes(row), source: JSON.parse(row.source) });
 
 export class MemoryProject extends DurableObject<Env> {
@@ -30,6 +31,7 @@ export class MemoryProject extends DurableObject<Env> {
   private evidenceIndex: EvidenceIndex;
   private conversations: ConversationStore;
   private knowledge: KnowledgeStore;
+  private oauth: OAuthStore;
 
   constructor(ctx: DurableObjectState, env: Env) {
     super(ctx, env);
@@ -68,9 +70,11 @@ export class MemoryProject extends DurableObject<Env> {
     this.evidenceIndex = new EvidenceIndex(this.sql, fn => ctx.storage.transactionSync(fn));
     this.conversations = new ConversationStore(this.sql, user => this.intelligence.touch(user));
     this.knowledge = new KnowledgeStore(this.sql, this.conversations, user => this.intelligence.epoch(user));
+    this.oauth = new OAuthStore(this.sql, (who, action, input, digest = "") => this.dispatch(who, action as Action, input, digest));
   }
 
   private identity(auth: Auth): Identity {
+    if (auth.oauth_resource) return this.oauth.identity(auth.digest, auth.oauth_resource);
     if (auth.root) return { key_id: "owner", role: "admin", user_id: null };
     if (auth.session) {
       const session = this.sql.exec<{ key_id: string; root_digest: string | null }>(
@@ -103,6 +107,27 @@ export class MemoryProject extends DurableObject<Env> {
   }
 
   logout(digest: string) { this.sql.exec("DELETE FROM sessions WHERE digest=?", digest); }
+
+  /** Only the Worker service can invoke RPC; externally supplied Auth never bypasses identity(). */
+  async oauthOperation(operation: "begin" | "consent" | "token" | "revoke", input: Record<string, unknown>, auth?: Auth): Promise<Outcome> {
+    const started = Date.now();
+    try {
+      this.purge();
+      const data = this.ctx.storage.transactionSync(() => {
+        if (operation === "begin") return this.oauth.begin(input);
+        if (operation === "consent") return this.oauth.consent(input, input.approve === true && auth ? this.identity(auth) : undefined);
+        if (operation === "token") return this.oauth.token(input);
+        return this.oauth.revoke(input);
+      });
+      this.log({ key_id: "oauth", user_id: null, role: "read" }, "oauth_" + operation, "_error" in data ? 400 : 200, started);
+      await this.schedule();
+      return { ok: true, json: JSON.stringify(data) };
+    } catch (error) {
+      const failed = this.failure(error);
+      this.log({ key_id: "oauth", user_id: null, role: "read" }, "oauth_" + operation, failed.ok ? 500 : failed.status, started);
+      return failed;
+    }
+  }
 
   private failure(error: unknown): Outcome {
     if (error instanceof ApiError) return { ok: false, status: error.status, code: error.code, message: error.message };
@@ -151,6 +176,7 @@ export class MemoryProject extends DurableObject<Env> {
   }
 
   private erase(id: string) {
+    this.sql.exec("UPDATE mcp_write_requests SET payload=NULL,state='invalidated' WHERE payload IS NOT NULL AND json_extract(payload,'$.memory_id')=?", id);
     const row = this.sql.exec<{ user_id: string }>("SELECT user_id FROM memories WHERE id=?", id).toArray()[0];
     if (row) this.intelligence.erase(id, row.user_id);
     this.sql.exec("DELETE FROM search_index WHERE id=?", id);
@@ -169,12 +195,13 @@ export class MemoryProject extends DurableObject<Env> {
       this.intelligence.purge(now);
       this.conversations.purge(now);
       this.knowledge.purge(now);
+      this.oauth.purge();
     });
   }
 
   private async schedule() {
     // Workers SQLite limits compound SELECT terms. Fixed table names only.
-    const next = ["memories", "sessions", "retries", "ingest_jobs", "conversations", "conversation_retries", "knowledge_runs"]
+    const next = ["memories", "sessions", "retries", "ingest_jobs", "conversations", "conversation_retries", "knowledge_runs", "oauth_flows", "oauth_codes", "oauth_tokens", "oauth_grants", "mcp_write_requests"]
       .map(table => this.sql.exec<{ expires: string | null }>(`SELECT MIN(expires_at) AS expires FROM ${table}${["ingest_jobs", "knowledge_runs"].includes(table) ? " WHERE state IN ('review','running')" : ""}`).one().expires)
       .filter((value): value is string => value !== null).sort()[0];
     if (next) await this.ctx.storage.setAlarm(Math.max(Date.now() + 1000, Date.parse(next)));
@@ -185,6 +212,7 @@ export class MemoryProject extends DurableObject<Env> {
 
   private dispatch(who: Identity, action: Action, input: Record<string, unknown>, digest: string): unknown {
     const now = new Date().toISOString();
+    if (action.startsWith("oauth_") || action.startsWith("mcp_")) return this.oauth.execute(who, action as OAuthAction, input);
     if (action.startsWith("conversation_")) return this.conversations.dispatch(who, action as ConversationAction, input, digest);
     if (action.startsWith("knowledge_") || action.startsWith("wiki_")) return this.knowledge.dispatch(who, action as KnowledgeAction, input, digest);
     if (action === "write_prepare") {
@@ -237,6 +265,7 @@ export class MemoryProject extends DurableObject<Env> {
       const id = identifier(input.id, "Key ID");
       this.sql.exec("UPDATE api_keys SET revoked_at=? WHERE id=?", now, id);
       this.sql.exec("DELETE FROM sessions WHERE key_id=?", id);
+      this.oauth.purge();
       return { revoked: true };
     }
     if (action === "audit") {
