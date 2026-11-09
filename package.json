@@ -13,6 +13,7 @@
     "check:vercel-ai": "npm --prefix product/integrations/vercel-ai test",
     "check:vercel-ai:runtime": "npm --prefix product/integrations/vercel-ai run test:runtime",
     "check:api": "npm --prefix product/openapi test",
+    "check:ecosystem": "npm --prefix product run test:ecosystem",
     "check:integration": "npm run check:api && npm --prefix product test && npm run build:product && npm --prefix product run test:runtime && npm run check:vercel-ai && npm run check:vercel-ai:runtime && npm --prefix product/integrations/vercel-ai run test:e2e && npm --prefix product/integrations/vercel-ai run test:console && npm --prefix product/integrations/vercel-ai run test:package",
     "example:integration": "npm --prefix product/integrations/vercel-ai run test:e2e",
     "check:docs": "node scripts/check-docs.mjs",
