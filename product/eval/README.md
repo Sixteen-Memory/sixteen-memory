@@ -57,8 +57,10 @@ before Mem0 so requests use the budget gate, rather than bypassing it via node-f
 Extracted scopes needing human review stop the automatic run; do not auto-approve
 with access to gold. This reports a review requirement, not a model score.
 
-Current fixtures are synthetic development diagnostics. The real-provider run and
-comparative quality claim remain blocked until credentials and budget are supplied.
+Current fixtures are synthetic development diagnostics. The first approved
+real-provider run is documented in [the receipt](../QWEN_ACCEPTANCE_2026-11-09.md):
+small embedding checks passed; text generation hit an account restriction.
+A comparative quality claim is not established.
 
 For the first bounded Qwen product-path check, use `qwen-provider-pilot.mjs`.
 Its ignored 0600 settings file points to an existing Bailian CLI profile; it never
@@ -104,3 +106,17 @@ These use fixed provider responses. The pipeline report is explicitly labelled
 `simulated-pipeline-smoke-not-quality`; accuracy and provider-token summaries are
 null, not competitive scores. The installed native SQLite addon and all five
 adapter paths were exercised without real model traffic.
+
+## Shared budget and embedding-only diagnostic
+
+Use `--retrieval` for three explicitly stored memories, two paraphrase queries and
+a post-delete semantic query (six embedding calls; no text generation). It is a
+connectivity/behavior diagnostic, not a competitive or held-out quality score.
+
+The private settings may provide `cumulative_budget_file` and execution requires
+`QWEN_PILOT_APPROVED_TOTAL_CNY` for that file (up to CNY 0.20). The ledger locks
+for the run, reserves before sending each call, and settles only known usage.
+Failure with unknown usage retains its full reservation. All retries and distinct
+workflows from one approval must share that ledger; never reset it to restart
+the allowance. An interrupted process leaves a lock for manual reconciliation.
+The original per-run CNY 0.10 gate remains in addition to the cumulative gate.

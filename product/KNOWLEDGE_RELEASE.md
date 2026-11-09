@@ -131,3 +131,10 @@ old code cannot invalidate their caches. If rollback is required, first stop new
 writes and retain a private recovery/export receipt. Revert the frontend or deploy
 a forward fix preserving the v0.3 storage cleanup semantics. Model failure should
 disable only provider flags, not downgrade storage code.
+
+## First approved real-provider diagnostic
+
+See [November 9 results](QWEN_ACCEPTANCE_2026-11-09.md): embeddings passed a small
+synthetic diagnostic, but the text model was refused by a provider-side
+free-quota-only restriction. Generation and production-model enablement remain
+blocked. An account setting must not be changed merely to turn a failed test green.

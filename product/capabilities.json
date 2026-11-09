@@ -128,10 +128,11 @@
       "id": "qwen",
       "title": "Qwen semantic and hybrid retrieval",
       "status": "blocked",
-      "public_claim": "The adapter is implemented. Approved credentials and real-effectiveness validation remain prerequisites; semantic retrieval is not offered on the live service.",
+      "public_claim": "A real local text-embedding-v4 diagnostic passed two paraphrase queries on three synthetic records and post-delete exclusion. It is not broad quality acceptance; production semantic retrieval remains disabled. Text-generation acceptance is blocked by AllocationQuota.FreeTierOnly.",
       "evidence": [
         "product/PROVIDER_POLICY.md",
-        "product/test/embedding-provider.test.mjs"
+        "product/test/embedding-provider.test.mjs",
+        "product/QWEN_ACCEPTANCE_2026-11-09.md"
       ],
       "publishable_as_available": false
     },
@@ -161,10 +162,11 @@
       "id": "evaluation",
       "title": "Quality evaluation material",
       "status": "local",
-      "public_claim": "Synthetic cases and engineering regression checks exist. There are no independent blind-review, customer-outcome, or competitive-ranking results.",
+      "public_claim": "Synthetic/runtime checks and a small real Qwen embedding diagnostic exist. Text inference hit a provider account restriction. No independent blind-review, customer-outcome or competitive-ranking result is established.",
       "evidence": [
         "product/eval/round1/README.md",
-        "product/eval/round1/preflight.mjs"
+        "product/eval/round1/preflight.mjs",
+        "docs/MEMORY_COMPARISON_V030.md"
       ],
       "publishable_as_available": false
     },

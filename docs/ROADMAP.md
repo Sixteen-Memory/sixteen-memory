@@ -66,3 +66,12 @@ These are directions, not delivery-date commitments. Ordinary website and reposi
 - Enterprise SLA, public compliance certification, validated production capacity, or customer outcome claims.
 
 Do not represent planned work with empty directories, invented installation commands, or nonfunctional endpoints. Open-source modules belong in separate public repositories; the core repository remains private.
+
+## November 9 real-provider diagnostic
+
+Personal-provider use and a CNY 0.20 cumulative local estimate were approved.
+Real Qwen embeddings passed a small synthetic retrieval/delete diagnostic.
+Text generation was refused by the model free-quota-only setting, so real
+extraction/Wiki acceptance and production enablement remain blocked. See the
+[receipt](../product/QWEN_ACCEPTANCE_2026-11-09.md) and
+[updated comparison](MEMORY_COMPARISON_V030.md).

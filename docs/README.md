@@ -39,6 +39,9 @@
 
 ## 04 / Reference
 
+- [Post-release comparison: SixteenMemory, Mem0 and Anthropic](MEMORY_COMPARISON_V030.md)
+- [Approved real-Qwen diagnostic receipt](../product/QWEN_ACCEPTANCE_2026-11-09.md)
+
 - [v0.3 conversations, knowledge and MCP](../product/KNOWLEDGE_RELEASE.md)
 - [Python SDK](../product/sdk-python/README.md)
 - [v0.3 release verification](../product/RELEASE_0.3.0_VERIFICATION.md)

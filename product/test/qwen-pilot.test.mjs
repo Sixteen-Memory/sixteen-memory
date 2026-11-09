@@ -73,7 +73,10 @@ test("Qwen local pilot runs the actual Worker through intercepted fixture respon
         assert.ok(!("stream" in body));
         assert.equal(body.dimensions,1024);
         return Response.json({model:body.model,usage:{prompt_tokens:10,total_tokens:10},
-          data:body.input.map((_,index)=>({index,embedding:[1,...Array(1023).fill(0)]}))});
+          data:body.input.map((text,index)=>{
+            const dimension=/周六|收货/.test(text)?1:/巴黎/.test(text)?2:0;
+            return {index,embedding:Array.from({length:1024},(_,i)=>i===dimension?1:0)};
+          })});
       }
       assert.equal(body.enable_thinking,false);
       let content;
@@ -123,6 +126,13 @@ test("Qwen local pilot runs the actual Worker through intercepted fixture respon
     assert.equal(knowledgeResult.status, "requires_independent_quality_review");
     assert.equal(knowledgeResult.steps.length, 3);
     assert.ok(knowledgeResult.steps.every(step => step.state === "applied" && step.pages.length === 1));
+    const retrieval = run({}, ["--retrieval"]);
+    assert.equal(retrieval.status, 0, retrieval.stderr + retrieval.stdout);
+    const retrievalResult = JSON.parse(retrieval.stdout);
+    assert.equal(retrievalResult.real_provider_calls, 6);
+    assert.equal(retrievalResult.status, "passed");
+    assert.equal(retrievalResult.synthetic_memories_remaining, 0);
+    assert.equal(retrievalResult.steps.length, 3);
     for (const mode of ["http", "usage"]) {
       const failed = run({ FIXTURE_ERROR: mode });
       assert.notEqual(failed.status, 0);
