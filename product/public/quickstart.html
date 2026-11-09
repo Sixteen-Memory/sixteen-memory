@@ -70,5 +70,10 @@ POST /v1/reindex
 <li><a href="https://www.sixteenmemory.com/downloads/sixteen_memory-0.3.1-py3-none-any.whl">Python 0.3.1</a> · <a href="https://www.sixteenmemory.com/downloads/lifecycle.py">同步示例</a> · <a href="https://www.sixteenmemory.com/downloads/async-lifecycle.py">原生异步示例</a> · <a href="https://www.sixteenmemory.com/downloads/python-guide.md">安装指南</a></li>
 <li><a href="https://www.sixteenmemory.com/downloads/sixteen-memory-vercel-ai-0.3.0.tgz">Vercel AI 0.3.0</a>（与 JS SDK 一起安装） · <a href="https://www.sixteenmemory.com/downloads/vercel-lifecycle.mjs">完整示例</a></li>
 </ul><p>下载包不是 npm/PyPI 注册表发布。Python 同步客户端零依赖，异步需安装 [async] 依赖；不能直接在事件循环调用同步客户端。分页辅助函数不是历史快照；取消已提交写入不能撤销服务器结果，不会隐式重试。</p>
-<h2>MCP 只读接入</h2><p>POST /v1/mcp 使用绑定用户的 Bearer Key，不接受管理员 Key 或浏览器会话。提供 7 个只读工具；OAuth、授权同意流程与受控写工具尚未开放。不要将写操作伪装成只读工具。</p>
+<h2>MCP OAuth 与受控写入</h2>
+<p>入口为 https://console.sixteenmemory.com/v1/mcp。现有用户范围 Bearer Key 保持 7 个只读工具；不接受管理员 Key 或浏览器会话作为 MCP 凭证。</p>
+<p>OAuth 客户端由管理员通过 POST /v1/oauth/clients 预注册，提交 client_name、redirect_uris（精确匹配的 HTTPS 或本地回环地址）和 scope。没有匿名动态注册。Issuer 为 https://console.sixteenmemory.com，发现地址为 /.well-known/oauth-authorization-server 和 /.well-known/oauth-protected-resource/v1/mcp。</p>
+<p>使用 Authorization Code + S256 PKCE，state 和 resource 必填。用户在本站输入用户范围 Key 并明确授权；最长 15 分钟，不发 refresh token。默认 mcp:read，写入需显式申请 mcp:read mcp:write，且原 Key 必须可写。OAuth 令牌只能访问 MCP，不可调用普通 REST。</p>
+<p>写授权额外提供 propose_memory_change、memory_change_status、commit_memory_change。先提交 add/update/delete 提案，用户通过返回的 approval_url 在本站检查原文、来源、当前记录并批准，再由原客户端仅按提案 ID 提交。未批准、跨用户/授权、过期、版本变化或正文篡改会被拒绝；重复提交返回同一收据。提案有效期 10 分钟。不会自动调用模型。</p>
+<p><a href="/oauth/connections">管理和撤销 MCP 连接</a>（先用同一个用户 Key 登录控制台）。撤销原 Key、客户端或连接均会阻止继续访问和待执行写入。只支持预注册客户端，不代表已验证所有第三方 MCP 应用；SSO、动态注册和刷新令牌尚未提供。</p>
 </main></body></html>

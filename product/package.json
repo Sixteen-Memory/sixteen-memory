@@ -19,7 +19,8 @@
     "prepare:local": "node scripts/prepare-local.mjs",
     "build:pages": "node scripts/build-pages.mjs",
     "test:migration": "node test/migration.mjs",
-    "eval:preflight": "node eval/run.mjs"
+    "eval:preflight": "node eval/run.mjs",
+    "test:oauth": "node test/oauth-runtime.mjs"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "1.32.2",

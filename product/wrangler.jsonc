@@ -8,6 +8,7 @@
   "preview_urls": false,
   "vars": {
     "PROJECT_ID": "sixteen",
+    "OAUTH_ISSUER": "https://console.sixteenmemory.com",
     "MODEL_BASE_URL": "",
     "MODEL_NAME": "",
     "EXTRACTION_ENABLED": "false",
@@ -25,7 +26,7 @@
     "directory": "./dist",
     "binding": "ASSETS",
     "not_found_handling": "single-page-application",
-    "run_worker_first": ["/v1/*", "/health"]
+    "run_worker_first": ["/v1/*", "/health", "/oauth/*", "/.well-known/oauth-*"]
   },
   "durable_objects": {
     "bindings": [

@@ -119,3 +119,5 @@ provider configuration and independent quality review.
 
 
 SDK hardening and native async Python: see the [ecosystem release](ECOSYSTEM_RELEASE_2026-11-09.md).
+
+MCP preregistered OAuth and explicitly approved memory writes: [release contract and tests](MCP_OAUTH_RELEASE_2026-11-09.md).
