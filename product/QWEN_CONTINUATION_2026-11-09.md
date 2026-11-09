@@ -1,5 +1,10 @@
 # Qwen continuation after quota-setting approval
 
+**Publication update:** The source repairs described here were subsequently
+merged in PR #8 and deployed with production models still disabled. See the
+[deployment receipt](PR8_DEPLOYMENT_2026-11-09.md). The quality conclusions
+below have not changed.
+
 Date: November 9, 2026 (Asia/Shanghai).
 This supersedes the account-blocker status in the
 [earlier diagnostic receipt](QWEN_ACCEPTANCE_2026-11-09.md), while retaining all
