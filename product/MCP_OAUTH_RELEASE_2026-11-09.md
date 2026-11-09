@@ -118,6 +118,55 @@ Existing product/integration/knowledge/component suites remain required. Publish
 metadata, actual production flow and synthetic cleanup are recorded below after
 deployment. Do not equate local success with a completed production smoke test.
 
+## Production receipt
+
+- PR **#12**, tested head `725f6c6af78c9a802f07afbbc6f7aa5b336f9f44`,
+  merged as `032acc4ba26e03bc732b77ec7b8c2699d698b882` at
+  **22:25:03 Asia/Shanghai**. No hosted CI check or independent reviewer verdict
+  was present; the evidence below is local and explicit production verification.
+- Worker version `0daffda2-ea0d-496e-9e68-163c2973da42` receives **100%** traffic
+  through deployment `98e75fb8-2437-4a4e-8d3c-87e05f774b76`, created at
+  **22:26:54**. Console Pages production deployment
+  `1f254702-b726-4f1c-a1d1-81f21e12d3c9` uses source `032acc4`.
+- The website project was not redeployed, so concurrent homepage SEO/indexing
+  work was not overwritten. Quickstart is served by the Worker asset bundle and
+  was updated with this release.
+- Existing storage/rate-limit/assets/model bindings remained equal. Added only
+  `OAUTH_ISSUER=https://console.sixteenmemory.com` and Worker-first OAuth/well-known
+  paths. Durable Object class/migration remains `v1`; the only secret remains
+  `ADMIN_KEY`. Production models/extraction/embeddings remain disabled. No DNS,
+  credential, provider, billing or customer-data change.
+
+The first read-only Cloudflare metadata query and first Console Pages deployment
+attempt failed because the remote authentication/API endpoint was temporarily
+unreachable. The Worker upload completed on the next authenticated path; the
+identical Console artifact succeeded on retry. No user/data mutation was tied to
+those retries.
+
+The production synthetic smoke completed all eight checks:
+
+1. health with models disabled;
+2. OAuth discovery;
+3. S256 consent/code exchange;
+4. MCP resource restriction and ten-tool write grant;
+5. unapproved write rejection, approval and exactly-once add receipt;
+6. scoped read of the new memory;
+7. independently approved deletion and no stale result;
+8. immediate token revocation.
+
+Final reconciliation for user
+`oauth-smoke-67d5b7f296d44c76a653a60393ef6420` found **zero memories,
+zero active keys and zero active clients**. The smoke did not read customer
+collections and made no provider/model calls. This is a single synthetic
+production lifecycle, not penetration testing, availability certification or
+universal client interoperability.
+
+Rollback references: prior Worker version
+`87c8536e-9582-40f1-886a-7fa80dcf70a0`; prior Console Pages deployment
+`056e6e45-77b8-4626-9f69-93e726736c64`. Rollback would restore old code but
+does not remove additive SQLite tables; they contain authorization metadata and
+digests, not bearer plaintext. No rollback was executed.
+
 ## Standards reference
 
 Implementation checked against the installed official MCP SDK **1.32.2** and
