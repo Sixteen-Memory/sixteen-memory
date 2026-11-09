@@ -26,11 +26,18 @@ await client.add({ request_id: "r", user_id: "alice", content: "missing source" 
 await client.update(saved.id, { reason: "Correction", source, content: "Brief." });
 // @ts-expect-error Invalid lifecycle status.
 await client.list({ status: "deleted" });
-// @ts-expect-error Semantic mode is not supported by v0.1.
+// v0.3 client exposes semantic options; server configuration still governs availability.
 await client.search({ query: "replies", mode: "semantic" });
-// @ts-expect-error The release package excludes candidate ingestion methods.
+// @ts-expect-error Ingestion requires a complete input.
 await client.ingest({});
 // @ts-expect-error Versions are numbers.
 await client.delete(saved.id, "1");
 // @ts-expect-error No custom fields on a typed memory.
 saved.arbitrary_field;
+
+const all = await client.listAll({ user_id: "alice", filter: { field: "category", op: "eq", value: "support" } });
+for await (const page of client.listPages({ user_id: "alice" })) { const records: Memory[] = page.data; void records; }
+const conversation = await client.createConversation({ user_id: "alice", request_id: "chat", title: "Chat", messages: [{ id: "m1", role: "user", content: "Hi", observed_at: "2026-11-09T00:00:00Z" }] });
+const messages = await client.conversationMessagesAll(conversation.id);
+await client.context({ user_id: "alice", query: "preference" });
+void [all, messages];

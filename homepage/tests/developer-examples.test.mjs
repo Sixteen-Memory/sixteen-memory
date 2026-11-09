@@ -23,32 +23,32 @@ test("displayed JavaScript runs against the downloadable SDK without calling the
     constructor(options) {
       super({ ...options, fetch: async (url, init) => {
         calls.push({ url, ...init });
-        return Response.json({ data: [] });
+        return Response.json({ data: [], id: "synthetic-id", version: 1 });
       } });
     }
   }
   const execute = Object.getPrototypeOf(async function () {}).constructor;
   const body = snippets.js.replace(/^import[^\n]*\n/, "");
-  await new execute("SixteenMemory", "process", body)(ExampleClient, { env: { SIXTEEN_API_KEY: "synthetic-test-key" } });
-  assert.equal(calls.length, 2);
+  await new execute("SixteenMemory", "process", body)(ExampleClient, { env: { SIXTEEN_API_KEY: "synthetic-test-key-0123456789012345" } });
+  assert.equal(calls.length, 3);
   assert.equal(calls[0].url, "https://console.sixteenmemory.com/v1/memories");
   assert.equal(calls[1].url, "https://console.sixteenmemory.com/v1/search");
-  assert.equal(calls[0].headers.Authorization, "Bearer synthetic-test-key");
+  assert.equal(calls[0].headers.Authorization, "Bearer synthetic-test-key-0123456789012345");
   checkRecord(JSON.parse(calls[0].body));
   assert.deepEqual(JSON.parse(calls[1].body), { user_id: "customer-42", query: "refund open", limit: 10 });
 });
 
-test("legacy download preserves candidate methods while the typed release excludes them", async () => {
+test("legacy and typed downloads both provide v0.3 methods", async () => {
   const calls = [];
   const options = { baseUrl: "https://memory.example", fetch: async (url, init) => {
-    calls.push({ url, ...init }); return Response.json({ data: [] });
+    calls.push({ url, ...init }); return Response.json({ data: [], id: "synthetic-id", version: 1 });
   } };
   const legacy = new SixteenMemory(options);
   await legacy.ingest({ user_id: "synthetic-user" });
   await legacy.search({ query: "synthetic" });
   assert.equal(calls[0].url, "https://memory.example/v1/ingestions");
   assert.equal(calls[1].url, "https://memory.example/v1/search");
-  assert.equal(new StableClient(options).ingest, undefined);
+  assert.equal(typeof new StableClient(options).ingest, "function");
   const manifest = JSON.parse(readFileSync(new URL("../public/downloads/manifest.json", import.meta.url)));
   const { version } = JSON.parse(readFileSync(new URL("../../product/sdk/package.json", import.meta.url)));
   assert.equal(manifest.sdk_version, version);

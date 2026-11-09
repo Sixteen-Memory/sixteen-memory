@@ -1,5 +1,9 @@
 # P1 integration ecosystem acceptance
 
+**Historical baseline:** Subsequent SDK changes address these measured gaps;
+see the [hardening release](ECOSYSTEM_RELEASE_2026-11-09.md). MCP OAuth/write
+work remains deferred. The original test findings below are retained.
+
 Date: November 9, 2026.
 Product under test: `d408fa6` source tree, Worker **0.3.0**.
 Runtime code was not changed in this test-only task.

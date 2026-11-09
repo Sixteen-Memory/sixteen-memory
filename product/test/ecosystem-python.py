@@ -6,7 +6,7 @@ import os
 import time
 
 import sixteen_memory
-from sixteen_memory import MemoryAPIError, MemoryTransportError, SixteenMemory
+from sixteen_memory import AsyncSixteenMemory, MemoryAPIError, MemoryTransportError, SixteenMemory
 
 
 base, key, user = (os.environ[name] for name in ("TEST_BASE", "TEST_KEY", "TEST_USER"))
@@ -48,6 +48,8 @@ memories, sizes = pages(lambda cursor: client.list(user, cursor))
 exported, export_sizes = pages(lambda cursor: client.export_page(user, cursor))
 assert sizes == export_sizes == [50, 1]
 assert [row["id"] for row in memories] == [row["id"] for row in exported]
+assert [row["id"] for row in client.list_all(user)] == [row["id"] for row in memories]
+assert [row["id"] for row in client.export_all(user)] == [row["id"] for row in memories]
 assert len(client.search(user, "EcosystemNeedle")["data"]) > 0
 api_error(lambda: client.search("other-user", "EcosystemNeedle"), 404, "not_found")
 
@@ -91,6 +93,8 @@ while True:
         break
 assert message_sizes == [32, 32, 1]
 assert [message["id"] for message in messages] == ["m" + str(i) for i in range(65)]
+assert client.conversation_messages_all(target["id"]) == messages
+assert len(client.conversations_all(user)) == 51
 
 # Characterize current differences; these observations are NOT acceptance gates.
 findings = {}
@@ -106,6 +110,8 @@ except TypeError:
     findings["export_filter_supported"] = False
 else:
     findings["export_filter_supported"] = True
+assert findings["list_filter_supported"] and findings["export_filter_supported"]
+assert len(client.list(user, filter={"field": "category", "op": "eq", "value": "keep"})["data"]) == 26
 
 slow = SixteenMemory(base + "/probe/slow", key, timeout=0.05)
 started = time.monotonic()
@@ -140,6 +146,28 @@ findings["coroutine_methods"] = [name for name, member in inspect.getmembers(Six
 findings["sync_call_blocks_event_loop"] = asyncio.run(block_probe())
 findings["public_methods"] = [name for name, member in inspect.getmembers(SixteenMemory)
                               if not name.startswith("_") and callable(member)]
+async def async_lifecycle():
+    async with AsyncSixteenMemory(base, key, timeout=5) as c:
+        assert len(await c.list_all(user)) == 51
+        assert len(await c.export_all(user)) == 51
+        assert len(await c.list_all(user, filter={"field": "category", "op": "eq", "value": "keep"})) == 26
+        assert len(await c.conversations_all(user)) == 51
+        assert len(await c.conversation_messages_all(target["id"])) == 65
+        row = await c.add(user_id=user, request_id="async-lifecycle", content="AsyncNeedle",
+                          source={"type": "manual", "ref": "async", "text": "AsyncNeedle",
+                                  "observed_at": "2026-11-09T00:00:00Z"})
+        try:
+            assert (await c.search(user, "AsyncNeedle"))["data"][0]["id"] == row["id"]
+            assert (await c.context(user, "AsyncNeedle"))["memories"][0]["id"] == row["id"]
+        finally:
+            await c.delete(row["id"], row["version"])
+        assert (await c.search(user, "AsyncNeedle"))["data"] == []
+    assert findings["timeout_code"] == "timeout"
+    assert findings["native_async_export"]
+    assert not findings["error"]["synthetic_message_exposed"]
+    return True
+
+findings["installed_native_async_lifecycle"] = asyncio.run(async_lifecycle())
 print(json.dumps({
     "status": "behavioral_checks_passed_not_full_p1_acceptance",
     "python_version": __import__("sys").version.split()[0],

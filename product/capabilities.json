@@ -10,12 +10,13 @@
       "as_of": "2026-11-09",
       "title": "Complete conversations, knowledge workspace, MCP and Python SDK",
       "status": "live",
-      "public_claim": "v0.3 live service supports explicit paginated conversation storage/search and a read-only official-SDK MCP endpoint. Source-linked wiki/topic-graph organization is deployed but disabled until model provider/cost approval; Python client source and local wheel are available, not PyPI.",
+      "public_claim": "v0.3 supports explicit paginated conversations and scoped read-only MCP. Production models remain disabled. Python 0.3.1 provides synchronous and optional native async clients, pagination and executable lifecycle examples; no PyPI release.",
       "evidence": [
         "product/KNOWLEDGE_RELEASE.md",
         "product/RELEASE_0.3.0_VERIFICATION.md",
         "product/test/knowledge-runtime.mjs",
-        "product/sdk-python/README.md"
+        "product/sdk-python/README.md",
+        "product/ECOSYSTEM_RELEASE_2026-11-09.md"
       ],
       "publishable_as_available": true
     },
@@ -34,14 +35,15 @@
     },
     {
       "id": "vercel-ai-adapter",
-      "as_of": "2026-11-08",
+      "as_of": "2026-11-09",
       "title": "Vercel AI SDK 7 integration",
       "status": "local",
-      "public_claim": "Private source adapter provides scoped retrieval middleware, read-only tools, and explicit user-message writes. Offline framework checks and local v0.1.0/v0.2.1 compatibility checks pass; no npm publication or real-model quality claim.",
+      "public_claim": "Vercel AI SDK 7 adapter 0.3.0 uses shared JS SDK 0.3.0, scoped read-only tools and explicit application writes. Installed-package HTTP/streaming lifecycle tests pass against the current local Worker and baseline. Versioned website archive delivery; no npm publication or real-model quality claim.",
       "evidence": [
         "product/integrations/vercel-ai/README.md",
         "product/integrations/vercel-ai/test/framework.test.mjs",
-        "product/integrations/vercel-ai/test/runtime.mjs"
+        "product/integrations/vercel-ai/test/runtime.mjs",
+        "product/ECOSYSTEM_RELEASE_2026-11-09.md"
       ],
       "publishable_as_available": false
     },

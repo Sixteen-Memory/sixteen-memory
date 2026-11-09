@@ -18,7 +18,8 @@ import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/
 const product = fileURLToPath(new URL("../", import.meta.url));
 const folder = await mkdtemp(join(tmpdir(), "sixteen-ecosystem-"));
 const python = process.env.PYTHON_BIN || "python3";
-const wheel = resolve(process.env.PYTHON_WHEEL || join(product, "sdk-python/dist/sixteen_memory-0.3.0-py3-none-any.whl"));
+const wheel = resolve(process.env.PYTHON_WHEEL || join(product, "sdk-python/dist/sixteen_memory-0.3.1-py3-none-any.whl"));
+const wheelhouse = resolve(process.env.ASYNC_WHEELHOUSE || join(product, ".local/async-wheels"));
 const config = JSON.parse(await readFile(join(product, "wrangler.jsonc"), "utf8"));
 const administrator = "synthetic-ecosystem-" + crypto.randomUUID(), user = "ecosystem";
 const checks = [], probes = {};
@@ -56,6 +57,9 @@ try {
   await run(python, ["-m", "venv", join(folder, "venv")]);
   const isolatedPython = join(folder, "venv", process.platform === "win32" ? "Scripts/python.exe" : "bin/python");
   await run(isolatedPython, ["-m", "pip", "install", "--no-index", "--no-deps", wheel]);
+  await run(isolatedPython, ["-m", "pip", "install", "--no-index", "--find-links", wheelhouse, "httpx==0.28.1"]);
+  await run(isolatedPython, ["-I", join(product, "sdk-python/test_client.py")]);
+  await run(isolatedPython, ["-I", join(product, "sdk-python/test_async.py")]);
   const installed = await import(pathToFileURL(join(folder, "node_modules/@sixteen-memory/sdk/client.mjs")));
   const adapter = await import(pathToFileURL(join(folder, "node_modules/@sixteen-memory/vercel-ai/dist/index.js")));
   const { SixteenMemory, MemoryApiError, MemoryTransportError } = installed;
@@ -119,6 +123,8 @@ try {
   const exported = await allPages(cursor => client.exportPage({ user_id: user, cursor }));
   assert.deepEqual(listed.sizes, [50, 1]); assert.deepEqual(exported.sizes, [50, 1]);
   assert.deepEqual(listed.rows.map(row => row.id), exported.rows.map(row => row.id));
+  assert.equal((await client.listAll({ user_id: user })).length, 51);
+  assert.equal((await client.exportAll({ user_id: user })).length, 51);
   const filter = { field: "category", op: "eq", value: "keep" };
   assert.equal((await dev.list({ user_id: user, filter })).data.length, 26);
   assert.equal((await dev.exportPage({ user_id: user, filter })).data.length, 26);
@@ -137,6 +143,8 @@ try {
     messages.push(...page.messages); cursor = page.next_cursor;
   } while (cursor);
   assert.deepEqual(messages.map(m => m.id), Array.from({ length: 65 }, (_, i) => "m" + i));
+  assert.equal((await client.conversationsAll(user)).length, 51);
+  assert.equal((await client.conversationMessagesAll(py.conversation_id)).length, 65);
   checks.push("development JS reads Python-written conversations without omissions");
 
   const memory = adapter.createSixteenMemory({ baseUrl, apiKey: writer.key, userId: user });
@@ -183,7 +191,7 @@ try {
   await assert.rejects(client.me({ signal: abort.signal }), error => error.code === "aborted");
   assert.equal(requests, beforeAbort);
   let unsafeAccepted = false;
-  try { new SixteenMemory({ baseUrl: "http://non-loopback.invalid", apiKey: "synthetic" }); unsafeAccepted = true; } catch {}
+  try { new SixteenMemory({ baseUrl: "http://non-loopback.invalid", apiKey: "synthetic-test-key-0123456789012345" }); unsafeAccepted = true; } catch {}
   jsFindings.non_https_config_accepted_without_request = unsafeAccepted;
   // Reproduce inherited JS APIError text exposure separately from the adapter's sanitization.
   const guarded = adapter.createSixteenMemory({ baseUrl: baseUrl + "/probe/error", apiKey: writer.key, userId: user });
@@ -191,11 +199,26 @@ try {
   catch (error) { assert.ok(!String(error).includes("PRIVATE_SENTINEL")); }
   checks.push("error/timeout differences characterized; JS pre-abort no request; adapter error text sanitized");
   assert.deepEqual(probes, { slow: 3, error: 3, "invalid-code": 2 });
+  assert.ok(py.findings.installed_native_async_lifecycle);
+  assert.equal(interfaces.python_user_methods_missing_from_packaged_js.length, 0);
+  assert.equal(jsFindings.error.synthetic_message_exposed, false);
+  assert.equal(jsFindings["invalid-code"].code, "request_failed");
+  assert.equal(jsFindings.non_https_config_accepted_without_request, false);
+  assert.equal(py.findings.timeout_code, jsFindings.timeout_code);
+  assert.ok(py.findings.list_filter_supported && py.findings.export_filter_supported);
 
   await run(process.execPath, [join(product, "examples/customer-continuity.mjs")], {
     SIXTEEN_BASE_URL: baseUrl, SIXTEEN_API_KEY: writer.key, SIXTEEN_USER_ID: "ecosystem",
   });
   checks.push("existing repository customer-continuity example runs against loopback and cleans up");
+  const exampleEnv = { SIXTEEN_BASE_URL: baseUrl, SIXTEEN_API_KEY: writer.key, SIXTEEN_USER_ID: user };
+  for (const [source, name] of [["examples/lifecycle.mjs", "js-example.mjs"], ["integrations/vercel-ai/examples/lifecycle.mjs", "adapter-example.mjs"]]) {
+    await writeFile(join(folder, name), await readFile(join(product, source)));
+    await run(process.execPath, [join(folder, name)], exampleEnv);
+  }
+  for (const name of ["lifecycle.py", "async-lifecycle.py"]) await run(isolatedPython, ["-I", join(product, "examples", name)], exampleEnv);
+  checks.push("four shipped lifecycle examples run unchanged with installed packages and clean up");
+
   for (const row of convs.rows) await dev.deleteConversation(row.id, row.version);
   for (const row of listed.rows) await client.delete(row.id, row.version);
   await run(isolatedPython, ["-I", join(product, "test/ecosystem-python.py")], { ...env, TEST_PHASE: "verify_cleanup" });
@@ -219,11 +242,11 @@ try {
   }
   if (jsFindings.non_https_config_accepted_without_request) gaps.push("Base JS accepts non-HTTPS external base URLs at construction");
   const report = {
-    status: "behavioral_checks_passed_p1_not_certified", checks, worker_version: (await admin.health()).version,
+    status: "sdk_hardening_passed_mcp_oauth_and_writes_deferred", checks, worker_version: (await admin.health()).version,
     python_version: py.python_version, js: jsFindings, python: py.findings, interfaces, cleanup,
     gaps, mcp: { authentication_tested: "existing scoped bearer key", tools: tools.map(tool => tool.name), all_read_only: true,
       oauth_tested: false, controlled_writes_tested: false },
-    limits: ["Manual pagination tested; no automated pagination API claim", "Independent new-user onboarding not observed",
+    limits: ["Automatic page traversal is not a transactional snapshot", "Independent new-user onboarding not observed",
       "Documentation completeness and additional Python version support require separate review",
       "Synthetic provider errors, not a production credential disclosure", "Cold registry/network installation not tested"],
     provider_calls: outbound, production_requests: 0, total_loopback_requests: requests,

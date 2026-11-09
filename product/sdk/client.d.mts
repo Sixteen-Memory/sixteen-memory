@@ -1,3 +1,5 @@
+import type { MemoryAttributes, MemoryFilter, RetrievalMode, ModelUsage, Message, Conversation, ConversationPage, KnowledgeJob, KnowledgePage, KnowledgeEdge, MemoryContext, EvidenceSearch, MemoryReview, IngestionInput, IngestionJob } from "./service-types.js";
+export type * from "./service-types.js";
 import type { components, operations } from "./schema.js";
 export type { components, operations, paths } from "./schema.js";
 
@@ -6,16 +8,16 @@ type BodyFor<K extends keyof operations> = operations[K] extends {
   requestBody: { content: { "application/json": infer T } };
 } ? T : never;
 
-export type Memory = components["schemas"]["Memory"];
+export type Memory = import("./service-types.js").Memory;
 export type Source = components["schemas"]["Source"];
-export type CreateMemoryInput = BodyFor<"add">;
-export type UpdateMemoryInput = BodyFor<"update">;
-export type SearchInput = BodyFor<"search">;
-export type PageOptions = NonNullable<operations["list"]["parameters"]["query"]>;
-export type SearchResult = ResponseFor<"search">;
-export type MemoryPage = ResponseFor<"list">;
-export type ExportPage = ResponseFor<"exportPage">;
-export type HistoryEntry = components["schemas"]["HistoryEntry"];
+export type CreateMemoryInput = BodyFor<"add"> & MemoryAttributes;
+export type UpdateMemoryInput = BodyFor<"update"> & MemoryAttributes;
+export type SearchInput = BodyFor<"search"> & { mode?: RetrievalMode; filter?: MemoryFilter; at?: string; fallback?: "error" | "lexical"; threshold?: number };
+export type PageOptions = NonNullable<operations["list"]["parameters"]["query"]> & { filter?: MemoryFilter; at?: string };
+export type SearchResult = import("./service-types.js").SearchResult;
+export type MemoryPage = { data: Memory[]; next_cursor: string | null };
+export type ExportPage = MemoryPage & { exported_at: string };
+export type HistoryEntry = components["schemas"]["HistoryEntry"] & MemoryAttributes;
 export type CreateKeyInput = BodyFor<"createKey">;
 export type Identity = ResponseFor<"me">;
 export type KeyRecord = components["schemas"]["KeyRecord"];
@@ -50,7 +52,7 @@ export declare class SixteenMemory {
   maxResponseBytes: number;
   /** Low-level escape hatch. Response shape must be checked by the caller. */
   request(path: string, options?: { method?: string; body?: unknown; signal?: AbortSignal }): Promise<unknown>;
-  health(call?: CallOptions): Promise<ResponseFor<"health">>;
+  health(call?: CallOptions): Promise<{ status: "ok"; version: string; retrieval: string; extraction: string; model_configured: boolean }>;
   me(call?: CallOptions): Promise<Identity>;
   /** Same-origin console cookies only; Node callers must supply their own cookie transport. */
   login(apiKey: string, call?: CallOptions): Promise<ResponseFor<"login">>;
@@ -70,4 +72,35 @@ export declare class SixteenMemory {
   createKey(input: CreateKeyInput, call?: CallOptions): Promise<ResponseFor<"createKey">>;
   revokeKey(id: string, call?: CallOptions): Promise<ResponseFor<"revokeKey">>;
   requests(call?: CallOptions): Promise<AuditEntry[]>;
+
+  listPages(options?: PageOptions, call?: CallOptions): AsyncGenerator<MemoryPage>;
+  listAll(options?: PageOptions, call?: CallOptions): Promise<Memory[]>;
+  exportPages(options?: PageOptions, call?: CallOptions): AsyncGenerator<ExportPage>;
+  exportAll(options?: PageOptions, call?: CallOptions): Promise<Memory[]>;
+  createConversation(input: { user_id: string; request_id: string; title: string; messages: Message[]; expires_at?: string | null }, call?: CallOptions): Promise<Conversation>;
+  appendConversation(id: string, input: { request_id: string; expected_version: number; messages: Message[] }, call?: CallOptions): Promise<Conversation>;
+  conversation(id: string, cursor?: string, call?: CallOptions): Promise<ConversationPage>;
+  conversationPages(id: string, cursor?: string, call?: CallOptions): AsyncGenerator<ConversationPage>;
+  conversationMessagesAll(id: string, call?: CallOptions): Promise<Message[]>;
+  conversations(user_id: string, cursor?: string, call?: CallOptions): Promise<{ data: Conversation[]; next_cursor: string | null }>;
+  conversationsPages(user_id: string, cursor?: string, call?: CallOptions): AsyncGenerator<{ data: Conversation[]; next_cursor: string | null }>;
+  conversationsAll(user_id: string, call?: CallOptions): Promise<Conversation[]>;
+  searchConversations(input: { user_id: string; query: string; limit?: number }, call?: CallOptions): Promise<{ data: (Message & { conversation_id: string; conversation_version: number; title: string; score: number })[]; retrieval: string }>;
+  deleteConversation(id: string, expected_version: number, call?: CallOptions): Promise<{ deleted: true; id: string }>;
+  organize(input: { user_id: string; request_id: string; memory_ids?: string[]; conversation_ids?: string[]; mode?: "auto" | "review" }, call?: CallOptions): Promise<KnowledgeJob & { usage?: ModelUsage[]; unsupported_items?: number[] }>;
+  knowledgeRuns(user_id: string, call?: CallOptions): Promise<KnowledgeJob[]>;
+  knowledgeRun(id: string, call?: CallOptions): Promise<KnowledgeJob>;
+  resolveKnowledge(id: string, approve: boolean, call?: CallOptions): Promise<KnowledgeJob>;
+  wiki(user_id: string, call?: CallOptions): Promise<{ data: (KnowledgePage & { id: string; user_id: string; run_id: string })[] }>;
+  wikiPage(user_id: string, slug: string, call?: CallOptions): Promise<KnowledgePage & { id: string; user_id: string; run_id: string }>;
+  graph(user_id: string, call?: CallOptions): Promise<{ nodes: { id: string; slug: string; title: string }[]; edges: KnowledgeEdge[] }>;
+  context(input: SearchInput & { user_id: string; max_chars?: number; include_evidence?: boolean }, call?: CallOptions): Promise<MemoryContext>;
+  searchEvidence(input: Pick<SearchInput, "query" | "limit" | "filter" | "at"> & { user_id: string }, call?: CallOptions): Promise<EvidenceSearch>;
+  reviewMemories(input: { user_id: string; stale_before?: string }, call?: CallOptions): Promise<MemoryReview>;
+  ingest(input: IngestionInput, call?: CallOptions): Promise<IngestionJob>;
+  ingestion(id: string, call?: CallOptions): Promise<IngestionJob>;
+  ingestions(user_id: string, call?: CallOptions): Promise<IngestionJob[]>;
+  resolveIngestion(id: string, approve: boolean, call?: CallOptions): Promise<IngestionJob>;
+  evidence(id: string, call?: CallOptions): Promise<{ primary: Source; version: number; supporting: { source: Source; memory_version: number }[] }>;
+  reindex(user_id: string, cursor?: string, call?: CallOptions): Promise<{ indexed: number; next_cursor: string | null; usage: ModelUsage[] }>;
 }

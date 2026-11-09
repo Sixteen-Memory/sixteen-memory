@@ -29,8 +29,8 @@ test("website framework has eight bilingual public routes with one matching page
 
 test("capability language separates online, development and planned work", () => {
   assert.deepEqual([...new Set(capabilities.map(item => item.state))].sort(), ["live", "local", "planned"]);
-  assert.equal(capabilities.filter(item => item.state === "live").length, 4);
-  assert.equal(capabilities.filter(item => item.state === "local").length, 3);
+  assert.equal(capabilities.filter(item => item.state === "live").length, 5);
+  assert.equal(capabilities.filter(item => item.state === "local").length, 2);
   assert.equal(capabilities.filter(item => item.state === "planned").length, 3);
   assert.match(capabilities.find(item => item.id === "semantic").detail.zh, /尚未完成真实模型效果检查/);
   assert.match(capabilities.find(item => item.id === "filters").detail.zh, /不是历史快照/);

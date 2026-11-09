@@ -39,6 +39,8 @@
 
 ## 04 / Reference
 
+- [Ecosystem hardening release](../product/ECOSYSTEM_RELEASE_2026-11-09.md)
+
 - [P1 integration ecosystem acceptance and gaps](../product/ECOSYSTEM_ACCEPTANCE_2026-11-09.md)
 - [PR 8 production repair deployment receipt](../product/PR8_DEPLOYMENT_2026-11-09.md)
 - [Prioritized memory optimization plan](MEMORY_OPTIMIZATION_PLAN.md)

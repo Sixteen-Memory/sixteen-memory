@@ -41,12 +41,12 @@ test("developer surface includes API, docs, SDK, console, request records and tr
     assert.match(names, /(请求记录|Request records)/i);
     assert.match(names, /MCP/i);
   }
-  assert.match(content.zh.resources.items.at(-1).state, /规划中.*未上线/);
-  assert.match(content.en.resources.items.at(-1).state, /Planned.*not live/);
+  assert.match(content.zh.resources.items.at(-1).state, /只读.*OAuth/);
+  assert.match(content.en.resources.items.at(-1).state, /Read-only.*OAuth/);
   for (const copy of Object.values(content)) {
     const mcp = copy.resources.items.find(item => item.id === "mcp");
-    assert.equal(mcp.href, null);
-    assert.match(mcp.body, /MCP Server/);
+    assert.equal(mcp.href, quickstartUrl);
+    assert.match(mcp.body, /Bearer|bearer/);
     assert.ok(copy.resources.items.filter(item => item.id !== "mcp").every(item => item.href && item.action));
     assert.equal(copy.resources.items.find(item => item.id === "sdk").href, sdkPackageUrl);
   }

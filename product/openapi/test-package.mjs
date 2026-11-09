@@ -11,7 +11,7 @@ try {
   const [pack] = JSON.parse(execFileSync("npm", ["pack", "--json", "--ignore-scripts", "--pack-destination", directory], {
     cwd: new URL("../sdk/", import.meta.url), encoding: "utf8",
   }));
-  assert.deepEqual(pack.files.map(file => file.path).sort(), ["LICENSE", "README.md", "client.d.mts", "client.mjs", "openapi.json", "package.json", "schema.d.ts"]);
+  assert.deepEqual(pack.files.map(file => file.path).sort(), ["LICENSE", "README.md", "client.d.mts", "client.mjs", "openapi.json", "package.json", "schema.d.ts", "service-types.d.ts"]);
   await writeFile(join(directory, "package.json"), JSON.stringify({ private: true, type: "module" }));
   execFileSync("npm", ["install", "--ignore-scripts", "--no-audit", "--no-fund", "--offline", join(directory, pack.filename)], { cwd: directory, stdio: "pipe" });
   await writeFile(join(directory, "consumer.mts"), await readFile(new URL("../sdk/test-types.mts", import.meta.url)));
@@ -23,7 +23,7 @@ try {
     import { SixteenMemory, MemoryApiError } from "@sixteen-memory/sdk";
     const client = new SixteenMemory({ baseUrl: "https://memory.example", fetch: async () => Response.json({status: "ok"}) });
     assert.equal((await client.health()).status, "ok");
-    assert.equal(client.ingest, undefined);
+    assert.equal(typeof client.ingest, "function"); assert.equal(typeof client.context, "function"); assert.equal(typeof client.listAll, "function");
     assert.equal(new MemoryApiError(409, "conflict", "Changed").status, 409);
   `], { cwd: directory, stdio: "pipe" });
   console.log("SDK archive: allowlisted files only; clean offline install; NodeNext/Bundler types and ESM import passed.");

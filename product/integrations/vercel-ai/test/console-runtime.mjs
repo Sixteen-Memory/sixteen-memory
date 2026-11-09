@@ -6,6 +6,8 @@ import { localRuntime } from './local-runtime.mjs';
 
 const runtime = await localRuntime();
 const originalFetch = globalThis.fetch;
+const originalWindow = globalThis.window;
+globalThis.window = { location: { origin: "https://memory.example" } };
 const checks = [];
 try {
   const outfile = join(runtime.directory, 'console-api.mjs');
@@ -16,9 +18,9 @@ try {
     let cookie = '';
     const requests = [];
     globalThis.fetch = async (path, init = {}) => {
-      assert.ok(path.startsWith('/'), 'Console calls must stay same-origin');
+      assert.equal(new URL(path).origin, 'https://memory.example', 'Console calls must stay same-origin');
       assert.equal(init.headers.Authorization, undefined, 'Console must not embed a bearer key');
-      const response = await transport('https://memory.example' + path, { ...init, headers: { ...init.headers, ...(cookie ? { Cookie: cookie } : {}) } });
+      const response = await transport(path, { ...init, headers: { ...init.headers, ...(cookie ? { Cookie: cookie } : {}) } });
       const setCookie = response.headers.get('set-cookie');
       if (setCookie) cookie = setCookie.split(';')[0];
       requests.push(path);
@@ -62,5 +64,7 @@ try {
   console.log(JSON.stringify({ status: 'passed', checks, provider_calls: 0 }, null, 2));
 } finally {
   globalThis.fetch = originalFetch;
+  if (originalWindow === undefined) delete globalThis.window;
+  else globalThis.window = originalWindow;
   await runtime.dispose();
 }

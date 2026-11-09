@@ -6,7 +6,7 @@ const memory = new SixteenMemory({
   apiKey: process.env.SIXTEEN_API_KEY
 });
 
-await memory.add({
+const saved = await memory.add({
   request_id: "synthetic-ticket-884",
   user_id: "customer-42",
   content: "Replacement shipped; refund still open.",
@@ -23,7 +23,9 @@ const results = await memory.search({
   user_id: "customer-42",
   query: "refund open",
   limit: 10
-});`,
+});
+
+await memory.delete(saved.id, saved.version);`,
   rest: `curl https://console.sixteenmemory.com/v1/memories \\
   -H "Authorization: Bearer $SIXTEEN_API_KEY" \\
   -H "Content-Type: application/json" \\

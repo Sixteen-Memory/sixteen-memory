@@ -116,3 +116,6 @@ DEPLOYMENT.md Deployment boundaries and prerequisites
 are implemented with a console workspace and [Python SDK](sdk-python/README.md).
 Model-driven organization is separate from deployment: it requires approved
 provider configuration and independent quality review.
+
+
+SDK hardening and native async Python: see the [ecosystem release](ECOSYSTEM_RELEASE_2026-11-09.md).

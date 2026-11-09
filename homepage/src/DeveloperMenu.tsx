@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { BookOpen, Braces, ChevronDown, Code2, Download, KeyRound, Server, ShieldCheck } from "lucide-react";
-import { consoleUrl, sdkDownloadUrl } from "./content.mjs";
+import { consoleUrl, sdkDownloadUrl, quickstartUrl } from "./content.mjs";
 import { routeHref } from "./site-pages.mjs";
 
 type Language = "zh" | "en";
@@ -21,7 +21,7 @@ function entries(language: Language): Entry[] {
     { id: "console", icon: KeyRound, title: zh ? "管理控制台" : "Console", body: zh ? "检查记忆、Key 与请求记录" : "Inspect memories, keys and requests", href: consoleUrl, external: true },
     { id: "security", icon: ShieldCheck, title: zh ? "安全与数据" : "Security & data", body: zh ? "权限、来源、删除与备份边界" : "Access, sources, deletion and backups", href: routeHref("/security", language) },
     { id: "status", icon: Server, title: zh ? "产品状态" : "Product status", body: zh ? "区分线上、开发中与规划能力" : "Online, development and planned work", href: routeHref("/status", language) },
-    { id: "mcp", icon: Code2, title: "MCP", body: zh ? "只读召回入口尚未上线" : "Read-only recall entry is not live", planned: true }
+    { id: "mcp", icon: Code2, title: "MCP", body: zh ? "7 个只读工具；OAuth 与写工具未开放" : "7 read-only tools; OAuth and writes not enabled", href: quickstartUrl, external: true }
   ];
 }
 
