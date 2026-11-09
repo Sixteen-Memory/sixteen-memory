@@ -39,6 +39,7 @@
 
 ## 04 / Reference
 
+- [PR 8 production repair deployment receipt](../product/PR8_DEPLOYMENT_2026-11-09.md)
 - [Prioritized memory optimization plan](MEMORY_OPTIMIZATION_PLAN.md)
 - [Qwen continuation after quota approval](../product/QWEN_CONTINUATION_2026-11-09.md)
 

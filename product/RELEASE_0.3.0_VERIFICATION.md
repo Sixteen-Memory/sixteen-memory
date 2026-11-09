@@ -1,5 +1,12 @@
 # v0.3.0 verification and publication
 
+**Latest production repair:** PR #8 merged and deployed on November 9, 2026,
+from `b7786ed`. Worker version `c0bd964e-c561-46bf-a8c3-5b2dfce7328e`;
+Pages deployment `ccea3b0f-8493-4024-ab44-c64967673acb`.
+Production models remain disabled. Read the
+[repair deployment receipt](PR8_DEPLOYMENT_2026-11-09.md) for checks and the
+incomplete live smoke; the original publication details below are historical.
+
 **Continuation update:** The user subsequently confirmed disabling free-quota
 protection for `qwen-flash` only. The memory-path diagnostic then passed; real
 knowledge generation revealed coverage and qualifier-fidelity failures, so
