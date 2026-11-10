@@ -60,7 +60,12 @@ const api = async (method, path, body, key = owner) => {
   return { status: response.status, body: await response.json() };
 };
 const ok = async (...args) => { const value = await api(...args); assert.equal(value.status, 200, JSON.stringify(value)); return value.body; };
-const wav = Buffer.concat([Buffer.from("RIFF"), Buffer.alloc(4), Buffer.from("WAVE"), Buffer.alloc(8)]).toString("base64");
+function makeWav(size = 32000) {
+ const b = Buffer.alloc(44 + size); b.write("RIFF"); b.writeUInt32LE(b.length - 8,4); b.write("WAVEfmt ",8);
+ b.writeUInt32LE(16,16); b.writeUInt16LE(1,20); b.writeUInt16LE(1,22); b.writeUInt32LE(8000,24); b.writeUInt32LE(8000,28);
+ b.writeUInt16LE(1,32); b.writeUInt16LE(8,34); b.write("data",36); b.writeUInt32LE(size,40); return b;
+}
+const wav = makeWav().toString("base64");
 const input = request_id => ({ user_id: "alice", request_id, ref: "meeting-1", observed_at: "2026-11-10T00:00:00Z",
   consent: true, media: { mime_type: "audio/wav", data_base64: wav } });
 let server;
@@ -96,7 +101,7 @@ try {
     memory.version = changed.version;
   });
   await run("video keeps visual provenance, rejects remote inputs and accepts bounded larger clips", async () => {
-    const mp4 = Buffer.alloc(80_000); mp4.writeUInt32BE(24, 0); mp4.write("ftypisom", 4);
+    const mp4 = await readFile("test/fixtures/media/30min.mp4");
     const video = { ...input("video"), media: { mime_type: "video/mp4", data_base64: mp4.toString("base64") } };
     const job = await ok("POST", "/v1/media/ingestions", video, writer);
     assert.equal(job.proposal.media.mime_type, "video/mp4");
@@ -110,8 +115,8 @@ try {
       assert.ok([415, 422].includes((await api("POST", "/v1/media/ingestions", body, writer)).status));
     }
     assert.equal(calls, previous);
-    assert.equal((await api("POST", "/v1/ingestions", video, writer)).status, 413);
-    assert.equal((await api("POST", "/v1/media/ingestions", { ...video, padding: "a".repeat(3 * 1024 * 1024) }, writer)).status, 413);
+    assert.equal((await api("POST", "/v1/ingestions", { ...video, padding: "x".repeat(70000) }, writer)).status, 413);
+    assert.equal((await api("POST", "/v1/media/ingestions", { ...video, padding: "a".repeat(10 * 1024 * 1024) }, writer)).status, 413);
     await ok("POST", `/v1/ingestions/${job.id}/resolve`, { approve: false }, writer);
     assert.equal((await ok("GET", `/v1/ingestions/${job.id}`, undefined, reader)).proposal, null);
     assert.equal((await api("POST", "/v1/media/ingestions", video, writer)).status, 410);
@@ -171,7 +176,7 @@ try {
     await new Promise(resolve => server.listen(0, "127.0.0.1", resolve));
     const baseUrl = "http://127.0.0.1:" + server.address().port;
     const client = new SixteenMemory({ baseUrl, apiKey: writer });
-    const data = Buffer.concat([Buffer.from("RIFF"), Buffer.alloc(4), Buffer.from("WAVE"), Buffer.alloc(100_000)]).toString("base64");
+    const data = makeWav(100_000).toString("base64");
     const payload = { ...input("sdk-js"), media: { mime_type: "audio/wav", data_base64: data } };
     const job = await client.ingestMedia(payload);
     const result = await client.resolveIngestion(job.id, true);

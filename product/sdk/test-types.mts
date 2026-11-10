@@ -43,5 +43,10 @@ await client.context({ user_id: "alice", query: "preference" });
 void [all, messages];
 await client.ingestMedia({ user_id: "alice", request_id: "media", ref: "meeting", observed_at: new Date().toISOString(),
   media: { mime_type: "audio/wav", data_base64: "UklGRg==" }, consent: true });
+await client.createMediaUpload({ user_id: "alice", request_id: "large-media", ref: "meeting", observed_at: new Date().toISOString(),
+  mime_type: "video/mp4", size_bytes: 1024, consent: true });
+await client.uploadMediaPart("00000000-0000-0000-0000-000000000000", 1, new Uint8Array(1024));
+await client.uploadMedia({ user_id: "alice", request_id: "large-media-2", ref: "meeting", observed_at: new Date().toISOString(),
+  mime_type: "video/mp4", size_bytes: 1024, consent: true }, new Blob([new Uint8Array(1024)]));
 // @ts-expect-error Media always requires explicit provider consent.
 await client.ingestMedia({ user_id: "alice" });

@@ -30,16 +30,19 @@ class AsyncSixteenMemory(SixteenMemory):
     async def _request(self, path, method="GET", body=None):
         if self._http.is_closed:
             raise MemoryTransportError("client_closed")
+        binary = method == "PUT" and re.fullmatch(r"/v1/media/uploads/[a-f0-9-]{36}/parts/[0-9]+", path)
+        if binary and not isinstance(body, bytes):
+            raise MemoryTransportError("invalid_input")
         try:
-            data = None if body is None else json.dumps(body, ensure_ascii=False, allow_nan=False, separators=(",", ":")).encode("utf-8")
+            data = body if binary else None if body is None else json.dumps(body, ensure_ascii=False, allow_nan=False, separators=(",", ":")).encode("utf-8")
         except (TypeError, ValueError):
             raise MemoryTransportError("invalid_input") from None
-        max_request = 3 * 1024 * 1024 if path == "/v1/media/ingestions" and method == "POST" else 64 * 1024
+        max_request = 8 * 1024 * 1024 if binary else 10 * 1024 * 1024 if path == "/v1/media/ingestions" and method == "POST" else 64 * 1024
         if data is not None and len(data) > max_request:
             raise MemoryTransportError("request_too_large")
         headers = {"Authorization": "Bearer " + self._api_key, "Accept": "application/json"}
         if data is not None:
-            headers["Content-Type"] = "application/json"
+            headers["Content-Type"] = "application/octet-stream" if binary else "application/json"
 
         async def perform():
             async with self._http.stream(method, self._base_url + path, content=data, headers=headers) as response:
@@ -119,6 +122,39 @@ class AsyncSixteenMemory(SixteenMemory):
 
     async def ingest_media(self, **data: Any):
         return await super().ingest_media(**data)
+
+    async def create_media_upload(self, **data: Any):
+        return await super().create_media_upload(**data)
+
+    async def media_upload(self, upload_id: str):
+        return await super().media_upload(upload_id)
+
+    async def upload_media_part(self, upload_id: str, part: int, data: bytes):
+        return await super().upload_media_part(upload_id, part, data)
+
+    async def complete_media_upload(self, upload_id: str):
+        return await super().complete_media_upload(upload_id)
+
+    async def cancel_media_upload(self, upload_id: str):
+        return await super().cancel_media_upload(upload_id)
+
+    async def upload_media(self, file_path: str, **data: Any):
+        import os
+        try:
+            size = os.path.getsize(file_path)
+        except (OSError, TypeError):
+            raise MemoryTransportError("invalid_input") from None
+        if size < 16 or size > 500 * 1024 * 1024:
+            raise MemoryTransportError("invalid_input")
+        upload = await self.create_media_upload(size_bytes=size, **data)
+        with open(file_path, "rb") as source:
+            while upload["state"] == "uploading" and upload["received_bytes"] < size:
+                source.seek(upload["received_bytes"])
+                chunk = source.read(upload["part_size"])
+                if not chunk:
+                    raise MemoryTransportError("invalid_input")
+                upload = await self.upload_media_part(upload["id"], upload["next_part"], chunk)
+        return await self.complete_media_upload(upload["id"]) if upload["state"] == "uploading" else upload
 
     async def resolve_ingestion(self, job_id: str, approve: bool):
         return await super().resolve_ingestion(job_id, approve)

@@ -82,5 +82,5 @@ test("media ingestion has a bounded larger request allowance only on its endpoin
   assert.equal((await c.ingestMedia({ media: { data_base64 } })).id, "media");
   assert.ok(bodySize > 64 * 1024);
   await assert.rejects(c.ingest({ messages: data_base64 }), code("request_too_large"));
-  await assert.rejects(c.ingestMedia({ media: { data_base64: "A".repeat(3 * 1024 * 1024) } }), code("request_too_large"));
+  await assert.rejects(c.ingestMedia({ media: { data_base64: "A".repeat(10 * 1024 * 1024) } }), code("request_too_large"));
 });

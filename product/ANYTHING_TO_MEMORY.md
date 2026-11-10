@@ -1,200 +1,105 @@
-# Anything to Memory
+# Anything to Memory: 30-minute uploads
 
-This development branch adds short meeting audio/video clips to the existing
-text ingestion flow. It is not deployed, and the website SDK downloads have
-not been replaced. Audio/video model quality has not been accepted.
+The release accepts WAV/MP3 audio and MP4 video of **at most 30 minutes and
+500 MiB**. Duration and byte size are independent limits: high-bitrate files
+may need compression even if shorter than 30 minutes. Media container metadata
+is parsed server-side; this is not a full codec-integrity or recognition-quality
+certification. A 30:00 fixture passes; 30:01 fails before a model call.
 
-## API
+## Availability
 
-`POST /v1/media/ingestions`
+The code and console can be deployed with media disabled. Current production
+credentials permit Worker/Pages release but not R2 storage administration.
+`wrangler.production.jsonc` intentionally omits the unprovisioned R2 binding and
+keeps all model flags disabled. The UI clearly reports that uploads are not yet
+enabled. Publishing this code is not equivalent to enabling paid model access.
 
-```json
-{
-  "user_id": "user-1",
-  "request_id": "unique-request-id",
-  "ref": "meeting-2026-11-10",
-  "observed_at": "2026-11-10T09:00:00+08:00",
-  "media": {
-    "mime_type": "audio/wav",
-    "data_base64": "<Base64-encoded local clip>"
-  },
-  "consent": true,
-  "mode": "review"
-}
-```
+To activate uploads, separately authorize R2 provisioning/use, configure the
+private `MEDIA_BUCKET`, and choose an approved long-media model, e.g. a supported
+Qwen3.5/3.8 Omni deployment. Set `MEDIA_ENABLED`, `MEDIA_BASE_URL`, `MEDIA_MODEL`,
+`MEDIA_API_KEY` (secret), and `MEDIA_OBJECT_BASE_URL` to the canonical console
+HTTPS origin. Do not enable public bucket access. Configure a one-day bucket
+lifecycle for the `pending/` prefix as a backstop for interrupted cleanup.
 
-Supported inputs are WAV, MP3 and MP4 clips up to 2 MiB. The JSON request is
-limited to 3 MiB. Remote URLs are rejected, so the service does not fetch
-untrusted or expiring locations. The first release is synchronous and intended
-for short clips, not full-length meetings.
+Qwen's Base64 media input must be below 10 MB. Large files therefore use a
+private, temporary server endpoint rather than inflating JSON request limits.
+Older Qwen3 Omni supports only 20-minute audio / 150-second video, and is not
+accepted by the 30-minute upload route. References checked November 10, 2026:
 
-Signature checks reject obvious MIME mismatches but are not a codec decoder
-or duration check. Provider limits may be lower. `ref` must be a non-secret
-identifier of at most 100 characters, not a URL or filename. Optional category,
-metadata, event time, validity and memory expiry use existing ingestion rules.
+- [Qwen Omni](https://help.aliyun.com/zh/model-studio/qwen-omni)
+- [R2 Workers API](https://developers.cloudflare.com/r2/api/workers/workers-api-reference/)
+- [Durable Object alarms](https://developers.cloudflare.com/durable-objects/api/alarms/)
 
-## Review and deletion
+## Upload API
 
-`GET /v1/ingestions/{id}` and `GET /v1/ingestions?user_id=...` include media
-jobs alongside text jobs. The list returns the latest 30 jobs, not a complete
-paginated history.
+1. `POST /v1/media/uploads` with `user_id`, `request_id`, `ref`, `observed_at`,
+   `mime_type`, `size_bytes`, and explicit `consent: true`.
+2. `PUT /v1/media/uploads/{id}/parts/{part}` with raw bytes; 8 MiB per part,
+   except the final part. Upload sequentially. Identical repeated parts are
+   accepted; different bytes for an already accepted part return 409.
+3. `POST /v1/media/uploads/{id}/complete` creates a normal ingestion job and
+   queues processing. It does not hold the browser request open for the model.
+4. `GET /v1/media/uploads/{id}` reports uploading/queued/running/processed,
+   failed/cancelled/expired and the linked `ingestion_id`.
+5. `DELETE /v1/media/uploads/{id}` cancels outstanding work and queues cleanup.
 
-```text
-POST /v1/ingestions/{id}/resolve   {"approve": true}
-POST /v1/ingestions/{id}/resolve   {"approve": false}
-```
+The metadata response includes `received_bytes`, `part_size`, and `next_part`.
+Reusing an unchanged create request resumes the same upload. Never reuse a
+request ID for a different file. The service rejects arbitrary remote URLs.
 
-The response includes `state: "review"`, `proposal.media` and
-`proposal.decisions`. Nothing is searchable until approval. After approval,
-`results[].memory_id` identifies ordinary memories. Use their current version
-when calling `DELETE /v1/memories/{id}` with `expected_version`.
+The old `POST /v1/media/ingestions` route remains for Base64 clips up to 7 MiB
+(10 MiB JSON limit), with server-side duration checks. Larger files must use the
+upload route. Normal JSON routes remain capped at 64 KiB.
 
-Approval applies to the whole job. To correct a candidate, reject the job and
-explicitly create the corrected memory with relevant source evidence.
-Per-candidate editing is not included.
+## Processing and retention
 
-Pending analysis is removed after 24 hours or the requested memory expiry,
-whichever comes first. Rejection or approval clears the
-complete analysis immediately; approved memories keep only cited excerpts and
-provenance until their own expiry or deletion. Job metadata is purged after
-30 days. Provider retention and platform backups are not controlled here.
+A Durable Object alarm performs bounded-memory file hashing, metadata parsing,
+and one text-only streamed model request, with a ten-minute provider deadline.
+Uploads expire after two hours or the requested memory expiry, whichever is
+sooner. At most eight uploads may be pending per project. One model call counts
+against the existing 200/day project limit. This is not a financial cost cap.
+Interrupted model execution is failed, not silently retried and charged again.
 
-Repeat the identical payload and `request_id` to recover a completed proposal
-without another model call. Running/failed jobs return `409 ingestion_incomplete`;
-changed payloads return `409 idempotency_conflict`; rejected/expired/deleted
-jobs return `410`. Idempotency is scoped to the credential, not every key for
-the same user. Failed calls are never retried automatically.
+Only a token digest is stored. The temporary model-read URL is valid only for
+that running job; it supports byte ranges and checks credential revocation.
+No public bucket URL is created. Input segments are removed after processing,
+failure, cancellation, expiry or relevant user/key invalidation. Cleanup errors
+remain retryable. A bucket lifecycle should also be configured before enabling
+production uploads. Provider retention and Cloudflare backup retention are
+separate from online deletion.
 
-## Stored provenance
+The full file is not copied into SQLite or loaded into memory. Each R2 segment
+is read through a stream. SHA-256 records the actual file bytes. Metadata parser
+`music-metadata@12.3.5` is MIT licensed, pinned, and limited to 4 MiB individual
+metadata allocations and 1,000 user-metadata entries. Model segments and facts
+retain the existing bounds, so this is **memory extraction, not full transcription**.
 
-The original media is sent once to the explicitly configured provider and is
-not written to the Durable Object. Each candidate keeps:
+## Review, SDKs and limits
 
-- a SHA-256 digest of the clip;
-- MIME type and model identifier;
-- model-generated speech or visual segments;
-- relative time bounds when available;
-- a speaker label or `null` when attribution is uncertain;
-- exact segment substrings supporting the candidate.
+Candidates are additions only and require human review. Approve/reject using
+`POST /v1/ingestions/{id}/resolve` with `approve`. Before approval, they cannot
+appear in search. Approved memories preserve cited excerpts and media provenance;
+ordinary versioned read/update/delete operations apply. Exact substring citations
+are checks against model-produced text, not independent truth verification.
 
-Every media candidate is an `add` proposal with `media_interpretation` review
-reasons. It cannot automatically supersede an existing memory. An authorized
-user must call the ordinary ingestion approval endpoint before it becomes
-searchable. Approved media memories retain the provenance through history,
-evidence search, exports and updates that preserve the source. The console
-removes the media link when source fields are replaced.
+JS methods: `createMediaUpload`, `uploadMediaPart`, `completeMediaUpload`,
+`mediaUpload`, `cancelMediaUpload`, and the Blob helper `uploadMedia`.
+Python sync/async expose snake_case equivalents and `upload_media(file_path, ...)`.
+Python helpers perform bounded local file reads between asynchronous network calls.
+Neither SDK retries network requests automatically. Existing website download
+archives are not replaced in this service-only deployment; build SDKs from this
+checkout until a separately versioned archive release.
 
-## SDK usage
+No image/PDF/OCR upload, biometric identification or verified speaker labeling.
+Model confidence is not calibrated probability. No real media/model accuracy
+benchmark was performed; activation still needs an approved dataset evaluation.
 
-The methods are `client.ingestMedia(input)` in JS and
-`client.ingest_media(**input)` in Python sync/async. Build the SDK from this
-checkout; the published archives do not contain these methods yet.
+## Local verification
 
-Use the [JS example](examples/media-to-memory.mjs) or
-[Python sync/async example](examples/media-to-memory.py):
-
-```sh
-export SIXTEEN_BASE_URL=http://127.0.0.1:8790
-export SIXTEEN_USER_ID=authorized-test-user
-export SIXTEEN_MEDIA_FILE=/absolute/path/to/authorized-clip.wav
-export SIXTEEN_REQUEST_ID=media-test-001
-export SIXTEEN_OBSERVED_AT=2026-11-10T09:00:00+08:00
-export SIXTEEN_MEDIA_CONSENT=yes
-# Supply SIXTEEN_API_KEY through your existing secret environment.
-node media-to-memory.mjs
-# Or, with sixteen_memory installed:
-python media-to-memory.py
-# SIXTEEN_ASYNC=yes selects AsyncSixteenMemory with the existing [async] extra.
-```
-
-Examples print the review job to the local terminal. Keep this output private.
-They do not approve or delete the job. SDK types are in `service-types.d.ts`;
-the core OpenAPI snapshot still covers the earlier explicit-memory API and
-optional source provenance, not this new endpoint.
-
-The provider deadline is 60 seconds; examples use a 90-second client timeout.
-Client cancellation does not guarantee cancellation of a provider request
-already accepted. Inspect the job list before starting a new request. Each
-job reserves one call in the existing project daily limit. This is a call
-counter, not a currency-denominated spending limit.
-
-## Provider settings
-
-The feature stays disabled unless all four settings are present:
-
-```text
-MEDIA_ENABLED=true
-MEDIA_BASE_URL=https://<approved-provider>/compatible-mode/v1
-MEDIA_MODEL=<approved-omni-model>
-MEDIA_API_KEY=<secret>
-```
-
-The current adapter uses an OpenAI-compatible streaming chat completion with
-Qwen Omni input parts. Provider failures are not retried, and provider response
-bodies are not returned to callers.
-
-The adapter follows the official
-[Qwen Omni audio/video documentation](https://help.aliyun.com/zh/model-studio/qwen-omni),
-checked on November 10, 2026: `input_audio` or `video_url`, inline Base64,
-text-only SSE output. The SSE parser is `eventsource-parser@3.1.1`, already
-installed through MCP and now declared directly at the same locked version.
-
-Selecting a model, transmitting recordings and enabling paid calls require
-separate approval. No real provider was called in validation. Exact substring
-citations and a valid JSON shape cannot establish transcript accuracy. Check
-the candidates against the original clip. Confidence is uncalibrated model
-output; the same model produces the segments and candidate facts.
-
-## Current limits
-
-- no arbitrary remote media URLs;
-- no server-side object storage or background job queue;
-- no automatic long-meeting chunking;
-- no full-transcript archive, image/PDF/OCR ingestion, or MCP media upload;
-- no independent speaker verification or biometric identification;
-- no embedding generation on media approval; reindex explicitly when semantic
-  retrieval is enabled;
-- no real-model quality acceptance in this release.
-
-"Anything to Memory" is the product direction, not a claim that every file
-format is already supported.
-
-The next production-grade step is an authenticated object-upload flow plus
-asynchronous chunk processing, explicit retention controls, and measured
-audio/video retrieval quality on an approved meeting dataset.
-
-## Validation
-
-Build first with `npm run build`. Then run `npm test`, `npm run test:media`,
-`npm run test:runtime`, `npm run test:knowledge` and `npm run test:oauth`.
-All media responses are synthetic and intercepted, with zero external model
-calls. `test:media` also exercises JS and Python sync/async against loopback
-HTTP. Set `PYTHON_BIN` to a Python with the existing `httpx==0.28.1` optional
-dependency; its default is this checkout's local Python build environment.
-
-Checks cover MIME/size/consent, speech/visual evidence, unknown speakers/times,
-scoped access, review-before-search, repeat requests, concurrent changes,
-malformed output, failure sanitization, expiry/deletion and SDK transport.
-They do not measure word error rate, speaker accuracy, temporal accuracy,
-factual recall or real-media retrieval quality.
-
-### November 10 local results
-
-| Check | Result |
-| --- | --- |
-| Product unit tests | 43 passed |
-| Media Worker tests | 7 groups passed; 14 intercepted provider calls |
-| Core memory Worker tests | 29 groups passed |
-| Knowledge Worker tests | 8 groups passed |
-| MCP OAuth tests | 9 groups passed |
-| Python transport tests | 4 sync and 5 async passed |
-| SDK/OpenAPI checks | 17 legacy API operations, clean JS archive install and both TS module modes passed |
-| Existing SQLite migration | Passed |
-| TypeScript, Vite and Worker dry-run | Passed |
-| Documentation links and language | Passed |
-
-The media runtime suite runs the JS and Python sync/async examples as well as
-the store-search-delete workflows. There were zero production requests and
-zero real model calls. The console's audio form was inspected in a local
-browser at desktop and mobile size. No real file was uploaded through the
-browser. The temporary local UI key was revoked afterward.
+Run from `product/`: `npm run build`, `npm test`, `npm run test:media`,
+`npm run test:media:upload`, `npm run test:runtime`, `npm run test:knowledge`,
+`npm run test:oauth`, and `npm run test:migration`.
+The upload suite uses a synthetic 30-minute black MP4, a 30:01 rejection fixture,
+and a generated 14 MB WAV in actual local Worker/R2 simulation. It exercises
+private ranged reads, repeated/conflicting parts, cancellation, scope and cleanup.
+All provider calls are intercepted; no production file or paid model is used.

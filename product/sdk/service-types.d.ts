@@ -57,6 +57,9 @@ export type MediaIngestionInput = MemoryAttributes & {
   media: { mime_type: MediaMime; data_base64: string };
   consent: true; mode?: "review"; expires_at?: string | null;
 };
+export type MediaUploadInput = Omit<MediaIngestionInput, "media"> & { mime_type: MediaMime; size_bytes: number };
+export type MediaUpload = { id: string; user_id: string; state: string; size_bytes: number; received_bytes: number;
+  part_size: number; next_part: number; expires_at: string; ingestion_id: string | null; error: string | null };
 export type IngestionDecision = {
   fact: { content: string; fact_key: string; source: Source; confidence: number };
   action: "add" | "merge" | "supersede"; target_id?: string; target_version?: number;

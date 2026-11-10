@@ -1,6 +1,6 @@
 import { DurableObject } from "cloudflare:workers";
 import { IntelligenceStore } from "./intelligence-store";
-import { migrateAttributes, readAttributes, storedAttributes, type StoredAttributes } from "./memory-attributes";
+import { migrateAttributes, providedAttributes, readAttributes, storedAttributes, type StoredAttributes } from "./memory-attributes";
 import { filterSql, parseFilter, searchConstraints, validitySql } from "./memory-filter";
 import { EvidenceIndex } from "./evidence-index";
 import { boundedInteger } from "./memory-context";
@@ -8,6 +8,12 @@ import { reviewMemories } from "./memory-review";
 import { ConversationStore, type ConversationAction } from "./conversations";
 import { KnowledgeStore, type KnowledgeAction } from "./knowledge-store";
 import { OAuthStore, type OAuthAction } from "./oauth-store";
+import { MediaStore, type MediaUploadAction } from "./media-store";
+import { inspectMediaFile, mediaPartStream } from "./media-files";
+import { mediaConfigured, understandMedia, type MediaEnv } from "./media-provider";
+import { mediaDecisions, mediaUploadInput, MEDIA_CHUNK_BYTES } from "./media-domain";
+import { hash, randomSecret } from "./domain";
+import type { Plan } from "./intelligence-domain";
 import {
   access, admin, ApiError, date, equalDigest, expectedVersion, fail, identifier, MAX_MEMORIES,
   memoryInput, text, tokens,
@@ -19,7 +25,7 @@ type KeyRow = { [K in keyof KeyRecord]: KeyRecord[K] };
 type Grant = KeyRow & { digest: string };
 type AuditRow = { [K in keyof AuditRecord]: AuditRecord[K] };
 type HistoryRow = StoredAttributes & { version: number; action: string; content: string; source: string; status: "active" | "revoked"; reason: string; actor: string; created_at: string };
-export type Action = OAuthAction | ConversationAction | KnowledgeAction | "me" | "list" | "search" | "get" | "history" | "add" | "update" | "revoke" | "delete" | "export" | "keys" | "create_key" | "revoke_key" | "audit" |
+export type Action = OAuthAction | ConversationAction | KnowledgeAction | MediaUploadAction | "me" | "list" | "search" | "get" | "history" | "add" | "update" | "revoke" | "delete" | "export" | "keys" | "create_key" | "revoke_key" | "audit" |
   "write_prepare" | "preflight" | "model_budget" | "ingest_candidates" | "ingest_begin" | "ingest_get" | "ingest_fail" | "ingest_finish" | "ingest_resolve" | "ingest_list" | "evidence" | "semantic_rows" | "reindex_rows" | "reindex_commit" | "evidence_search" | "memory_review";
 export type Outcome = { ok: true; json: string } | { ok: false; status: number; code: string; message: string };
 export interface Auth { digest: string; session: boolean; root: boolean; root_digest: string; oauth_resource?: string }
@@ -32,6 +38,7 @@ export class MemoryProject extends DurableObject<Env> {
   private conversations: ConversationStore;
   private knowledge: KnowledgeStore;
   private oauth: OAuthStore;
+  private media: MediaStore;
 
   constructor(ctx: DurableObjectState, env: Env) {
     super(ctx, env);
@@ -71,6 +78,7 @@ export class MemoryProject extends DurableObject<Env> {
     this.conversations = new ConversationStore(this.sql, user => this.intelligence.touch(user));
     this.knowledge = new KnowledgeStore(this.sql, this.conversations, user => this.intelligence.epoch(user));
     this.oauth = new OAuthStore(this.sql, (who, action, input, digest = "") => this.dispatch(who, action as Action, input, digest));
+    this.media = new MediaStore(this.sql);
   }
 
   private identity(auth: Auth): Identity {
@@ -178,7 +186,7 @@ export class MemoryProject extends DurableObject<Env> {
   private erase(id: string) {
     this.sql.exec("UPDATE mcp_write_requests SET payload=NULL,state='invalidated' WHERE payload IS NOT NULL AND json_extract(payload,'$.memory_id')=?", id);
     const row = this.sql.exec<{ user_id: string }>("SELECT user_id FROM memories WHERE id=?", id).toArray()[0];
-    if (row) this.intelligence.erase(id, row.user_id);
+    if (row) { this.intelligence.erase(id, row.user_id); this.media.invalidate("user_id", row.user_id); }
     this.sql.exec("DELETE FROM search_index WHERE id=?", id);
     this.evidenceIndex.erase(id);
     this.sql.exec("DELETE FROM history WHERE memory_id=?", id);
@@ -196,23 +204,87 @@ export class MemoryProject extends DurableObject<Env> {
       this.conversations.purge(now);
       this.knowledge.purge(now);
       this.oauth.purge();
+      this.media.expire(now);
     });
   }
 
   private async schedule() {
     // Workers SQLite limits compound SELECT terms. Fixed table names only.
-    const next = ["memories", "sessions", "retries", "ingest_jobs", "conversations", "conversation_retries", "knowledge_runs", "oauth_flows", "oauth_codes", "oauth_tokens", "oauth_grants", "mcp_write_requests"]
+    const dates = ["memories", "sessions", "retries", "ingest_jobs", "conversations", "conversation_retries", "knowledge_runs", "oauth_flows", "oauth_codes", "oauth_tokens", "oauth_grants", "mcp_write_requests"]
       .map(table => this.sql.exec<{ expires: string | null }>(`SELECT MIN(expires_at) AS expires FROM ${table}${["ingest_jobs", "knowledge_runs"].includes(table) ? " WHERE state IN ('review','running')" : ""}`).one().expires)
-      .filter((value): value is string => value !== null).sort()[0];
-    if (next) await this.ctx.storage.setAlarm(Math.max(Date.now() + 1000, Date.parse(next)));
+      .filter((value): value is string => value !== null);
+    const mediaNext = this.media.next();
+    if (mediaNext) dates.push(mediaNext);
+    if (this.media.cleanup().length) dates.push(new Date(Date.now() + 60_000).toISOString());
+    const next = dates.sort()[0];
+    if (next) {
+      const when = Math.max(Date.now() + 1000, Date.parse(next));
+      const scheduled = await this.ctx.storage.getAlarm();
+      if (scheduled === null || scheduled > when) await this.ctx.storage.setAlarm(when);
+    }
     else await this.ctx.storage.deleteAlarm();
   }
 
-  async alarm() { this.purge(); await this.schedule(); }
+  async alarm() {
+    this.purge();
+    const env = this.env as Env & MediaEnv;
+    if (env.MEDIA_BUCKET) {
+      for (const row of this.media.cleanup()) {
+        await env.MEDIA_BUCKET.delete(this.media.parts(row).map(part => part.key));
+        this.media.cleaned(row.id);
+      }
+      const row = this.media.queued();
+      if (row) {
+        const token = randomSecret();
+        this.media.start(row.id, await hash(token));
+        await this.schedule();
+        try {
+          if (!mediaConfigured(env)) fail(503, "media_not_configured", "媒体模型未启用");
+          // Older Omni models cannot cover a 30-minute video.
+          if (!/^qwen3\.(?:5|8)-omni-/.test(env.MEDIA_MODEL!)) fail(503, "media_model_duration", "30分钟录音需配置支持长音视频的Qwen Omni模型");
+          const auth = this.media.auth(row);
+          const rootDigest = await hash(env.ADMIN_KEY);
+          const currentAuth = () => {
+            if (auth.root && !equalDigest(auth.root_digest, rootDigest)) fail(401, "invalid_key", "管理员凭证已更换");
+            return this.identity(auth);
+          };
+          let who = currentAuth();
+          const mediaInput = mediaUploadInput(JSON.parse(row.input));
+          const before = this.intelligence.dispatch(who, "preflight", { user_id: row.user_id, write: true }, "") as { epoch: number };
+          if (before.epoch !== JSON.parse(row.input)._epoch) fail(409, "scope_changed", "上传后记忆已变化，请重新开始");
+          const inspected = await inspectMediaFile(env.MEDIA_BUCKET, this.media.parts(row), mediaInput.mime_type);
+          who = currentAuth();
+          this.purge();
+          if (this.media.get(row.id)?.state !== "running") fail(409, "media_cancelled", "媒体处理已取消");
+          const base = new URL(env.MEDIA_OBJECT_BASE_URL!);
+          if (base.protocol !== "https:" || base.username || base.password || base.search || base.hash || base.pathname !== "/") fail(503, "media_storage_config", "媒体读取地址需为本站HTTPS源站");
+          this.intelligence.dispatch(who, "model_budget", { user_id: row.user_id, calls: 1 }, "");
+          const result = await understandMedia(env, { mime_type: mediaInput.mime_type, url: `${base.origin}/v1/media/files/${row.id}?token=${token}` }, inspected.duration);
+          this.purge();
+          who = currentAuth();
+          if (this.media.get(row.id)?.state !== "running") fail(409, "media_cancelled", "媒体处理已取消");
+          const analysis = mediaDecisions(result.value, { ...mediaInput, media: { mime_type: mediaInput.mime_type } }, inspected.sha256, result.usage.model, inspected.duration);
+          const plan: Plan = { ...providedAttributes(mediaInput), ...analysis, user_id: row.user_id, request_id: row.request_id,
+            epoch: before.epoch, expires_at: mediaInput.expires_at };
+          const finished = await this.execute(auth, "ingest_finish", { id: row.job_id, plan, mode: "review" });
+          if (!finished.ok) fail(finished.status, finished.code, finished.message);
+          this.media.done(row.id, null);
+        } catch (error) {
+          this.media.done(row.id, error instanceof ApiError ? error.code : "media_processing_failed");
+          this.sql.exec("UPDATE ingest_jobs SET state='failed',plan=NULL WHERE id=? AND state='running'", row.job_id);
+        } finally {
+          await env.MEDIA_BUCKET.delete(this.media.parts(row).map(part => part.key));
+          this.media.cleaned(row.id);
+        }
+      }
+    }
+    await this.schedule();
+  }
 
   private dispatch(who: Identity, action: Action, input: Record<string, unknown>, digest: string): unknown {
     const now = new Date().toISOString();
     if (action.startsWith("oauth_") || action.startsWith("mcp_")) return this.oauth.execute(who, action as OAuthAction, input);
+    if (action.startsWith("media_upload_")) return this.media.dispatch(who, action as MediaUploadAction, input, digest);
     if (action.startsWith("conversation_")) return this.conversations.dispatch(who, action as ConversationAction, input, digest);
     if (action.startsWith("knowledge_") || action.startsWith("wiki_")) return this.knowledge.dispatch(who, action as KnowledgeAction, input, digest);
     if (action === "write_prepare") {
@@ -266,6 +338,7 @@ export class MemoryProject extends DurableObject<Env> {
       this.sql.exec("UPDATE api_keys SET revoked_at=? WHERE id=?", now, id);
       this.sql.exec("DELETE FROM sessions WHERE key_id=?", id);
       this.oauth.purge();
+      this.media.invalidate("actor", id);
       return { revoked: true };
     }
     if (action === "audit") {
@@ -365,5 +438,79 @@ export class MemoryProject extends DurableObject<Env> {
     const limit = 50;
     const rows = this.sql.exec<Row>(`SELECT m.* FROM memories m WHERE ${clauses.join(" AND ")} ORDER BY m.id LIMIT ?`, ...args, limit + 1).toArray();
     return { data: rows.slice(0, limit).map(record), next_cursor: rows.length > limit ? rows[limit - 1].id : null, exported_at: action === "export" ? now : undefined };
+  }
+
+  async mediaPart(auth: Auth, id: string, part: number, stream: ReadableStream<Uint8Array>): Promise<Outcome> {
+    let key: string | undefined;
+    let reader: ReadableStreamDefaultReader<Uint8Array> | undefined;
+    try {
+      this.purge();
+      const row = this.media.scoped(this.identity(auth), id, true);
+      if (!this.env.MEDIA_BUCKET) fail(503, "media_storage_not_configured", "大文件存储尚未配置");
+      const parts = this.media.parts(row);
+      if (row.state !== "uploading" || !Number.isSafeInteger(part) || part < 1 || part > parts.length + 1) fail(409, "invalid_media_part", "请按顺序上传分片");
+      const expected = Math.min(MEDIA_CHUNK_BYTES, row.size_bytes - (part - 1) * MEDIA_CHUNK_BYTES);
+      if (expected <= 0) fail(422, "invalid_media_part", "媒体分片大小无效");
+      const bytes = new Uint8Array(expected); let size = 0;
+      reader = stream.getReader();
+      while (true) {
+        const chunk = await reader.read(); if (chunk.done) break;
+        if (size + chunk.value.length > expected) fail(413, "media_part_limit", "分片大于声明长度");
+        bytes.set(chunk.value, size); size += chunk.value.length;
+      }
+      if (size !== expected) fail(422, "invalid_media_part", "媒体分片大小无效");
+      const sha256 = [...new Uint8Array(await crypto.subtle.digest("SHA-256", bytes))].map(n => n.toString(16).padStart(2, "0")).join("");
+      if (parts[part - 1]) {
+        if (parts[part - 1].sha256 !== sha256) fail(409, "media_part_conflict", "此分片已有不同内容");
+        return { ok: true, json: JSON.stringify(this.media.view(row)) };
+      }
+      key = `pending/${id}/${part}/${crypto.randomUUID()}`;
+      await this.env.MEDIA_BUCKET.put(key, bytes, { sha256 });
+      const result = this.media.dispatch(this.identity(auth), "media_upload_part", { id, part, size: bytes.byteLength, sha256, key }, "") as { duplicate?: boolean };
+      if (result.duplicate) await this.env.MEDIA_BUCKET.delete(key);
+      return { ok: true, json: JSON.stringify(result) };
+    } catch (error) {
+      if (key) await this.env.MEDIA_BUCKET.delete(key);
+      return this.failure(error);
+    } finally {
+      if (reader) { try { await reader.cancel(); } catch {} reader.releaseLock(); }
+      else { try { await stream.cancel(); } catch {} }
+      await this.schedule();
+    }
+  }
+  async mediaReady(auth: Auth, id: string): Promise<Outcome> {
+    try {
+      this.purge();
+      const who = this.identity(auth), row = this.media.scoped(who, id, true);
+      if (row.state !== "uploading") return { ok: true, json: JSON.stringify(this.media.view(row)) };
+      if (row.received_bytes !== row.size_bytes) fail(409, "media_upload_incomplete", "媒体上传未完成");
+      const data = JSON.parse(row.input);
+      const result = this.ctx.storage.transactionSync(() => {
+        const job = this.intelligence.dispatch(who, "ingest_begin", { ...data, request_id: `media.${id}` }, row.digest) as { id: string; epoch: number };
+        return this.media.dispatch(who, "media_upload_ready", { id, job_id: job.id, auth, epoch: job.epoch }, "");
+      });
+      await this.schedule();
+      return { ok: true, json: JSON.stringify(result) };
+    } catch (error) { return this.failure(error); }
+  }
+  async mediaFile(id: string, token: string, range: string | null): Promise<Response> {
+    const row = this.media.get(id);
+    if (!row || row.state !== "running" || !row.token_hash || !equalDigest(row.token_hash, await hash(token)) || row.expires_at <= new Date().toISOString()) return new Response(null, { status: 404 });
+    try {
+      const auth = this.media.auth(row);
+      if (auth.root && !equalDigest(auth.root_digest, await hash(this.env.ADMIN_KEY))) return new Response(null, { status: 404 });
+      this.identity(auth);
+    } catch { return new Response(null, { status: 404 }); }
+    let start = 0, end = row.size_bytes - 1;
+    if (range) {
+      const match = /^bytes=(\d+)-(\d*)$/.exec(range);
+      if (!match) return new Response(null, { status: 416 });
+      start = Number(match[1]); end = match[2] ? Math.min(Number(match[2]), end) : end;
+      if (!Number.isSafeInteger(start) || !Number.isSafeInteger(end) || start > end) return new Response(null, { status: 416 });
+    }
+    return new Response(mediaPartStream(this.env.MEDIA_BUCKET, this.media.parts(row), start, end - start + 1), {
+      status: range ? 206 : 200, headers: { "Content-Type": JSON.parse(row.input).mime_type, "Content-Length": String(end - start + 1),
+        "Cache-Control": "no-store", "Accept-Ranges": "bytes", ...(range ? { "Content-Range": `bytes ${start}-${end}/${row.size_bytes}` } : {}) },
+    });
   }
 }

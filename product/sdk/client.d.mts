@@ -52,7 +52,7 @@ export declare class SixteenMemory {
   maxResponseBytes: number;
   /** Low-level escape hatch. Response shape must be checked by the caller. */
   request(path: string, options?: { method?: string; body?: unknown; signal?: AbortSignal }): Promise<unknown>;
-  health(call?: CallOptions): Promise<{ status: "ok"; version: string; retrieval: string; extraction: string; media_ingestion?: "assisted" | "disabled"; model_configured: boolean }>;
+  health(call?: CallOptions): Promise<{ status: "ok"; version: string; retrieval: string; extraction: string; media_ingestion?: "assisted" | "disabled"; media_upload?: { enabled: boolean; max_bytes: number; max_seconds: number; part_bytes: number }; model_configured: boolean }>;
   me(call?: CallOptions): Promise<Identity>;
   /** Same-origin console cookies only; Node callers must supply their own cookie transport. */
   login(apiKey: string, call?: CallOptions): Promise<ResponseFor<"login">>;
@@ -100,6 +100,12 @@ export declare class SixteenMemory {
   ingest(input: IngestionInput, call?: CallOptions): Promise<IngestionJob>;
   /** Sends a clip to the configured provider. Always creates a review proposal; use a timeout above 60 seconds. */
   ingestMedia(input: MediaIngestionInput, call?: CallOptions): Promise<IngestionJob>;
+  createMediaUpload(input: import("./service-types.js").MediaUploadInput, call?: CallOptions): Promise<import("./service-types.js").MediaUpload>;
+  mediaUpload(id: string, call?: CallOptions): Promise<import("./service-types.js").MediaUpload>;
+  uploadMediaPart(id: string, part: number, bytes: Uint8Array | ArrayBuffer | Blob, call?: CallOptions): Promise<import("./service-types.js").MediaUpload>;
+  completeMediaUpload(id: string, call?: CallOptions): Promise<import("./service-types.js").MediaUpload>;
+  cancelMediaUpload(id: string, call?: CallOptions): Promise<import("./service-types.js").MediaUpload>;
+  uploadMedia(input: import("./service-types.js").MediaUploadInput, blob: Blob, call?: CallOptions): Promise<import("./service-types.js").MediaUpload>;
   ingestion(id: string, call?: CallOptions): Promise<IngestionJob>;
   ingestions(user_id: string, call?: CallOptions): Promise<IngestionJob[]>;
   resolveIngestion(id: string, approve: boolean, call?: CallOptions): Promise<IngestionJob>;

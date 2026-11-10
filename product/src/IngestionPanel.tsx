@@ -2,6 +2,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { FileAudio, FileVideo, MessageSquare, Upload } from "lucide-react";
 import { api, errorMessage, type IngestionJob } from "./api";
 import type { MediaMime } from "../sdk/index.mjs";
+import type { MediaUpload } from "../sdk/service-types";
 
 const stateName: Record<string, string> = { running: "处理中", review: "待确认", applied: "已写入", rejected: "已拒绝", deleted: "已清理", expired: "已过期", failed: "失败，不自动重试" };
 const actionName = { add: "新增", merge: "合并依据", supersede: "替代旧状态" };
@@ -20,8 +21,16 @@ export function IngestionPanel({ userId, canWrite, onChanged }: { userId: string
   const [observedAt, setObservedAt] = useState(() => new Date().toISOString());
   const [reindexCursor, setReindexCursor] = useState("");
   const [indexStatus, setIndexStatus] = useState("");
+  const [upload, setUpload] = useState<MediaUpload | null>(null);
+  const [mediaEnabled, setMediaEnabled] = useState(false);
   const refresh = async () => { if (userId) setJobs(await api.ingestions(userId)); };
   useEffect(() => { let active = true; setJobs([]); setError(""); setIndexStatus(""); setReindexCursor(""); setRequestId(crypto.randomUUID()); if (userId) api.ingestions(userId).then(v => { if (active) setJobs(v); }).catch(e => { if (active) setError(errorMessage(e)); }); return () => { active = false; }; }, [userId]);
+  useEffect(() => { void api.health().then(value => setMediaEnabled(value.media_upload?.enabled === true)).catch(() => setMediaEnabled(false)); }, []);
+  useEffect(() => {
+    if (!upload || !["queued", "running"].includes(upload.state)) return;
+    const timer = setInterval(() => { void api.mediaUpload(upload.id).then(async next => { setUpload(next); await refresh(); }).catch(e => setError(errorMessage(e))); }, 5000);
+    return () => clearInterval(timer);
+  }, [upload?.id, upload?.state]);
   async function submit(event: FormEvent) {
     event.preventDefault(); setBusy(true); setError("");
     try {
@@ -31,19 +40,14 @@ export function IngestionPanel({ userId, canWrite, onChanged }: { userId: string
         await api.ingest({ user_id: userId, request_id: requestId, ref, observed_at: observedAt, messages, mode });
       } else {
         if (!file || !consent) throw new Error("请选择文件并确认媒体处理授权");
-        if (file.size > 2 * 1024 * 1024) throw new Error("文件不能超过2 MiB");
+        if (file.size > 500 * 1024 * 1024) throw new Error("文件不能超过500 MiB");
         const extension = file.name.split(".").pop()?.toLowerCase();
         const mime: MediaMime | undefined = extension === "wav" && inputKind === "audio" ? "audio/wav" :
           extension === "mp3" && inputKind === "audio" ? "audio/mpeg" : extension === "mp4" && inputKind === "video" ? "video/mp4" : undefined;
         if (!mime) throw new Error("音频请选择WAV或MP3，视频请选择MP4");
-        const data = await new Promise<string>((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onload = () => resolve(String(reader.result).split(",")[1]);
-          reader.onerror = () => reject(new Error("无法读取文件"));
-          reader.readAsDataURL(file);
-        });
-        await api.ingestMedia({ user_id: userId, request_id: requestId, ref, observed_at: observedAt,
-          media: { mime_type: mime, data_base64: data }, consent: true, mode: "review" });
+        let next = await api.uploadMedia({ user_id: userId, request_id: requestId, ref, observed_at: observedAt,
+          mime_type: mime, size_bytes: file.size, consent: true, mode: "review" }, file);
+        setUpload(next);
         setFile(null); setConsent(false); setFileInputVersion(value => value + 1);
       }
       setRequestId(crypto.randomUUID()); await refresh(); onChanged();
@@ -66,13 +70,18 @@ export function IngestionPanel({ userId, canWrite, onChanged }: { userId: string
           <label>对话消息 JSON<textarea required rows={7} value={content} onChange={e => { setContent(e.target.value); setRequestId(crypto.randomUUID()); }} placeholder={'[{"id":"m1","role":"user","content":"请用中文与我沟通"}]'} /></label>
           <label>写入模式<select value={mode} onChange={e => { setMode(e.target.value === "auto" ? "auto" : "review"); setRequestId(crypto.randomUUID()); }}><option value="review">先审阅，再确认写入（推荐）</option><option value="auto">符合规则自动写入，冲突仍需确认</option></select></label>
         </> : <>
-          <label>{inputKind === "audio" ? "音频文件 · WAV / MP3 · ≤ 2 MiB" : "视频文件 · MP4 · ≤ 2 MiB"}
+          <p>支持30分钟以内、最多500 MiB的录音或视频。分片上传到私有临时存储，完成后后台处理；候选仍需人工确认。</p>
+          {!mediaEnabled && <p role="status">当前服务器尚未启用音视频模型与大文件存储，暂不能上传。代码功能已提供，需管理员完成配置。</p>}
+          <label>{inputKind === "audio" ? "音频文件 · WAV / MP3 · ≤ 30分钟 / 500 MiB" : "视频文件 · MP4 · ≤ 30分钟 / 500 MiB"}
             <input key={`${inputKind}-${fileInputVersion}`} type="file" required disabled={busy} accept={inputKind === "audio" ? ".wav,.mp3" : ".mp4"}
               onChange={e => { setFile(e.target.files?.[0] ?? null); setConsent(false); setRequestId(crypto.randomUUID()); }} /></label>
           <label className="inline-label"><input type="checkbox" required checked={consent} onChange={e => setConsent(e.target.checked)} />
             我有权处理此媒体，并同意将文件发送给管理员配置的模型供应商。</label>
         </>}
-        <div className="actions"><button className="primary" disabled={busy || !userId || (inputKind !== "text" && (!file || !consent))}><Upload size={16} />{busy ? "处理中…" : "提取记忆"}</button><button type="button" className="secondary" disabled={busy} onClick={() => { setRequestId(crypto.randomUUID()); setError("已切换到新请求。请先检查旧任务是否已完成，避免重复调用模型。"); }}>新建请求标识</button></div>
+        <div className="actions"><button className="primary" disabled={busy || !userId || (inputKind !== "text" && (!file || !consent || !mediaEnabled))}><Upload size={16} />{busy ? "上传处理中…" : "提取记忆"}</button><button type="button" className="secondary" disabled={busy} onClick={() => { setRequestId(crypto.randomUUID()); setError("已切换到新请求。请先检查旧任务是否已完成，避免重复调用模型。"); }}>新建请求标识</button></div>
+        {upload && <div role="status"><p>上传 {Math.round(upload.received_bytes / upload.size_bytes * 100)}% · {upload.state} {upload.error ?? ""}</p><small>{upload.id}</small>
+          {!["processed", "cancelled", "failed", "expired"].includes(upload.state) && <button type="button" className="secondary" disabled={busy} onClick={() => { void api.cancelMediaUpload(upload.id).then(setUpload).catch(e => setError(errorMessage(e))); }}>取消并清理媒体</button>}
+        </div>}
       </form>}
       {error && <p className="error" role="alert">{error}</p>}
       <div className="actions"><h2>导入与待确认记录</h2><button className="secondary" disabled={busy} onClick={() => void refresh().catch(e => setError(errorMessage(e)))}>刷新导入记录</button></div>

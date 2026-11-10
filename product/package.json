@@ -14,6 +14,7 @@
     "test:components": "node test/memory-components-runtime.mjs",
     "test:knowledge": "node test/knowledge-runtime.mjs",
     "test:media": "node test/media-runtime.mjs",
+    "test:media:upload": "node test/media-upload-runtime.mjs",
     "test:python": "cd sdk-python && python3 -m unittest -v test_client",
     "test:python:runtime": "node test/python-runtime.mjs",
     "test:ecosystem": "node test/ecosystem-runtime.mjs",
@@ -27,6 +28,7 @@
     "@modelcontextprotocol/sdk": "1.32.2",
     "eventsource-parser": "3.1.1",
     "lucide-react": "0.468.0",
+    "music-metadata": "12.3.5",
     "react": "19.3.1",
     "react-dom": "19.3.1",
     "zod": "4.6.7"

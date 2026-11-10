@@ -93,8 +93,8 @@ causes or URLs. Invalid inputs such as non-serializable JSON can still throw
 
 Every method accepts an optional final `{ signal }` argument. The caller's
 abort signal is combined with `timeoutMs`. JSON requests are capped at 64 KiB,
-except `ingestMedia`, which accepts at most 3 MiB of JSON for a clip capped at
-2 MiB before Base64 encoding;
+except `ingestMedia`, which accepts at most 10 MiB of JSON for a clip capped at
+7 MiB before Base64 encoding;
 responses default to 16 MiB, configurable through `maxResponseBytes`. Large
 history responses over that limit fail explicitly, never silently truncate.
 The framework adapter uses a tighter 256 KiB response limit. There are no retries.

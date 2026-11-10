@@ -6,10 +6,10 @@ Use the versioned website wheel or an authorized source checkout.
 
 This development checkout adds `ingest_media(**data)` to both clients. The
 existing website wheel does not include it. Media requests require explicit
-`consent=True`, accept WAV/MP3/MP4 clips up to 2 MiB, and return a review job.
+`consent=True`, accept WAV/MP3/MP4 clips up to 7 MiB (inline) or 500 MiB (chunked, 30 minutes maximum), and create a background job (chunked) or a review job (inline).
 Use a 90-second timeout and see the [media guide](../ANYTHING_TO_MEMORY.md)
 and [Python example](../examples/media-to-memory.py). Only this endpoint has
-a 3 MiB JSON request limit; other methods retain the 64 KiB limit.
+a 10 MiB JSON request limit; other methods retain the 64 KiB limit.
 
 ```sh
 python -m pip install https://www.sixteenmemory.com/downloads/sixteen_memory-0.3.1-py3-none-any.whl

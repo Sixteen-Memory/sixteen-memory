@@ -11,6 +11,7 @@ import type { Conversation, ConversationPage, Message } from "../worker/conversa
 import type { KnowledgeJob, KnowledgePage, KnowledgeEdge } from "../worker/knowledge-domain";
 import type { MediaIngestionInput } from "./service-types.js";
 export type { MediaIngestionInput, MediaAnalysis, MediaMime } from "./service-types.js";
+export type { MediaUploadInput, MediaUpload } from "./service-types.js";
 export type { Conversation, ConversationPage, Message, KnowledgeJob, KnowledgePage, KnowledgeEdge };
 export type { MemoryContext, EvidenceSearch, MemoryReview };
 export { MemoryApiError, MemoryTransportError } from "./client.mjs";
@@ -44,7 +45,7 @@ export interface SixteenMemory extends Omit<StableClient, Overridden> {
   context(input: DevelopmentSearchInput & { user_id: string; max_chars?: number; include_evidence?: boolean }, call?: CallOptions): Promise<MemoryContext & { usage: ModelUsage[] }>;
   searchEvidence(input: Pick<DevelopmentSearchInput, "query" | "limit" | "filter" | "at"> & { user_id: string }, call?: CallOptions): Promise<EvidenceSearch>;
   reviewMemories(input: { user_id: string; stale_before?: string }, call?: CallOptions): Promise<MemoryReview>;
-  health(call?: CallOptions): Promise<{ status: "ok"; version: string; retrieval: string; extraction: string; media_ingestion?: "assisted" | "disabled"; model_configured: boolean }>;
+  health(call?: CallOptions): Promise<{ status: "ok"; version: string; retrieval: string; extraction: string; media_ingestion?: "assisted" | "disabled"; media_upload?: { enabled: boolean; max_bytes: number; max_seconds: number; part_bytes: number }; model_configured: boolean }>;
   add(input: MemoryInput & { request_id: string }, call?: CallOptions): Promise<MemoryRecord>;
   get(id: string, call?: CallOptions): Promise<MemoryRecord>;
   list(options?: DevelopmentPageOptions, call?: CallOptions): Promise<{ data: MemoryRecord[]; next_cursor: string | null }>;

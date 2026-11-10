@@ -28,12 +28,12 @@ Run from the repository root. The example deletes its synthetic record when fini
 
 Check the target service's capabilities, then confirm the provider, data-sharing scope, and costs. Ordinary builds, README previews, and basic integration do not need these calls. Do not bypass configuration errors to force a model request.
 
-`media-to-memory.mjs` accepts clips up to 2 MiB and creates a review job. It does not
-approve the candidates and does not keep the raw clip. Use `SIXTEEN_MEDIA_FILE` only
-with synthetic or authorized media. Long meetings need application-side chunking and
-review until an asynchronous object-storage workflow is implemented.
-See [Anything to Memory](../ANYTHING_TO_MEMORY.md) for required environment
-variables, idempotency, approval and retention.
+`media-to-memory.mjs` and `.py` are bounded inline examples (2 MiB local
+example cap; the service permits 7 MiB). For 30-minute files up to 500 MiB use
+[upload-meeting.mjs](upload-meeting.mjs) or [upload-meeting.py](upload-meeting.py).
+They upload in 8 MiB parts and return a background job, not completed memories.
+See [Anything to Memory](../ANYTHING_TO_MEMORY.md) for configuration, approval,
+idempotency and retention. All examples require explicitly authorized media.
 
 ## Framework integration
 
