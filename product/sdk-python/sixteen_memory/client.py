@@ -98,7 +98,8 @@ class SixteenMemory:
                                                        separators=(",", ":")).encode("utf-8")
         except (ValueError, TypeError):
             raise MemoryTransportError("invalid_input") from None
-        if data is not None and len(data) > 64 * 1024:
+        max_request = 3 * 1024 * 1024 if path == "/v1/media/ingestions" and method == "POST" else 64 * 1024
+        if data is not None and len(data) > max_request:
             raise MemoryTransportError("request_too_large")
         headers = {"Authorization": "Bearer " + self._api_key, "Accept": "application/json"}
         if data is not None:
@@ -182,6 +183,9 @@ class SixteenMemory:
 
     def ingest(self, **data: Any) -> Dict[str, Any]:
         return self._request("/v1/ingestions", "POST", data)
+
+    def ingest_media(self, **data: Any) -> Dict[str, Any]:
+        return self._request("/v1/media/ingestions", "POST", data)
 
     def resolve_ingestion(self, job_id: str, approve: bool) -> Dict[str, Any]:
         return self._request("/v1/ingestions/" + _id(job_id) + "/resolve", "POST", {"approve": approve})

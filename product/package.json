@@ -13,6 +13,7 @@
     "test:round1": "node test/round1-runtime.mjs",
     "test:components": "node test/memory-components-runtime.mjs",
     "test:knowledge": "node test/knowledge-runtime.mjs",
+    "test:media": "node test/media-runtime.mjs",
     "test:python": "cd sdk-python && python3 -m unittest -v test_client",
     "test:python:runtime": "node test/python-runtime.mjs",
     "test:ecosystem": "node test/ecosystem-runtime.mjs",
@@ -24,6 +25,7 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "1.32.2",
+    "eventsource-parser": "3.1.1",
     "lucide-react": "0.468.0",
     "react": "19.3.1",
     "react-dom": "19.3.1",

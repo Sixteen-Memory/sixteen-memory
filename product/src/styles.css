@@ -153,6 +153,7 @@ textarea{resize:vertical}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 @media(max-width:680px){.mobile-account{display:inline-flex;width:29px;height:31px}.account-actions .role{margin-right:4px}}
 .ingestion-panel{max-width:1000px;margin:0 auto}.ingestion-panel p{line-height:1.7}.ingestion-panel .result small{overflow-wrap:anywhere}.proposal-fact{border-top:1px solid var(--line);padding:14px 0}.ingestion-panel .actions{flex-wrap:wrap}.ingestion-panel textarea{width:100%;font-family:ui-monospace,monospace}.search-view>label{display:flex;align-items:center;gap:12px;margin-bottom:18px}.search-view select{max-width:230px}.ingestion-panel .result header{flex-wrap:wrap}
+.ingestion-panel .segmented{margin-left:0;align-self:flex-start}.ingestion-panel .segmented button{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-width:80px;height:32px}.ingestion-panel .inline-label{align-items:flex-start}.ingestion-panel input[type=checkbox]{width:16px;height:16px;flex:none;margin:2px 0 0}.ingestion-panel input[type=file]{max-width:100%;overflow:hidden}.ingestion-panel details summary{cursor:pointer}.ingestion-panel .primary,.ingestion-panel .secondary{white-space:normal}
 @media(max-width:680px){.sidebar .nav-item{min-width:50px;padding:6px}.ingestion-panel .form-stack{padding:4px}.search-view>label{flex-wrap:wrap}}
 .context-tabs{margin:0 0 24px;width:fit-content;max-width:100%}
 .context-tabs button{min-width:86px}

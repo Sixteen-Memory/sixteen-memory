@@ -34,7 +34,8 @@ class AsyncSixteenMemory(SixteenMemory):
             data = None if body is None else json.dumps(body, ensure_ascii=False, allow_nan=False, separators=(",", ":")).encode("utf-8")
         except (TypeError, ValueError):
             raise MemoryTransportError("invalid_input") from None
-        if data is not None and len(data) > 64 * 1024:
+        max_request = 3 * 1024 * 1024 if path == "/v1/media/ingestions" and method == "POST" else 64 * 1024
+        if data is not None and len(data) > max_request:
             raise MemoryTransportError("request_too_large")
         headers = {"Authorization": "Bearer " + self._api_key, "Accept": "application/json"}
         if data is not None:
@@ -115,6 +116,9 @@ class AsyncSixteenMemory(SixteenMemory):
 
     async def ingest(self, **data: Any):
         return await super().ingest(**data)
+
+    async def ingest_media(self, **data: Any):
+        return await super().ingest_media(**data)
 
     async def resolve_ingestion(self, job_id: str, approve: bool):
         return await super().resolve_ingestion(job_id, approve)

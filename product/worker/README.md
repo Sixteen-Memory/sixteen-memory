@@ -16,6 +16,9 @@
 | [memory-attributes.ts](memory-attributes.ts) | Categories, metadata, events, and validity windows |
 | [memory-filter.ts](memory-filter.ts) | Filter-tree validation and parameterized SQL |
 | [providers.ts](providers.ts) | Generation and embedding provider calls |
+| [media-provider.ts](media-provider.ts) | Bounded streaming audio/video understanding provider calls |
+| [media.ts](media.ts) | Reviewed media-to-memory orchestration; raw clips never enter storage |
+| [media-domain.ts](media-domain.ts) | Clip validation, grounded segments, provenance, and candidate facts |
 | [embedding-config.ts](embedding-config.ts) | Dimensions, API modes, and index identity |
 | [generation-options.ts](generation-options.ts) | Output-token and thinking-parameter compatibility |
 | [conversations.ts](conversations.ts) | Explicit complete-conversation storage, pagination, search, expiry, and deletion |
@@ -38,3 +41,6 @@
 - Complete conversations are explicit application writes, not implicit capture.
 - Wiki pages and graph edges are derived caches. Invalidate them whenever their user scope changes.
 - MCP requires a user-scoped Bearer key and exposes no writes or caller-controlled user scope.
+- Media ingestion accepts local Base64 WAV, MP3, or MP4 clips up to 2 MiB. It
+  requires explicit consent, always stops for review, and stores only the file
+  digest plus the cited model interpretation.

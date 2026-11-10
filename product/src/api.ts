@@ -36,6 +36,7 @@ export const api = {
   delete: (id: string, version: number) => client.delete(id, version),
   search: (query: string, user_id: string, mode: RetrievalMode = "lexical") => development.search({ query, user_id, limit: 10, mode }),
   ingest: (input: Parameters<DevelopmentClient["ingest"]>[0]) => development.ingest(input),
+  ingestMedia: (input: Parameters<DevelopmentClient["ingestMedia"]>[0]) => development.ingestMedia(input),
   ingestions: (user_id: string) => development.ingestions(user_id),
   resolveIngestion: (id: string, approve: boolean) => development.resolveIngestion(id, approve),
   reindex: (user_id: string, cursor = "") => development.reindex(user_id, cursor),

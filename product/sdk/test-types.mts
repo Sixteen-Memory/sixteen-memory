@@ -41,3 +41,7 @@ const conversation = await client.createConversation({ user_id: "alice", request
 const messages = await client.conversationMessagesAll(conversation.id);
 await client.context({ user_id: "alice", query: "preference" });
 void [all, messages];
+await client.ingestMedia({ user_id: "alice", request_id: "media", ref: "meeting", observed_at: new Date().toISOString(),
+  media: { mime_type: "audio/wav", data_base64: "UklGRg==" }, consent: true });
+// @ts-expect-error Media always requires explicit provider consent.
+await client.ingestMedia({ user_id: "alice" });

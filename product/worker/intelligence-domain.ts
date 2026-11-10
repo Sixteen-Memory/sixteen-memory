@@ -1,6 +1,7 @@
 import { date, fail, identifier, memoryInput, object, text, type MemoryAttributes, type MemoryInput, type MemoryRecord, type Source } from "./domain";
 import { canonicalFactKey, registeredFactKey } from "./fact-slots";
 import { providedAttributes } from "./memory-attributes";
+import type { MediaAnalysis } from "./media-domain";
 
 export const MAX_FACTS = 8;
 export const MAX_VECTOR_DIMENSIONS = 2048;
@@ -12,7 +13,7 @@ export type Decision = {
   target_version?: number; reason: string; needs_review: boolean; vector?: Vector;
   review_reasons?: string[];
 };
-export type Plan = MemoryAttributes & { user_id: string; request_id: string; epoch: number; decisions: Decision[]; expires_at: string | null };
+export type Plan = MemoryAttributes & { user_id: string; request_id: string; epoch: number; decisions: Decision[]; expires_at: string | null; media?: MediaAnalysis };
 export type IngestionInput = MemoryAttributes & {
   user_id: string; request_id: string; ref: string; observed_at: string;
   messages: { id: string; role: "user" | "assistant"; content: string }[];

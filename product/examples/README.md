@@ -8,6 +8,8 @@
 | :--- | :--- | :--- |
 | [customer-continuity.mjs](customer-continuity.mjs) | Write → search → update → history → delete the synthetic record | Not required |
 | [intelligent-continuity.mjs](intelligent-continuity.mjs) | Conversation ingestion, candidate maintenance, and intelligent retrieval | Configuration and authorization required |
+| [media-to-memory.mjs](media-to-memory.mjs) | Local WAV/MP3/MP4 clip → reviewable, source-linked memory candidates | Media provider configuration, consent and authorization required |
+| [media-to-memory.py](media-to-memory.py) | Same flow through Python sync or native async | Same explicit provider and consent requirements |
 
 ## Basic example
 
@@ -25,6 +27,13 @@ Run from the repository root. The example deletes its synthetic record when fini
 ## Intelligent examples are not the default first step
 
 Check the target service's capabilities, then confirm the provider, data-sharing scope, and costs. Ordinary builds, README previews, and basic integration do not need these calls. Do not bypass configuration errors to force a model request.
+
+`media-to-memory.mjs` accepts clips up to 2 MiB and creates a review job. It does not
+approve the candidates and does not keep the raw clip. Use `SIXTEEN_MEDIA_FILE` only
+with synthetic or authorized media. Long meetings need application-side chunking and
+review until an asynchronous object-storage workflow is implemented.
+See [Anything to Memory](../ANYTHING_TO_MEMORY.md) for required environment
+variables, idempotency, approval and retention.
 
 ## Framework integration
 

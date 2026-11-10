@@ -53,6 +53,10 @@ Use user-scoped keys; administrator keys can search the whole project.
 
 ## Methods
 
+`ingestMedia` is new in this development checkout, not yet in the website
+archive. See [Anything to Memory](../ANYTHING_TO_MEMORY.md) for consent,
+clip limits, provider setup, review and deletion.
+
 | Group | Methods |
 | :--- | :--- |
 | Service and identity | `health`, `me` |
@@ -60,6 +64,7 @@ Use user-scoped keys; administrator keys can search the whole project.
 | Memory | `add`, `get`, `list`, `search`, `update`, `history`, `revoke`, `delete`, `exportPage` |
 | Administrator only | `keys`, `createKey`, `revokeKey`, `requests` |
 | Optional provider | `answer` requires server configuration and may incur costs; it is never called automatically |
+| Reviewed ingestion | `ingest`, `ingestMedia`, `ingestion`, `ingestions`, `resolveIngestion`; media requires a configured provider and explicit consent |
 
 Request and response types come from the included `openapi.json`. Exported types
 include `Memory`, `Source`, `CreateMemoryInput`, `UpdateMemoryInput`,
@@ -87,7 +92,9 @@ causes or URLs. Invalid inputs such as non-serializable JSON can still throw
 `invalid_input` before a request. Do not log raw service messages or credentials.
 
 Every method accepts an optional final `{ signal }` argument. The caller's
-abort signal is combined with `timeoutMs`. JSON requests are capped at 64 KiB;
+abort signal is combined with `timeoutMs`. JSON requests are capped at 64 KiB,
+except `ingestMedia`, which accepts at most 3 MiB of JSON for a clip capped at
+2 MiB before Base64 encoding;
 responses default to 16 MiB, configurable through `maxResponseBytes`. Large
 history responses over that limit fail explicitly, never silently truncate.
 The framework adapter uses a tighter 256 KiB response limit. There are no retries.

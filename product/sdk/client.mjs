@@ -64,7 +64,8 @@ export class SixteenMemory {
     let serialized;
     try { serialized = body === undefined ? undefined : JSON.stringify(body); }
     catch { throw new MemoryTransportError("invalid_input"); }
-    if (serialized && new TextEncoder().encode(serialized).byteLength > 64 * 1024) {
+    const maxRequestBytes = path === "/v1/media/ingestions" && method === "POST" ? 3 * 1024 * 1024 : 64 * 1024;
+    if (serialized && new TextEncoder().encode(serialized).byteLength > maxRequestBytes) {
       throw new MemoryTransportError("request_too_large");
     }
     const timeout = AbortSignal.timeout(this.timeoutMs);
@@ -185,6 +186,7 @@ export class SixteenMemory {
   searchEvidence(input, call = {}) { return this.request("/v1/evidence/search", { ...call, method: "POST", body: input }); }
   reviewMemories(input, call = {}) { return this.request("/v1/memory-review", { ...call, method: "POST", body: input }); }
   ingest(input, call = {}) { return this.request("/v1/ingestions", { ...call, method: "POST", body: input }); }
+  ingestMedia(input, call = {}) { return this.request("/v1/media/ingestions", { ...call, method: "POST", body: input }); }
   ingestion(id, call = {}) { return this.request(`/v1/ingestions/${encodeURIComponent(id)}`, call); }
   ingestions(user_id, call = {}) { return this.request("/v1/ingestions?" + new URLSearchParams({ user_id }), call); }
   resolveIngestion(id, approve, call = {}) { return this.request(`/v1/ingestions/${encodeURIComponent(id)}/resolve`, { ...call, method: "POST", body: { approve } }); }

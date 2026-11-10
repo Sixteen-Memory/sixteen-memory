@@ -9,6 +9,8 @@ import type { EvidenceSearch } from "../worker/evidence-index";
 import type { MemoryReview } from "../worker/memory-review";
 import type { Conversation, ConversationPage, Message } from "../worker/conversations";
 import type { KnowledgeJob, KnowledgePage, KnowledgeEdge } from "../worker/knowledge-domain";
+import type { MediaIngestionInput } from "./service-types.js";
+export type { MediaIngestionInput, MediaAnalysis, MediaMime } from "./service-types.js";
 export type { Conversation, ConversationPage, Message, KnowledgeJob, KnowledgePage, KnowledgeEdge };
 export type { MemoryContext, EvidenceSearch, MemoryReview };
 export { MemoryApiError, MemoryTransportError } from "./client.mjs";
@@ -42,7 +44,7 @@ export interface SixteenMemory extends Omit<StableClient, Overridden> {
   context(input: DevelopmentSearchInput & { user_id: string; max_chars?: number; include_evidence?: boolean }, call?: CallOptions): Promise<MemoryContext & { usage: ModelUsage[] }>;
   searchEvidence(input: Pick<DevelopmentSearchInput, "query" | "limit" | "filter" | "at"> & { user_id: string }, call?: CallOptions): Promise<EvidenceSearch>;
   reviewMemories(input: { user_id: string; stale_before?: string }, call?: CallOptions): Promise<MemoryReview>;
-  health(call?: CallOptions): Promise<{ status: "ok"; version: string; retrieval: string; extraction: string; model_configured: boolean }>;
+  health(call?: CallOptions): Promise<{ status: "ok"; version: string; retrieval: string; extraction: string; media_ingestion?: "assisted" | "disabled"; model_configured: boolean }>;
   add(input: MemoryInput & { request_id: string }, call?: CallOptions): Promise<MemoryRecord>;
   get(id: string, call?: CallOptions): Promise<MemoryRecord>;
   list(options?: DevelopmentPageOptions, call?: CallOptions): Promise<{ data: MemoryRecord[]; next_cursor: string | null }>;
@@ -52,6 +54,7 @@ export interface SixteenMemory extends Omit<StableClient, Overridden> {
   answer(input: DevelopmentSearchInput, call?: CallOptions): Promise<Answer>;
   exportPage(options?: DevelopmentPageOptions, call?: CallOptions): Promise<{ data: MemoryRecord[]; next_cursor: string | null; exported_at: string }>;
   ingest(input: Omit<IngestionInput, "expires_at" | "mode"> & { expires_at?: string | null; mode?: "review" | "auto" }, call?: CallOptions): Promise<IngestionJob>;
+  ingestMedia(input: MediaIngestionInput, call?: CallOptions): Promise<IngestionJob>;
   ingestion(id: string, call?: CallOptions): Promise<IngestionJob>;
   ingestions(user_id: string, call?: CallOptions): Promise<IngestionJob[]>;
   resolveIngestion(id: string, approve: boolean, call?: CallOptions): Promise<IngestionJob>;

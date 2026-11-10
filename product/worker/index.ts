@@ -6,8 +6,11 @@ import { generationOptions } from "./generation-options";
 import { organizeKnowledge } from "./knowledge";
 import { mcpRequest } from "./mcp";
 import { oauthHttp, oauthPath, oauthOrigin, oauthChallenge } from "./oauth-http";
+import { ingestMedia } from "./media";
+import { MAX_MEDIA_BODY } from "./media-domain";
+import { mediaConfigured, type MediaEnv } from "./media-provider";
 export { MemoryProject };
-type RuntimeEnv = Env & IntelligenceEnv & { ADMIN_KEY?: string; MODEL_API_KEY?: string; MODEL_TOKEN_PARAMETER?: string; MODEL_THINKING?: string; OAUTH_ISSUER?: string };
+type RuntimeEnv = Env & IntelligenceEnv & MediaEnv & { ADMIN_KEY?: string; MODEL_API_KEY?: string; MODEL_TOKEN_PARAMETER?: string; MODEL_THINKING?: string; OAUTH_ISSUER?: string };
 const cookieName = "sixteen_session";
 
 function result(outcome: Outcome, extra?: HeadersInit) {
@@ -92,7 +95,8 @@ export default {
     if (url.pathname !== "/health" && !url.pathname.startsWith("/v1/") && !oauthPath(url.pathname)) return secure(await env.ASSETS.fetch(request));
     try {
       if (url.pathname === "/health" && request.method === "GET") {
-        return secure(Response.json({ status: "ok", version: VERSION, retrieval: embeddingConfigured(env) ? "hybrid_available" : "lexical", extraction: extractionConfigured(env) ? "assisted" : "explicit", model_configured: !!(env.MODEL_API_KEY && env.MODEL_NAME && env.MODEL_BASE_URL) }));
+        return secure(Response.json({ status: "ok", version: VERSION, retrieval: embeddingConfigured(env) ? "hybrid_available" : "lexical", extraction: extractionConfigured(env) ? "assisted" : "explicit",
+          media_ingestion: mediaConfigured(env) ? "assisted" : "disabled", model_configured: !!(env.MODEL_API_KEY && env.MODEL_NAME && env.MODEL_BASE_URL) }));
       }
       const origin = request.headers.get("Origin");
       if (origin && origin !== url.origin) fail(403, "origin_denied", "不允许跨站请求");
@@ -168,6 +172,7 @@ export default {
         return secure(result(await project.execute(auth, route.endsWith("memory-review") ? "memory_review" : "evidence_search", await readJson(request))));
       }
       if (route === "POST /v1/ingestions") return secure(Response.json(await ingest(env, project, auth, await readJson(request))));
+      if (route === "POST /v1/media/ingestions") return secure(Response.json(await ingestMedia(env, project, auth, await readJson(request, MAX_MEDIA_BODY))));
       if (route === "POST /v1/reindex") return secure(Response.json(await reindex(env, project, auth, await readJson(request))));
       if (route === "POST /v1/search" || route === "POST /v1/answer") {
         const input = await readJson(request);

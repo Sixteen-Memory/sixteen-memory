@@ -374,6 +374,23 @@ export interface components {
             /** @constant */
             logged_out: true;
         };
+        MediaProvenance: {
+            /** @constant */
+            interpretation: "model_generated";
+            /** @enum {string} */
+            mime_type: "audio/wav" | "audio/mpeg" | "video/mp4";
+            model: string;
+            segments: {
+                end_ms: number | null;
+                id: string;
+                /** @enum {string} */
+                kind: "speech" | "visual";
+                speaker: string | null;
+                start_ms: number | null;
+                text: string;
+            }[];
+            sha256: string;
+        };
         Memory: {
             content: string;
             /** Format: date-time */
@@ -433,6 +450,7 @@ export interface components {
             retrieval: "lexical";
         };
         Source: {
+            media?: components["schemas"]["MediaProvenance"];
             /** Format: date-time */
             observed_at: string;
             ref: string;
