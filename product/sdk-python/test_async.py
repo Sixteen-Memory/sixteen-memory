@@ -111,6 +111,8 @@ class AsyncTests(unittest.IsolatedAsyncioTestCase):
             with self.assertRaises(MemoryTransportError):
                 await c.add(content="x" * 70000)
             self.assertEqual(len(Handler.calls), before)
+            await c.ingest_media(media={"data_base64": "A" * 70000})
+            self.assertEqual(Handler.calls[-1], "/v1/media/ingestions")
 
     def test_sync_timeout_classification(self):
         c = SixteenMemory(self.base + "/slow", self.key, timeout=.05)

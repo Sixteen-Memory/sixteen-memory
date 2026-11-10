@@ -16,6 +16,9 @@
 | [memory-attributes.ts](memory-attributes.ts) | Categories, metadata, events, and validity windows |
 | [memory-filter.ts](memory-filter.ts) | Filter-tree validation and parameterized SQL |
 | [providers.ts](providers.ts) | Generation and embedding provider calls |
+| [media-provider.ts](media-provider.ts) | Bounded streaming audio/video understanding provider calls |
+| [media.ts](media.ts) | Reviewed inline media-to-memory orchestration |
+| [media-domain.ts](media-domain.ts) | Clip validation, grounded segments, provenance, and candidate facts |
 | [embedding-config.ts](embedding-config.ts) | Dimensions, API modes, and index identity |
 | [generation-options.ts](generation-options.ts) | Output-token and thinking-parameter compatibility |
 | [conversations.ts](conversations.ts) | Explicit complete-conversation storage, pagination, search, expiry, and deletion |
@@ -38,3 +41,10 @@
 - Complete conversations are explicit application writes, not implicit capture.
 - Wiki pages and graph edges are derived caches. Invalidate them whenever their user scope changes.
 - MCP requires a user-scoped Bearer key and exposes no writes or caller-controlled user scope.
+- Media ingestion accepts local Base64 WAV, MP3, or MP4 clips up to 7 MiB (inline) or 500 MiB (chunked, 30 minutes maximum). It
+  requires explicit consent and review. Chunked files use private temporary R2
+  storage; only hashes and cited model interpretation enter memory records.
+
+Large-file ingestion uses private temporary R2 chunks and Durable Object alarms.
+The raw file is not stored in SQLite; see [30-minute media guide](../ANYTHING_TO_MEMORY.md).
+Production activation requires separate storage and provider configuration.

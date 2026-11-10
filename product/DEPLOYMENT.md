@@ -27,3 +27,12 @@ Inject production keys through secret management, not `wrangler.jsonc`. There is
 ## Deletion and recovery
 
 Online deletion and platform recovery-copy retention are different boundaries. Do not restore real customer databases before establishing a post-restore deletion check, and do not claim all platform backups are immediately erased. Exporting current records is not a full database backup.
+
+## Media release profile
+
+Use `wrangler.production.jsonc` for the current model-disabled production release.
+It intentionally omits the unprovisioned MEDIA_BUCKET binding; all other bindings,
+rate limits, class identity, migrations and assets match the default profile.
+The default `wrangler.jsonc` provides an R2 binding for local upload tests.
+Do not enable production uploads until private R2/lifecycle and model use are approved.
+Never use the default config to provision storage implicitly during a release.

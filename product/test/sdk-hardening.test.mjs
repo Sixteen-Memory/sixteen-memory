@@ -61,7 +61,7 @@ test("all new methods propagate pre-abort; invalid JSON fails before network", a
     () => c.organize({}, call), () => c.knowledgeRuns("user", call), () => c.knowledgeRun("id", call),
     () => c.resolveKnowledge("id", false, call), () => c.wiki("user", call), () => c.wikiPage("user", "slug", call),
     () => c.graph("user", call), () => c.context({}, call), () => c.searchEvidence({}, call),
-    () => c.reviewMemories({}, call), () => c.ingest({}, call), () => c.ingestion("id", call),
+    () => c.reviewMemories({}, call), () => c.ingest({}, call), () => c.ingestMedia({}, call), () => c.ingestion("id", call),
     () => c.ingestions("user", call), () => c.resolveIngestion("id", false, call),
     () => c.evidence("id", call), () => c.reindex("user", "", call),
   ];
@@ -70,4 +70,17 @@ test("all new methods propagate pre-abort; invalid JSON fails before network", a
   await assert.rejects(c.add(cyclic), code("invalid_input"));
   await assert.rejects(c.request("//external.invalid"), code("invalid_input"));
   assert.equal(requests, 0);
+});
+
+test("media ingestion has a bounded larger request allowance only on its endpoint", async () => {
+  let bodySize = 0;
+  const c = new SixteenMemory({ baseUrl, apiKey, fetch: async (_url, init) => {
+    bodySize = new TextEncoder().encode(init.body).byteLength;
+    return Response.json({ id: "media" });
+  } });
+  const data_base64 = "A".repeat(100_000);
+  assert.equal((await c.ingestMedia({ media: { data_base64 } })).id, "media");
+  assert.ok(bodySize > 64 * 1024);
+  await assert.rejects(c.ingest({ messages: data_base64 }), code("request_too_large"));
+  await assert.rejects(c.ingestMedia({ media: { data_base64: "A".repeat(10 * 1024 * 1024) } }), code("request_too_large"));
 });

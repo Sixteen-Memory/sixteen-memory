@@ -1,4 +1,4 @@
-import type { MemoryAttributes, MemoryFilter, RetrievalMode, ModelUsage, Message, Conversation, ConversationPage, KnowledgeJob, KnowledgePage, KnowledgeEdge, MemoryContext, EvidenceSearch, MemoryReview, IngestionInput, IngestionJob } from "./service-types.js";
+import type { MemoryAttributes, MemoryFilter, RetrievalMode, ModelUsage, Message, Conversation, ConversationPage, KnowledgeJob, KnowledgePage, KnowledgeEdge, MemoryContext, EvidenceSearch, MemoryReview, IngestionInput, IngestionJob, MediaIngestionInput } from "./service-types.js";
 export type * from "./service-types.js";
 import type { components, operations } from "./schema.js";
 export type { components, operations, paths } from "./schema.js";
@@ -52,7 +52,7 @@ export declare class SixteenMemory {
   maxResponseBytes: number;
   /** Low-level escape hatch. Response shape must be checked by the caller. */
   request(path: string, options?: { method?: string; body?: unknown; signal?: AbortSignal }): Promise<unknown>;
-  health(call?: CallOptions): Promise<{ status: "ok"; version: string; retrieval: string; extraction: string; model_configured: boolean }>;
+  health(call?: CallOptions): Promise<{ status: "ok"; version: string; retrieval: string; extraction: string; media_ingestion?: "assisted" | "disabled"; media_upload?: { enabled: boolean; max_bytes: number; max_seconds: number; part_bytes: number }; model_configured: boolean }>;
   me(call?: CallOptions): Promise<Identity>;
   /** Same-origin console cookies only; Node callers must supply their own cookie transport. */
   login(apiKey: string, call?: CallOptions): Promise<ResponseFor<"login">>;
@@ -98,6 +98,14 @@ export declare class SixteenMemory {
   searchEvidence(input: Pick<SearchInput, "query" | "limit" | "filter" | "at"> & { user_id: string }, call?: CallOptions): Promise<EvidenceSearch>;
   reviewMemories(input: { user_id: string; stale_before?: string }, call?: CallOptions): Promise<MemoryReview>;
   ingest(input: IngestionInput, call?: CallOptions): Promise<IngestionJob>;
+  /** Sends a clip to the configured provider. Always creates a review proposal; use a timeout above 60 seconds. */
+  ingestMedia(input: MediaIngestionInput, call?: CallOptions): Promise<IngestionJob>;
+  createMediaUpload(input: import("./service-types.js").MediaUploadInput, call?: CallOptions): Promise<import("./service-types.js").MediaUpload>;
+  mediaUpload(id: string, call?: CallOptions): Promise<import("./service-types.js").MediaUpload>;
+  uploadMediaPart(id: string, part: number, bytes: Uint8Array | ArrayBuffer | Blob, call?: CallOptions): Promise<import("./service-types.js").MediaUpload>;
+  completeMediaUpload(id: string, call?: CallOptions): Promise<import("./service-types.js").MediaUpload>;
+  cancelMediaUpload(id: string, call?: CallOptions): Promise<import("./service-types.js").MediaUpload>;
+  uploadMedia(input: import("./service-types.js").MediaUploadInput, blob: Blob, call?: CallOptions): Promise<import("./service-types.js").MediaUpload>;
   ingestion(id: string, call?: CallOptions): Promise<IngestionJob>;
   ingestions(user_id: string, call?: CallOptions): Promise<IngestionJob[]>;
   resolveIngestion(id: string, approve: boolean, call?: CallOptions): Promise<IngestionJob>;

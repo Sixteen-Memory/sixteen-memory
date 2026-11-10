@@ -20,6 +20,10 @@ const messages: number = (await client.conversation(conversation.id)).messages.l
 const organized = await client.organize({ user_id: "alice", request_id: "k1", conversation_ids: [conversation.id], mode: "review" });
 const graphNodes: number = (await client.graph("alice")).nodes.length;
 void [messages, organized, graphNodes];
+await client.ingestMedia({ user_id: "alice", request_id: "media", ref: "meeting", observed_at: new Date().toISOString(),
+  media: { mime_type: "video/mp4", data_base64: "AAAAGGZ0eXA=" }, consent: true });
+await client.createMediaUpload({ user_id: "alice", request_id: "large", ref: "meeting", observed_at: new Date().toISOString(),
+  mime_type: "video/mp4", size_bytes: 1024, consent: true });
 // @ts-expect-error Complete-conversation messages require explicit observed timestamps.
 await client.createConversation({ user_id: "alice", request_id: "bad", title: "Bad", messages: [{ id: "m", role: "user", content: "Missing time" }] });
 // @ts-expect-error Character budgets are numbers.

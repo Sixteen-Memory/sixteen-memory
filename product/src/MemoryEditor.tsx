@@ -21,7 +21,9 @@ export function MemoryEditor({ entry, userId, close, saved }: { entry?: MemoryRe
     try {
       const value = {
         user_id: user, content,
-        source: { type: sourceType, ref: reference, text: evidence, observed_at: observed },
+        source: { type: sourceType, ref: reference, text: evidence, observed_at: observed,
+          ...(entry?.source.media && sourceType === entry.source.type && reference === entry.source.ref &&
+            evidence === entry.source.text && observed === entry.source.observed_at ? { media: entry.source.media } : {}) },
         expires_at: expires ? new Date(`${expires}T23:59:59Z`).toISOString() : null,
       };
       if (entry) await api.update(entry.id, { ...value, expected_version: entry.version, reason });

@@ -62,9 +62,13 @@ export class SixteenMemory {
     if (signal?.aborted) throw new MemoryTransportError("aborted");
     if (typeof path !== "string" || !path.startsWith("/") || path.startsWith("//") || /[\\\r\n]/.test(path)) throw new MemoryTransportError("invalid_input");
     let serialized;
-    try { serialized = body === undefined ? undefined : JSON.stringify(body); }
+    const binary = method === "PUT" && /^\/v1\/media\/uploads\/[a-f0-9-]{36}\/parts\/\d+$/.test(path);
+    try { serialized = body === undefined ? undefined : binary ? body : JSON.stringify(body); }
     catch { throw new MemoryTransportError("invalid_input"); }
-    if (serialized && new TextEncoder().encode(serialized).byteLength > 64 * 1024) {
+    const maxRequestBytes = binary ? 8 * 1024 * 1024 : path === "/v1/media/ingestions" && method === "POST" ? 10 * 1024 * 1024 : 64 * 1024;
+    if (binary && !(serialized instanceof Uint8Array || serialized instanceof ArrayBuffer || typeof Blob !== "undefined" && serialized instanceof Blob)) throw new MemoryTransportError("invalid_input");
+    const length = binary ? (serialized.byteLength ?? serialized.size) : serialized ? new TextEncoder().encode(serialized).byteLength : 0;
+    if (length > maxRequestBytes) {
       throw new MemoryTransportError("request_too_large");
     }
     const timeout = AbortSignal.timeout(this.timeoutMs);
@@ -74,7 +78,7 @@ export class SixteenMemory {
         method, signal: combined, redirect: "manual",
         headers: {
           ...(this.apiKey ? { Authorization: `Bearer ${this.apiKey}` } : {}),
-          ...(body === undefined ? {} : { "Content-Type": "application/json" }),
+          ...(body === undefined ? {} : { "Content-Type": binary ? "application/octet-stream" : "application/json" }),
         },
         ...(serialized === undefined ? {} : { body: serialized }),
       });
@@ -185,6 +189,21 @@ export class SixteenMemory {
   searchEvidence(input, call = {}) { return this.request("/v1/evidence/search", { ...call, method: "POST", body: input }); }
   reviewMemories(input, call = {}) { return this.request("/v1/memory-review", { ...call, method: "POST", body: input }); }
   ingest(input, call = {}) { return this.request("/v1/ingestions", { ...call, method: "POST", body: input }); }
+  ingestMedia(input, call = {}) { return this.request("/v1/media/ingestions", { ...call, method: "POST", body: input }); }
+  createMediaUpload(input, call = {}) { return this.request("/v1/media/uploads", { ...call, method: "POST", body: input }); }
+  mediaUpload(id, call = {}) { return this.request(`/v1/media/uploads/${encodeURIComponent(id)}`, call); }
+  uploadMediaPart(id, part, bytes, call = {}) { return this.request(`/v1/media/uploads/${encodeURIComponent(id)}/parts/${part}`, { ...call, method: "PUT", body: bytes }); }
+  completeMediaUpload(id, call = {}) { return this.request(`/v1/media/uploads/${encodeURIComponent(id)}/complete`, { ...call, method: "POST" }); }
+  cancelMediaUpload(id, call = {}) { return this.request(`/v1/media/uploads/${encodeURIComponent(id)}`, { ...call, method: "DELETE" }); }
+  async uploadMedia(input, blob, call = {}) {
+    if (!(typeof Blob !== "undefined" && blob instanceof Blob) || blob.size !== input.size_bytes || blob.size > 500 * 1024 * 1024) throw new MemoryTransportError("invalid_input");
+    let upload = await this.createMediaUpload(input, call);
+    while (upload.state === "uploading" && upload.received_bytes < blob.size) {
+      upload = await this.uploadMediaPart(upload.id, upload.next_part,
+        blob.slice(upload.received_bytes, Math.min(blob.size, upload.received_bytes + upload.part_size)), call);
+    }
+    return upload.state === "uploading" ? this.completeMediaUpload(upload.id, call) : upload;
+  }
   ingestion(id, call = {}) { return this.request(`/v1/ingestions/${encodeURIComponent(id)}`, call); }
   ingestions(user_id, call = {}) { return this.request("/v1/ingestions?" + new URLSearchParams({ user_id }), call); }
   resolveIngestion(id, approve, call = {}) { return this.request(`/v1/ingestions/${encodeURIComponent(id)}/resolve`, { ...call, method: "POST", body: { approve } }); }

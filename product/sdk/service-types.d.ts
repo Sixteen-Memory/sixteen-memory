@@ -43,6 +43,23 @@ export type IngestionInput = MemoryAttributes & {
   messages: { id: string; role: "user" | "assistant"; content: string }[];
   mode?: "review" | "auto"; expires_at?: string | null;
 };
+export type MediaMime = "audio/wav" | "audio/mpeg" | "video/mp4";
+export type MediaSegment = {
+  id: string; start_ms: number | null; end_ms: number | null;
+  speaker: string | null; kind: "speech" | "visual"; text: string;
+};
+export type MediaAnalysis = {
+  sha256: string; mime_type: MediaMime; model: string;
+  interpretation: "model_generated"; segments: MediaSegment[]; warnings: string[];
+};
+export type MediaIngestionInput = MemoryAttributes & {
+  user_id: string; request_id: string; ref: string; observed_at: string;
+  media: { mime_type: MediaMime; data_base64: string };
+  consent: true; mode?: "review"; expires_at?: string | null;
+};
+export type MediaUploadInput = Omit<MediaIngestionInput, "media"> & { mime_type: MediaMime; size_bytes: number };
+export type MediaUpload = { id: string; user_id: string; state: string; size_bytes: number; received_bytes: number;
+  part_size: number; next_part: number; expires_at: string; ingestion_id: string | null; error: string | null };
 export type IngestionDecision = {
   fact: { content: string; fact_key: string; source: Source; confidence: number };
   action: "add" | "merge" | "supersede"; target_id?: string; target_version?: number;
@@ -51,6 +68,6 @@ export type IngestionDecision = {
 export type IngestionJob = {
   id: string; user_id: string; state: string; expires_at: string;
   results: { memory_id: string; action: string }[];
-  proposal: (MemoryAttributes & { user_id: string; request_id: string; epoch: number; decisions: IngestionDecision[]; expires_at: string | null }) | null;
+  proposal: (MemoryAttributes & { user_id: string; request_id: string; epoch: number; decisions: IngestionDecision[]; expires_at: string | null; media?: MediaAnalysis }) | null;
   usage?: ModelUsage[]; slot_revision?: string; replay?: boolean;
 };

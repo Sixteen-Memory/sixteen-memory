@@ -5,7 +5,15 @@ export const MAX_MEMORIES = 10000;
 export type Role = "admin" | "read" | "write";
 export type Status = "active" | "revoked";
 export interface Identity { key_id: string; role: Role; user_id: string | null }
-export interface Source { type: "conversation" | "business" | "manual"; ref: string; text: string; observed_at: string }
+export interface MediaSegment {
+  id: string; start_ms: number | null; end_ms: number | null;
+  speaker: string | null; kind: "speech" | "visual"; text: string;
+}
+export interface MediaProvenance {
+  sha256: string; mime_type: "audio/wav" | "audio/mpeg" | "video/mp4"; model: string;
+  interpretation: "model_generated"; segments: MediaSegment[];
+}
+export interface Source { type: "conversation" | "business" | "manual"; ref: string; text: string; observed_at: string; media?: MediaProvenance }
 export type Metadata = Record<string, string | number | boolean | null>;
 export interface MemoryAttributes {
   metadata?: Metadata; category?: string | null; event_time?: string | null;
@@ -98,7 +106,38 @@ export function source(value: unknown): Source {
     ref: text(data.ref, "来源标识", 300),
     text: text(data.text, "来源正文", MAX_CONTENT),
     observed_at: date(data.observed_at, "来源时间"),
+    ...(data.media === undefined ? {} : { media: mediaProvenance(data.media) }),
   };
+}
+export function mediaSegments(value: unknown, mime: MediaProvenance["mime_type"], max = 32): MediaSegment[] {
+  if (!Array.isArray(value) || value.length > max) fail(422, "invalid_media_segments", `媒体片段最多${max}段`);
+  const segments = value.map(value => {
+    const s = object(value);
+    const unknownTime = s.start_ms === null && s.end_ms === null;
+    const validTime = Number.isSafeInteger(s.start_ms) && Number.isSafeInteger(s.end_ms) &&
+      Number(s.start_ms) >= 0 && Number(s.end_ms) > Number(s.start_ms) && Number(s.end_ms) <= 86_400_000;
+    if (!unknownTime && !validTime) fail(422, "invalid_media_timestamp", "媒体时间段无效；不确定时需同时为null");
+    if (!["speech", "visual"].includes(String(s.kind)) || (mime !== "video/mp4" && s.kind !== "speech") ||
+        (s.kind === "visual" && s.speaker !== null)) fail(422, "invalid_media_segment", "媒体片段类型或说话人无效");
+    const segment: MediaSegment = { id: identifier(s.id, "片段ID"), start_ms: s.start_ms as number | null,
+      end_ms: s.end_ms as number | null, speaker: s.speaker === null ? null : text(s.speaker, "说话人", 80),
+      kind: s.kind as MediaSegment["kind"], text: text(s.text, "片段内容", 1000) };
+    rejectSecrets(segment.text + (segment.speaker ?? ""));
+    return segment;
+  });
+  if (new Set(segments.map(s => s.id)).size !== segments.length ||
+      segments.reduce((n, s) => n + s.text.length, 0) > 16000) fail(422, "invalid_media_segments", "媒体片段重复或总长度超限");
+  return segments;
+}
+function mediaProvenance(value: unknown): MediaProvenance {
+  const data = object(value);
+  if (typeof data.sha256 !== "string" || !/^[a-f0-9]{64}$/.test(data.sha256) ||
+      !["audio/wav", "audio/mpeg", "video/mp4"].includes(String(data.mime_type)) ||
+      data.interpretation !== "model_generated") fail(422, "invalid_media_provenance", "媒体来源信息无效");
+  const model = text(data.model, "媒体模型", 100);
+  rejectSecrets(model);
+  return { sha256: data.sha256, mime_type: data.mime_type as MediaProvenance["mime_type"], model,
+    interpretation: "model_generated", segments: mediaSegments(data.segments, data.mime_type as MediaProvenance["mime_type"], 4) };
 }
 export function memoryInput(value: unknown, allowExpired = false): MemoryInput {
   const data = object(value);
@@ -137,7 +176,7 @@ export function equalDigest(left: string, right: string): boolean {
 export function randomSecret(): string {
   return [...crypto.getRandomValues(new Uint8Array(32))].map(n => n.toString(16).padStart(2, "0")).join("");
 }
-export async function readJson(request: Request): Promise<Record<string, unknown>> {
+export async function readJson(request: Request, maxBytes = MAX_BODY): Promise<Record<string, unknown>> {
   if (!request.headers.get("Content-Type")?.toLowerCase().startsWith("application/json")) fail(415, "content_type", "需要 application/json");
   const reader = request.body?.getReader();
   if (!reader) fail(422, "empty_body", "请求内容为空");
@@ -147,7 +186,7 @@ export async function readJson(request: Request): Promise<Record<string, unknown
     const { value, done } = await reader.read();
     if (done) break;
     size += value.byteLength;
-    if (size > MAX_BODY) { await reader.cancel(); fail(413, "body_limit", "请求内容超过 64 KiB"); }
+    if (size > maxBytes) { await reader.cancel(); fail(413, "body_limit", `请求内容超过 ${maxBytes / 1024} KiB`); }
     chunks.push(value);
   }
   const bytes = new Uint8Array(size);

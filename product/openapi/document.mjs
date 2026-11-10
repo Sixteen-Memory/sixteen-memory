@@ -11,7 +11,8 @@ const status = { type: "string", enum: ["active", "revoked"] };
 const source = object({
   type: { type: "string", enum: ["conversation", "business", "manual"] },
   ref: string(300), text: string(8000), observed_at: timestamp,
-});
+  media: ref("MediaProvenance"),
+}, ["type", "ref", "text", "observed_at"]);
 const memoryFields = { user_id: identifier, content: string(8000), source: ref("Source"), expires_at: nullableDate };
 const recordFields = {
   ...memoryFields, id: { type: "string", format: "uuid" }, version, status,
@@ -23,6 +24,16 @@ const identityFields = {
 };
 const schemas = {
   Source: source,
+  MediaProvenance: object({
+    sha256: { type: "string", pattern: "^[a-f0-9]{64}$" },
+    mime_type: { type: "string", enum: ["audio/wav", "audio/mpeg", "video/mp4"] },
+    model: string(100), interpretation: { type: "string", const: "model_generated" },
+    segments: { type: "array", maxItems: 4, items: object({
+      id: identifier, start_ms: { type: ["integer", "null"], minimum: 0, maximum: 86400000 },
+      end_ms: { type: ["integer", "null"], minimum: 1, maximum: 86400000 },
+      speaker: { type: ["string", "null"], maxLength: 80 }, kind: { type: "string", enum: ["speech", "visual"] }, text: string(1000),
+    }) },
+  }),
   Memory: object(recordFields),
   CreateMemory: {
     ...object({ request_id: identifier, ...memoryFields }, ["request_id", "user_id", "content", "source"]),

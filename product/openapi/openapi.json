@@ -1977,6 +1977,9 @@
           "observed_at": {
             "type": "string",
             "format": "date-time"
+          },
+          "media": {
+            "$ref": "#/components/schemas/MediaProvenance"
           }
         },
         "required": [
@@ -1984,6 +1987,97 @@
           "ref",
           "text",
           "observed_at"
+        ]
+      },
+      "MediaProvenance": {
+        "type": "object",
+        "properties": {
+          "sha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "mime_type": {
+            "type": "string",
+            "enum": [
+              "audio/wav",
+              "audio/mpeg",
+              "video/mp4"
+            ]
+          },
+          "model": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "interpretation": {
+            "type": "string",
+            "const": "model_generated"
+          },
+          "segments": {
+            "type": "array",
+            "maxItems": 4,
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 100,
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@-]*$"
+                },
+                "start_ms": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ],
+                  "minimum": 0,
+                  "maximum": 86400000
+                },
+                "end_ms": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ],
+                  "minimum": 1,
+                  "maximum": 86400000
+                },
+                "speaker": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "maxLength": 80
+                },
+                "kind": {
+                  "type": "string",
+                  "enum": [
+                    "speech",
+                    "visual"
+                  ]
+                },
+                "text": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 1000
+                }
+              },
+              "required": [
+                "id",
+                "start_ms",
+                "end_ms",
+                "speaker",
+                "kind",
+                "text"
+              ]
+            }
+          }
+        },
+        "required": [
+          "sha256",
+          "mime_type",
+          "model",
+          "interpretation",
+          "segments"
         ]
       },
       "Memory": {

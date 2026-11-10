@@ -14,6 +14,10 @@
     "EXTRACTION_ENABLED": "false",
     "EXTRACTION_BASE_URL": "",
     "EXTRACTION_MODEL": "",
+    "MEDIA_ENABLED": "false",
+    "MEDIA_BASE_URL": "",
+    "MEDIA_MODEL": "",
+    "MEDIA_OBJECT_BASE_URL": "",
     "EMBEDDINGS_ENABLED": "false",
     "EMBEDDING_PROVIDER": "qwen",
     "EMBEDDING_API_STYLE": "openai-compatible",
@@ -28,6 +32,9 @@
     "not_found_handling": "single-page-application",
     "run_worker_first": ["/v1/*", "/health", "/oauth/*", "/.well-known/oauth-*"]
   },
+  "r2_buckets": [
+    { "binding": "MEDIA_BUCKET", "bucket_name": "sixteen-memory-media" }
+  ],
   "durable_objects": {
     "bindings": [
       { "name": "PROJECTS", "class_name": "MemoryProject" }

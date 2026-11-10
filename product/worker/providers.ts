@@ -14,7 +14,7 @@ const configured = (enabled: string | undefined, url: string | undefined, model:
 export const extractionConfigured = (env: IntelligenceEnv) => configured(env.EXTRACTION_ENABLED, env.EXTRACTION_BASE_URL, env.EXTRACTION_MODEL, env.EXTRACTION_API_KEY);
 export const embeddingConfigured = (env: IntelligenceEnv) => configured(env.EMBEDDINGS_ENABLED, env.EMBEDDING_BASE_URL, env.EMBEDDING_MODEL, env.EMBEDDING_API_KEY);
 
-function endpoint(base: string | undefined, path: string) {
+export function endpoint(base: string | undefined, path: string) {
   let url: URL;
   try { url = new URL(base ?? ""); } catch { fail(503, "provider_config", "模型地址未配置"); }
   if (url.protocol !== "https:" || url.username || url.password || url.search || url.hash ||

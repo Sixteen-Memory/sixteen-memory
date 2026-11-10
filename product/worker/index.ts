@@ -6,8 +6,11 @@ import { generationOptions } from "./generation-options";
 import { organizeKnowledge } from "./knowledge";
 import { mcpRequest } from "./mcp";
 import { oauthHttp, oauthPath, oauthOrigin, oauthChallenge } from "./oauth-http";
+import { ingestMedia } from "./media";
+import { MAX_MEDIA_BODY, MAX_MEDIA_BYTES, MAX_MEDIA_SECONDS, MEDIA_CHUNK_BYTES, mediaUploadInput } from "./media-domain";
+import { mediaConfigured, type MediaEnv } from "./media-provider";
 export { MemoryProject };
-type RuntimeEnv = Env & IntelligenceEnv & { ADMIN_KEY?: string; MODEL_API_KEY?: string; MODEL_TOKEN_PARAMETER?: string; MODEL_THINKING?: string; OAUTH_ISSUER?: string };
+type RuntimeEnv = Env & IntelligenceEnv & MediaEnv & { ADMIN_KEY?: string; MODEL_API_KEY?: string; MODEL_TOKEN_PARAMETER?: string; MODEL_THINKING?: string; OAUTH_ISSUER?: string };
 const cookieName = "sixteen_session";
 
 function result(outcome: Outcome, extra?: HeadersInit) {
@@ -92,7 +95,9 @@ export default {
     if (url.pathname !== "/health" && !url.pathname.startsWith("/v1/") && !oauthPath(url.pathname)) return secure(await env.ASSETS.fetch(request));
     try {
       if (url.pathname === "/health" && request.method === "GET") {
-        return secure(Response.json({ status: "ok", version: VERSION, retrieval: embeddingConfigured(env) ? "hybrid_available" : "lexical", extraction: extractionConfigured(env) ? "assisted" : "explicit", model_configured: !!(env.MODEL_API_KEY && env.MODEL_NAME && env.MODEL_BASE_URL) }));
+        return secure(Response.json({ status: "ok", version: VERSION, retrieval: embeddingConfigured(env) ? "hybrid_available" : "lexical", extraction: extractionConfigured(env) ? "assisted" : "explicit",
+          media_ingestion: mediaConfigured(env) ? "assisted" : "disabled",
+          media_upload: { enabled: mediaConfigured(env) && !!env.MEDIA_BUCKET && !!env.MEDIA_OBJECT_BASE_URL, max_bytes: MAX_MEDIA_BYTES, max_seconds: MAX_MEDIA_SECONDS, part_bytes: MEDIA_CHUNK_BYTES }, model_configured: !!(env.MODEL_API_KEY && env.MODEL_NAME && env.MODEL_BASE_URL) }));
       }
       const origin = request.headers.get("Origin");
       if (origin && origin !== url.origin) fail(403, "origin_denied", "不允许跨站请求");
@@ -102,6 +107,14 @@ export default {
       if (!env.ADMIN_KEY || env.ADMIN_KEY.length < 32) fail(503, "setup_required", "管理员凭证尚未配置");
       const rootDigest = await hash(env.ADMIN_KEY);
       const project = env.PROJECTS.getByName(identifier(env.PROJECT_ID, "项目标识"));
+      const mediaFile = /^\/v1\/media\/files\/([a-f0-9-]{36})$/.exec(url.pathname);
+      if (mediaFile && ["GET", "HEAD"].includes(request.method)) {
+        const token = url.searchParams.get("token") ?? "";
+        if (!/^[a-f0-9]{64}$/.test(token)) return secure(new Response(null, { status: 404 }));
+        const response = await project.mediaFile(mediaFile[1], token, request.headers.get("Range"));
+        if (request.method === "HEAD") { await response.body?.cancel(); return secure(new Response(null, { status: response.status, headers: response.headers })); }
+        return secure(response);
+      }
       if (oauthPath(url.pathname)) return secure(await oauthHttp(request, oauthOrigin(env, request), project, rootDigest, () => authFor(request, rootDigest)));
       if (url.pathname === "/v1/session" && request.method === "POST") {
         const body = await readJson(request);
@@ -118,6 +131,30 @@ export default {
       }
       const auth = await authFor(request, rootDigest);
       const route = `${request.method} ${url.pathname}`;
+      if (route === "POST /v1/media/uploads") {
+        const body = await readJson(request);
+        const preflight = await project.execute(auth, "preflight", { user_id: body.user_id, write: true });
+        if (!preflight.ok) return secure(result(preflight));
+        if (!env.MEDIA_BUCKET || !env.MEDIA_OBJECT_BASE_URL) fail(503, "media_storage_not_configured", "30分钟媒体上传需要启用私有文件存储");
+        if (!mediaConfigured(env)) fail(503, "media_not_configured", "音视频模型尚未启用");
+        if (!/^qwen3\.(?:5|8)-omni-/.test(env.MEDIA_MODEL!)) fail(503, "media_model_duration", "此媒体模型不支持30分钟音视频");
+        const input = mediaUploadInput(body);
+        return secure(result(await project.execute(auth, "media_upload_begin", input, await hash(JSON.stringify(input)))));
+      }
+      const uploadRoute = /^\/v1\/media\/uploads\/([a-f0-9-]{36})(?:\/(parts\/(\d+)|complete))?$/.exec(url.pathname);
+      if (uploadRoute) {
+        const id = uploadRoute[1];
+        if (request.method === "GET" && !uploadRoute[2]) return secure(result(await project.execute(auth, "media_upload_get", { id })));
+        if (request.method === "DELETE" && !uploadRoute[2]) return secure(result(await project.execute(auth, "media_upload_delete", { id })));
+        if (request.method === "POST" && uploadRoute[2] === "complete") return secure(result(await project.mediaReady(auth, id)));
+        if (request.method === "PUT" && uploadRoute[3]) {
+          const preflight = await project.execute(auth, "media_upload_get", { id });
+          if (!preflight.ok) return secure(result(preflight));
+          if (!request.body) fail(422, "empty_body", "媒体分片为空");
+          // RPC streams do not hit the serialized-argument size limit.
+          return secure(result(await project.mediaPart(auth, id, Number(uploadRoute[3]), request.body)));
+        }
+      }
       if (url.pathname === "/v1/mcp") {
         const response = await mcpRequest(request, env, project, auth);
         if (response.status === 401) {
@@ -168,6 +205,7 @@ export default {
         return secure(result(await project.execute(auth, route.endsWith("memory-review") ? "memory_review" : "evidence_search", await readJson(request))));
       }
       if (route === "POST /v1/ingestions") return secure(Response.json(await ingest(env, project, auth, await readJson(request))));
+      if (route === "POST /v1/media/ingestions") return secure(Response.json(await ingestMedia(env, project, auth, await readJson(request, MAX_MEDIA_BODY))));
       if (route === "POST /v1/reindex") return secure(Response.json(await reindex(env, project, auth, await readJson(request))));
       if (route === "POST /v1/search" || route === "POST /v1/answer") {
         const input = await readJson(request);

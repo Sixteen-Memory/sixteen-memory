@@ -1,4 +1,5 @@
 import json
+import os
 import math
 import re
 import socket
@@ -93,16 +94,20 @@ class SixteenMemory:
         self._opener = build_opener(_NoRedirect())
 
     def _request(self, path: str, method: str = "GET", body: Any = None) -> Any:
+        binary = method == "PUT" and re.fullmatch(r"/v1/media/uploads/[a-f0-9-]{36}/parts/[0-9]+", path)
+        if binary and not isinstance(body, bytes):
+            raise MemoryTransportError("invalid_input")
         try:
-            data = None if body is None else json.dumps(body, ensure_ascii=False, allow_nan=False,
+            data = body if binary else None if body is None else json.dumps(body, ensure_ascii=False, allow_nan=False,
                                                        separators=(",", ":")).encode("utf-8")
         except (ValueError, TypeError):
             raise MemoryTransportError("invalid_input") from None
-        if data is not None and len(data) > 64 * 1024:
+        max_request = 8 * 1024 * 1024 if binary else 10 * 1024 * 1024 if path == "/v1/media/ingestions" and method == "POST" else 64 * 1024
+        if data is not None and len(data) > max_request:
             raise MemoryTransportError("request_too_large")
         headers = {"Authorization": "Bearer " + self._api_key, "Accept": "application/json"}
         if data is not None:
-            headers["Content-Type"] = "application/json"
+            headers["Content-Type"] = "application/octet-stream" if binary else "application/json"
         req = Request(self._base_url + path, data=data, headers=headers, method=method)
         try:
             try:
@@ -182,6 +187,43 @@ class SixteenMemory:
 
     def ingest(self, **data: Any) -> Dict[str, Any]:
         return self._request("/v1/ingestions", "POST", data)
+
+    def ingest_media(self, **data: Any) -> Dict[str, Any]:
+        return self._request("/v1/media/ingestions", "POST", data)
+
+    def create_media_upload(self, **data: Any):
+        return self._request("/v1/media/uploads", "POST", data)
+
+    def media_upload(self, upload_id: str):
+        return self._request("/v1/media/uploads/" + _id(upload_id))
+
+    def upload_media_part(self, upload_id: str, part: int, data: bytes):
+        if type(part) is not int or part < 1 or part > 63:
+            raise MemoryTransportError("invalid_input")
+        return self._request("/v1/media/uploads/" + _id(upload_id) + "/parts/" + str(part), "PUT", data)
+
+    def complete_media_upload(self, upload_id: str):
+        return self._request("/v1/media/uploads/" + _id(upload_id) + "/complete", "POST")
+
+    def cancel_media_upload(self, upload_id: str):
+        return self._request("/v1/media/uploads/" + _id(upload_id), "DELETE")
+
+    def upload_media(self, file_path: str, **data: Any):
+        try:
+            size = os.path.getsize(file_path)
+        except (OSError, TypeError):
+            raise MemoryTransportError("invalid_input") from None
+        if size < 16 or size > 500 * 1024 * 1024:
+            raise MemoryTransportError("invalid_input")
+        upload = self.create_media_upload(size_bytes=size, **data)
+        with open(file_path, "rb") as source:
+            while upload["state"] == "uploading" and upload["received_bytes"] < size:
+                source.seek(upload["received_bytes"])
+                chunk = source.read(upload["part_size"])
+                if not chunk:
+                    raise MemoryTransportError("invalid_input")
+                upload = self.upload_media_part(upload["id"], upload["next_part"], chunk)
+        return self.complete_media_upload(upload["id"]) if upload["state"] == "uploading" else upload
 
     def resolve_ingestion(self, job_id: str, approve: bool) -> Dict[str, Any]:
         return self._request("/v1/ingestions/" + _id(job_id) + "/resolve", "POST", {"approve": approve})

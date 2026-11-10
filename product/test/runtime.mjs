@@ -235,6 +235,7 @@ try {
     assert.equal((await request("POST", "/v1/search", { user_id: "customer-1", query: "网络", mode: "semantic" })).status, 503);
     assert.equal((await request("POST", "/v1/search", { user_id: "customer-1", query: "网络", mode: "semantic", fallback: "lexical" })).body.retrieval, "lexical");
     assert.equal((await request("POST", "/v1/ingestions", { user_id: "customer-1", request_id: "disabled", ref: "session", observed_at: "2026-11-04T09:00:00Z", messages: [{ id: "m1", role: "user", content: "我住在柏林" }] })).status, 503);
+    assert.equal((await request("POST", "/v1/media/ingestions", { user_id: "customer-1", request_id: "disabled-media" })).body.error.code, "media_not_configured");
   });
   await run("model-assisted extraction, review, evidence and hybrid retrieval", async () => {
     const seed = draft("smart-seed", "smart-user", "用户偏好中文沟通");

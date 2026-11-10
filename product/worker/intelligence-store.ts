@@ -105,7 +105,11 @@ export class IntelligenceStore {
       }
       if (this.sql.exec<{ n: number }>("SELECT count(*) n FROM ingest_jobs WHERE user_id=? AND state IN ('running','review')", user).one().n >= 20) fail(409, "proposal_limit", "当前用户有20个待处理导入，请先审核或清理");
       const id = crypto.randomUUID();
-      this.sql.exec("INSERT INTO ingest_jobs VALUES (?,?,?,?,?,'running',NULL,?,?)", id, who.key_id, user, request, digest, new Date(Date.now() + 86400_000).toISOString(), now);
+      // A pending proposal must not outlive the requested memory retention.
+      const requestedExpiry = typeof input.expires_at === "string" ? Date.parse(input.expires_at) : Infinity;
+      if (!Number.isFinite(requestedExpiry) && input.expires_at != null) fail(422, "invalid_expiry", "到期时间无效");
+      const expires = Math.min(Date.now() + 86400_000, requestedExpiry);
+      this.sql.exec("INSERT INTO ingest_jobs VALUES (?,?,?,?,?,'running',NULL,?,?)", id, who.key_id, user, request, digest, new Date(expires).toISOString(), now);
       return { id, user_id: user, epoch: this.epoch(user), replay: false };
     }
     if (action === "ingest_get" || action === "ingest_fail" || action === "ingest_finish" || action === "ingest_resolve") {
