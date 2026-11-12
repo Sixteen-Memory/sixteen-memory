@@ -1,7 +1,10 @@
 # Code Agent connections
 
-Status: local implementation, not deployed or published. Requires Node.js 24
-and the existing product dependencies (`npm ci` in `product/`).
+Status: server catalog deployed on November 12, 2026. Helpers are private
+repository source, not a registry package or an automatic client installation.
+See the [release receipt](../../AGENT_ACCESS_RELEASE_2026-11-12.md) for production
+checks and network limitations. Requires Node.js 24 and the existing product
+dependencies (`npm ci` in `product/`).
 
 Codex and Claude Code connect directly to the existing MCP endpoint using its
 read-only API-key profile.

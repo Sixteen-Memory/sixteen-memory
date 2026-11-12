@@ -9,15 +9,16 @@
       "id": "code-agent-access",
       "as_of": "2026-11-12",
       "title": "Code Agent connections and MCP capability discovery",
-      "status": "local",
-      "public_claim": "Local Codex/Claude Code API-key configuration helpers, metadata-only MCP checks and a shared read-only tool catalog. Existing OAuth and approved-write flows are unchanged. No A2A endpoint, automatic capture, new deployment or package publication.",
+      "status": "live",
+      "public_claim": "API-key read-only capability catalog deployed November 12. Codex/Claude Code helpers remain private repository source. Production metadata/helper checks passed; complete production smoke remains incomplete due to diagnostic errors and connection timeouts. Existing OAuth and approved-write flows are unchanged. No A2A endpoint, automatic capture or package publication.",
       "evidence": [
         "product/integrations/code-agents/README.md",
         "product/worker/mcp-tools.ts",
         "product/test/code-agents.test.mjs",
-        "product/test/agent-access-runtime.mjs"
+        "product/test/agent-access-runtime.mjs",
+        "product/AGENT_ACCESS_RELEASE_2026-11-12.md"
       ],
-      "publishable_as_available": false
+      "publishable_as_available": true
     },
     {
       "id": "conversations-knowledge-mcp-python",
