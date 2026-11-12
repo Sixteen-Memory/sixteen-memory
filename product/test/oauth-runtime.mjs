@@ -135,8 +135,10 @@ try {
     const authCode = new URL(approved.headers.get("Location")).searchParams.get("code");
     assert.equal(await sdkAuth(provider, { serverUrl: origin + "/v1/mcp", authorizationCode: authCode, fetchFn: transport }), "AUTHORIZED");
     readOnly = await connect(tokens.access_token); assert.equal((await readOnly.listTools()).tools.length, 7);
+    assert.match(readOnly.getInstructions(), /Read-only memory service/);
     full = await issue(); mcp = await connect(full.token);
     assert.equal((await mcp.listTools()).tools.length, 10);
+    assert.equal(mcp.getInstructions(), undefined, "read-only profile instructions must not misdescribe an OAuth write grant");
     assert.equal((await (await connect(writer)).listTools()).tools.length, 7, "legacy keys remain read-only MCP");
   });
   let saved, pending;

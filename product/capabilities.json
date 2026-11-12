@@ -6,6 +6,20 @@
   "evidence_note": "Paths and release receipts record implementation and deployment state. Provider credentials and private logs remain excluded.",
   "items": [
     {
+      "id": "code-agent-access",
+      "as_of": "2026-11-12",
+      "title": "Code Agent connections and MCP capability discovery",
+      "status": "local",
+      "public_claim": "Local Codex/Claude Code API-key configuration helpers, metadata-only MCP checks and a shared read-only tool catalog. Existing OAuth and approved-write flows are unchanged. No A2A endpoint, automatic capture, new deployment or package publication.",
+      "evidence": [
+        "product/integrations/code-agents/README.md",
+        "product/worker/mcp-tools.ts",
+        "product/test/code-agents.test.mjs",
+        "product/test/agent-access-runtime.mjs"
+      ],
+      "publishable_as_available": false
+    },
+    {
       "id": "conversations-knowledge-mcp-python",
       "as_of": "2026-11-09",
       "title": "Complete conversations, knowledge workspace, MCP and Python SDK",
