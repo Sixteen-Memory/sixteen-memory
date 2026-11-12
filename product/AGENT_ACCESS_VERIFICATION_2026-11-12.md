@@ -34,9 +34,10 @@ Read-only instructions are not injected into OAuth write sessions.
 | Check | Result |
 | --- | --- |
 | Product `npm run build` | TypeScript, Vite and Worker dry-run passed |
-| Product `npm test` | 41 tests passed, including four new helper tests |
+| Product `npm test` | 47 tests passed on the updated main baseline, including four new helper tests |
 | `npm run test:agent-access` | Six groups passed over loopback HTTP, Pages, Worker and SQLite |
 | `npm run test:knowledge` | Eight existing groups passed; fixture providers only |
+| `npm run test:oauth` | Nine existing OAuth groups passed; read-only instructions present for read grants and absent from write grants |
 | `node integrations/code-agents/native-config-check.mjs` | Installed Codex and Claude Code parsed generated configs in temporary homes; Claude project approval remained pending |
 | Local Wrangler preview on port 8792 | GET capability catalog returned seven tools; default ports were occupied and left unchanged |
 
