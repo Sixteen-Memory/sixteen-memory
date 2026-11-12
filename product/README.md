@@ -31,6 +31,12 @@ The stable v0.1 OpenAPI and website-download SDK remain compatibility artifacts.
 
 ## Run locally
 
+For Codex and Claude Code, see [Code Agent connections](integrations/code-agents/README.md).
+The November 12 local addition provides native MCP configuration helpers,
+metadata-only connection checks and `GET /v1/capabilities`; it has not been
+deployed. This API-key profile remains read-only and user-scoped; the separate
+existing OAuth and approved-write flow is unchanged.
+
 From `product/`:
 
 ```sh

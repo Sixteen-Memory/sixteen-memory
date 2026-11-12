@@ -9,6 +9,7 @@ import { oauthHttp, oauthPath, oauthOrigin, oauthChallenge } from "./oauth-http"
 import { ingestMedia } from "./media";
 import { MAX_MEDIA_BODY, MAX_MEDIA_BYTES, MAX_MEDIA_SECONDS, MEDIA_CHUNK_BYTES, mediaUploadInput } from "./media-domain";
 import { mediaConfigured, type MediaEnv } from "./media-provider";
+import { memoryCapabilities } from "./mcp-tools";
 export { MemoryProject };
 type RuntimeEnv = Env & IntelligenceEnv & MediaEnv & { ADMIN_KEY?: string; MODEL_API_KEY?: string; MODEL_TOKEN_PARAMETER?: string; MODEL_THINKING?: string; OAUTH_ISSUER?: string };
 const cookieName = "sixteen_session";
@@ -104,6 +105,10 @@ export default {
       const ipKey = await hash(request.headers.get("CF-Connecting-IP") ?? "local");
       const limiter = (url.pathname === "/v1/session" || url.pathname === "/oauth/consent") && request.method === "POST" ? env.LOGIN_LIMITER : env.API_LIMITER;
       if (!(await limiter.limit({ key: ipKey })).success) fail(429, "rate_limit", "请求过于频繁，请稍后再试");
+      if (url.pathname === "/v1/capabilities") {
+        if (request.method !== "GET") return secure(new Response(null, { status: 405, headers: { Allow: "GET" } }));
+        return secure(Response.json(memoryCapabilities()));
+      }
       if (!env.ADMIN_KEY || env.ADMIN_KEY.length < 32) fail(503, "setup_required", "管理员凭证尚未配置");
       const rootDigest = await hash(env.ADMIN_KEY);
       const project = env.PROJECTS.getByName(identifier(env.PROJECT_ID, "项目标识"));

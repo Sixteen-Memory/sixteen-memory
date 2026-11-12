@@ -14,6 +14,7 @@
 | [SDK guide](../product/sdk/README.md) | Typed TypeScript / JavaScript package, methods, availability, and errors |
 | [OpenAPI](../product/openapi/README.md) | Versioned specification, generated types, and local API checks |
 | [Vercel AI SDK adapter](../product/integrations/vercel-ai/README.md) | Server-side retrieval middleware, read-only tools, explicit writes, and tests |
+| [Code Agent connections](../product/integrations/code-agents/README.md) | Codex/Claude Code configuration, metadata-only connection checks and MCP capability discovery |
 | [End-to-end integration](../product/integrations/vercel-ai/examples/end-to-end.mjs) | Runnable authenticated HTTP chat against real local storage; model mocked |
 
 ## 02 / Understand the system
