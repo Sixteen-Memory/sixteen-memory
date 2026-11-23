@@ -9,14 +9,15 @@
       "id": "incremental-source-linked-wiki",
       "as_of": "2026-11-23",
       "title": "Incremental source-linked Wiki",
-      "status": "local",
-      "public_claim": "Local candidate records page/source dependencies, preserves unrelated pages, removes stale claims from reads, retains source-backed conflicts for review and supports exact-page rebuilds. Production model generation remains disabled; no scheduled maintenance or general entity graph.",
+      "status": "live",
+      "public_claim": "Deployed November 23 code records page/source dependencies, preserves unrelated pages, removes stale claims from reads, retains source-backed conflicts for review and supports exact-page rebuilds. Production model generation remains disabled; no scheduled maintenance, generated production Wiki quality claim or general entity graph.",
       "evidence": [
         "product/INCREMENTAL_WIKI_2026-11-23.md",
         "product/worker/knowledge-store.ts",
-        "product/test/wiki-runtime.mjs"
+        "product/test/wiki-runtime.mjs",
+        "product/INCREMENTAL_WIKI_RELEASE_2026-11-23.md"
       ],
-      "publishable_as_available": false
+      "publishable_as_available": true
     },
     {
       "id": "code-agent-access",

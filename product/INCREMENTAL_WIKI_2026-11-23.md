@@ -1,7 +1,7 @@
 # Incremental source-linked Wiki
 
-Date: November 23, 2026. Source candidate; production results are recorded only
-after merge and deployment.
+Date: November 23, 2026. The source candidate was subsequently deployed; see the
+[production release receipt](INCREMENTAL_WIKI_RELEASE_2026-11-23.md).
 
 ## Behavior
 
