@@ -1,13 +1,14 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { api, errorMessage } from "./api";
 import { Dialog } from "./Dialog";
-import type { Conversation, ConversationPage, KnowledgeJob, KnowledgePage } from "../sdk/index.mjs";
+import type { Conversation, ConversationPage, KnowledgeJob, KnowledgePage, WikiPage as PublishedPage, StaleWikiPage } from "../sdk/index.mjs";
 const states: Record<string, string> = { running: "处理中", review: "待确认", applied: "已发布", stale: "来源变化，已失效", replaced: "已替换", expired: "已过期", rejected: "已拒绝", failed: "失败，不自动重试" };
 const roles = { user: "用户", assistant: "助手（非事实凭证）", system: "系统（仅原文）", tool: "工具（未独立验证）" };
 export function KnowledgePanel({ userId, canWrite }: { userId: string; canWrite: boolean }) {
   const [tab, setTab] = useState("conversations"), [error, setError] = useState(""), [busy, setBusy] = useState(false);
   const [rows, setRows] = useState<Conversation[]>([]), [cursor, setCursor] = useState<string | null>(null);
-  const [pages, setPages] = useState<KnowledgePage[]>([]), [jobs, setJobs] = useState<KnowledgeJob[]>([]);
+  const [pages, setPages] = useState<PublishedPage[]>([]), [stale, setStale] = useState<StaleWikiPage[]>([]), [jobs, setJobs] = useState<KnowledgeJob[]>([]);
+  const [rebuild, setRebuild] = useState<PublishedPage | StaleWikiPage | null>(null);
   const [graph, setGraph] = useState<Awaited<ReturnType<typeof api.graph>>>({ nodes: [], edges: [] });
   const [detail, setDetail] = useState<ConversationPage | null>(null), [confirmDelete, setConfirmDelete] = useState(false);
   const [selected, setSelected] = useState<string[]>([]), [mode, setMode] = useState<"review" | "auto">("review");
@@ -22,7 +23,7 @@ export function KnowledgePanel({ userId, canWrite }: { userId: string; canWrite:
   async function refresh() {
     try {
       const [c, p, g, j] = await Promise.all([api.conversations(userId, "", call()), api.wiki(userId, call()), api.graph(userId, call()), api.knowledgeRuns(userId, call())]);
-      if (active.current) { setRows(c.data); setCursor(c.next_cursor); setPages(p.data); setGraph(g); setJobs(j); setSelected(ids => ids.filter(id => c.data.some(r => r.id === id))); }
+      if (active.current) { setRows(c.data); setCursor(c.next_cursor); setPages(p.data); setStale(p.stale ?? []); setGraph(g); setJobs(j); setSelected(ids => ids.filter(id => c.data.some(r => r.id === id))); }
     } catch (e) { if (active.current) setError(errorMessage(e)); }
   }
   async function run(fn: () => Promise<void>) {
@@ -47,7 +48,7 @@ export function KnowledgePanel({ userId, canWrite }: { userId: string; canWrite:
     <div className="segmented context-tabs" aria-label="知识视图">{[["conversations", "完整会话"], ["wiki", "Wiki"], ["graph", "图谱"]].map(([value, label]) =>
       <button key={value} aria-pressed={tab === value} onClick={() => setTab(value)}>{label}</button>)}</div>
     {!userId ? <p>请先选择用户。</p> : <>
-      <p className="muted">仅保存明确提交的会话。原文与知识页都是参考数据，不是系统指令。来源变更会使该用户的旧知识页失效。</p>
+      <p className="muted">仅保存明确提交的会话。原文与知识页都是参考数据，不是系统指令。来源变更只使依赖它的知识页失效；其他页面继续可读。模型未配置时无法生成或重建知识页。</p>
       {error && <p className="error" role="alert">{error}</p>}
       <button className="secondary" disabled={busy} onClick={() => void refresh()}>刷新知识</button>
       {tab === "conversations" && <>
@@ -82,7 +83,19 @@ export function KnowledgePanel({ userId, canWrite }: { userId: string; canWrite:
           })}>整理所选会话（{selected.length}）</button>
           <button className="secondary" disabled={busy} onClick={() => { renew("organize"); setError("新请求已就绪；请先检查旧任务，避免重复模型费用。"); }}>新建整理请求</button></div>}
       </>}
-      {tab === "wiki" && <>{pages.map(page => <WikiPage key={page.slug} page={page} />)}{!pages.length && <p className="empty">暂无有效知识页。请整理会话并审核发布。</p>}</>}
+      {tab === "wiki" && <>
+        {pages.map(page => <div key={page.slug}><WikiPage page={page} />
+          {page.has_conflicts && <p className="context-warning">存在未裁定的冲突报告，请保留各方来源，不要自动选为唯一事实。</p>}
+          <small>{page.sources.length} 条引用来源 · 当前有效</small>
+          {canWrite && <button className="secondary" disabled={busy} onClick={() => { renew("organize"); setRebuild(page); }}>重建此页：{page.title}</button>}
+        </div>)}
+        {!pages.length && <p className="empty">暂无有效知识页。请整理会话并审核发布。</p>}
+        {!!stale.length && <h2>待重建页面</h2>}
+        {stale.map(page => <article className="result" key={page.id}><h3>{page.title}</h3><small>{page.slug} · 来源已变化 · {page.stale_at}</small>
+          <p>旧主张和引用已清除，不再用于回答。无关页面不受影响。</p>
+          {canWrite && <button className="secondary" disabled={busy} onClick={() => { renew("organize"); setRebuild(page); }}>重建此页：{page.title}</button>}
+        </article>)}
+      </>}
       {tab === "graph" && <><p className="context-summary">{graph.nodes.length} 个主题节点 · {graph.edges.length} 条关联（非通用实体数据库）</p>
         {!!graph.nodes.length && <svg className="knowledge-graph" viewBox="0 0 600 400" role="img" aria-label="知识主题关联图">
           {graph.edges.map((edge, index) => {
@@ -95,6 +108,7 @@ export function KnowledgePanel({ userId, canWrite }: { userId: string; canWrite:
         {graph.edges.map((edge, index) => <article className="result" key={index}><p>{edge.from} → {edge.relation} → {edge.to}</p>
           {edge.citations.map((c, i) => <blockquote key={i}>{c.quote}<small className="citation-source">{c.source_key}</small></blockquote>)}</article>)}</>}
       <h2>整理任务</h2>{jobs.map(job => <article className="result" key={job.id}><header><strong>{states[job.state] ?? job.state}</strong><small>{job.id}</small></header>
+        <p className="muted">{job.target_slugs ? `仅替换：${job.target_slugs.join("、")}` : "完整重建：替换全部知识页"}</p>
         {job.error && <p>{job.error}</p>}
         {!!job.proposal?.unsupported_items?.length && <p className="context-warning">模型检查发现 {job.proposal.unsupported_items.length} 个未充分支持的条目，请逐项核对。</p>}
         {job.proposal?.pages.map(page => <WikiPage key={page.slug} page={page} />)}
@@ -102,6 +116,18 @@ export function KnowledgePanel({ userId, canWrite }: { userId: string; canWrite:
           onClick={() => void run(async () => { await api.resolveKnowledge(job.id, approve); if (active.current) await refresh(); })}>{approve ? "确认发布知识页" : "拒绝并清除候选"}</button>)}</div>}
       </article>)}
     </>}
+    {rebuild && <Dialog title={`重建 ${rebuild.title}`} close={() => { setRebuild(null); setError(""); }}><div className="form-stack">
+      <p>读取此页依赖的最新来源，生成候选后由你审核。只替换此页，无关页面不变。旧的跨页关系将移除；需要恢复关系时请一起整理相关页面。</p>
+      <p>此操作会把来源发送给配置的模型，可能产生费用。模型未启用时返回明确错误，不会伪造知识页。</p>
+      <ul>{[...new Set(rebuild.sources.map(s => `${s.kind}: ${s.id}`))].map(source => <li key={source}>{source}</li>)}</ul>
+      <button className="primary" disabled={busy} onClick={() => void run(async () => {
+        await api.organize({ user_id: userId, request_id: requests.current.organize, target_slugs: [rebuild.slug],
+          memory_ids: [...new Set(rebuild.sources.filter(s => s.kind === "memory").map(s => s.id))],
+          conversation_ids: [...new Set(rebuild.sources.filter(s => s.kind === "conversation").map(s => s.id))], mode: "review" }, call());
+        if (active.current) { setRebuild(null); setError(""); await refresh(); }
+      })}>生成此页候选（待审核）</button>
+      {error && <p className="error" role="alert">{error}</p>}
+    </div></Dialog>}
     {detail && <Dialog title={detail.title} close={() => { setDetail(null); setConfirmDelete(false); setAppend(""); }}><div className="form-stack">
       <small>{detail.id} · v{detail.version}</small>{detail.messages.map(message => <article key={message.id}><strong>{roles[message.role]}</strong>
         <small> · {message.id} · {message.observed_at}</small><blockquote>{message.content}</blockquote></article>)}
@@ -111,7 +137,7 @@ export function KnowledgePanel({ userId, canWrite }: { userId: string; canWrite:
         renew("append"); if (active.current) { setAppend(""); const fresh = await api.conversation(updated.id, "", call()); if (active.current) setDetail(fresh); await refresh(); }
       }); }}><label>追加消息 JSON<textarea required rows={5} value={append} onChange={e => { setAppend(e.target.value); renew("append"); }} /></label>
         <button className="primary" disabled={busy}>确认追加</button></form></details>
-        {confirmDelete ? <div><p>删除原文及该用户派生知识页，不能在控制台恢复。平台备份保留期另计。</p>
+        {confirmDelete ? <div><p>删除原文及依赖此会话的知识页，不能在控制台恢复。无关页面保留，平台备份保留期另计。</p>
           <button className="primary danger-bg" disabled={busy} onClick={() => void run(async () => { await api.deleteConversation(detail.id, detail.version);
             if (active.current) { setDetail(null); setConfirmDelete(false); setHits(null); await refresh(); } })}>确认删除会话</button>
           <button className="secondary" onClick={() => setConfirmDelete(false)}>取消</button></div> : <button className="secondary danger" onClick={() => setConfirmDelete(true)}>删除会话</button>}</>}
@@ -119,6 +145,7 @@ export function KnowledgePanel({ userId, canWrite }: { userId: string; canWrite:
   </section>;
 }
 function WikiPage({ page }: { page: KnowledgePage }) {
-  return <article className="result"><h2>{page.title}</h2><small>{page.slug}</small>{page.claims.map((claim, index) => <div className="knowledge-claim" key={index}><p>{claim.text}</p>
+  return <article className="result"><h2>{page.title}</h2><small>{page.slug}</small>{page.claims.map((claim, index) => <div className="knowledge-claim" key={index}>
+    {claim.status === "conflicted" && <p className="context-warning">冲突组 {claim.conflict_group} · 保留不同报告，未裁定真伪</p>}<p>{claim.text}</p>
     {claim.citations.map((citation, i) => <details key={i}><summary>查看引用</summary><blockquote>{citation.quote}<small className="citation-source">{citation.source_key}</small></blockquote></details>)}</div>)}</article>;
 }

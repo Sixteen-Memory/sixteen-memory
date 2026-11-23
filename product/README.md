@@ -121,6 +121,8 @@ DEPLOYMENT.md Deployment boundaries and prerequisites
 
 [Complete conversations, source-linked Wiki/topic graph and MCP](KNOWLEDGE_RELEASE.md)
 are implemented with a console workspace and [Python SDK](sdk-python/README.md).
+The November 23 candidate adds [incremental source dependencies, conflict labels
+and reviewed single-page rebuilds](INCREMENTAL_WIKI_2026-11-23.md).
 Model-driven organization is separate from deployment: it requires approved
 provider configuration and independent quality review.
 

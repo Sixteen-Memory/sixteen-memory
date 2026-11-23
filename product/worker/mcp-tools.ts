@@ -25,7 +25,7 @@ export const memoryTools = {
     inputSchema: z.object({ id, cursor: z.string().regex(/^\d{1,5}$/).optional() }).strict(), annotations,
   },
   list_wiki: {
-    description: "List source-linked derived knowledge pages for this user. Stale sources invalidate pages.",
+    description: "List current source-linked Wiki pages plus metadata-only stale pages needing rebuild. Stale claims are not returned. Conflict labels remain unresolved reports.",
     inputSchema: z.object({}).strict(), annotations,
   },
   read_wiki: {

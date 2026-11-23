@@ -34,10 +34,13 @@ export type Conversation = { id: string; user_id: string; title: string; version
 export type ConversationPage = Conversation & { messages: Message[]; next_cursor: string | null };
 export type KnowledgeSource = { key: string; kind: "memory" | "conversation"; id: string; version: number; message_id?: string; role: string; text: string; observed_at?: string; source_type?: string; ref?: string };
 export type Citation = { source_key: string; quote: string };
-export type KnowledgePage = { slug: string; title: string; claims: { text: string; citations: Citation[] }[] };
+export type KnowledgePage = { slug: string; title: string; claims: { text: string; citations: Citation[]; status?: "reported" | "conflicted"; conflict_group?: string }[] };
+export type WikiPage = KnowledgePage & { id: string; user_id: string; run_id: string; created_at: string; state: "active"; has_conflicts: boolean; sources: Omit<KnowledgeSource, "text">[] };
+export type StaleWikiPage = { id: string; slug: string; title: string; state: "stale"; stale_at: string; reason: "source_changed"; sources: Omit<KnowledgeSource, "text">[] };
+export type WikiListing = { data: WikiPage[]; stale: StaleWikiPage[] };
 export type KnowledgeEdge = { from: string; to: string; relation: "related" | "supports" | "conflicts"; citations: Citation[] };
 export type KnowledgePlan = { pages: KnowledgePage[]; edges: KnowledgeEdge[]; sources: KnowledgeSource[]; unsupported_items?: number[] };
-export type KnowledgeJob = { id: string; user_id: string; state: string; proposal: KnowledgePlan | null; error: string | null; created_at: string; expires_at: string };
+export type KnowledgeJob = { id: string; user_id: string; state: string; proposal: KnowledgePlan | null; error: string | null; created_at: string; expires_at: string; target_slugs?: string[] | null };
 export type IngestionInput = MemoryAttributes & {
   user_id: string; request_id: string; ref: string; observed_at: string;
   messages: { id: string; role: "user" | "assistant"; content: string }[];
