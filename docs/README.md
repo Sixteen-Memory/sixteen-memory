@@ -23,6 +23,7 @@
 | :--- | :--- |
 | [Architecture](ARCHITECTURE.md) | Access, rules, SQLite, model calls, and deployment boundaries |
 | [Memory service](../product/worker/README.md) | Key source files and maintenance rules |
+| [Incremental source-linked Wiki](../product/INCREMENTAL_WIKI_2026-11-23.md) | Page dependencies, stale-data exclusion, retained conflicts and reviewed exact-page rebuilds |
 | [Roadmap](ROADMAP.md) | Implemented, development-stage, and unavailable capabilities |
 | [API additions](../product/ROUND1_API.md) | Development attributes, filters, validity windows, and upgrade considerations |
 | [Provider policy](../product/PROVIDER_POLICY.md) | Generation and Qwen embedding configuration boundaries |

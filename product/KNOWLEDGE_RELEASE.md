@@ -21,18 +21,24 @@ publication results. No model credential is part of this repository.
   extracted facts. It does not recover conversations that were never submitted.
 - Model-driven organization reads explicit selected sources in full, produces
   small source-linked wiki pages and a topic graph, and checks the generated
-  statements in a second model call. A run replaces the user's entire derived
-  wiki, not original memories. Include every desired source when rebuilding.
+  statements in a second model call. By default a run replaces the user's
+  entire derived wiki, not original memories. `target_slugs` can instead replace
+  one to eight exact pages after review while unrelated pages remain unchanged.
 - The graph connects topic pages with `related`, `supports`, or `conflicts`
   edges and exact-source citations. It is not a general entity graph database,
   an independently verified ontology, or a multi-hop graph retrieval engine.
 - Organization defaults to `review`; `mode:"auto"` publishes only after all
   model checks pass. Unsupported items remain visible in the review proposal.
+  Any generated conflict claim or `conflicts` edge always remains in review,
+  even when the verifier accepts its citations.
   An exact citation and a second model's agreement do not prove factual truth.
   Only low-risk material should use automatic publication.
-- Changing any memory or conversation in a user scope invalidates that user's
-  derived pages, edges and pending proposals. This deliberately favors correctness
-  over incremental rebuild efficiency. Reads also check validity/expiry.
+- Each page records the exact source IDs and versions it cites. Updating a source
+  makes only dependent pages stale; their old claims/quotes and graph edges are
+  immediately removed from current reads while unaffected pages remain current.
+  Deleting or expiring a source physically deletes its dependent derived pages.
+  Pending model proposals still fail closed when any source in the user scope
+  changes. Stale metadata is cleared on the first storage purge after 30 days.
 - Review candidates expire after 24 hours. Runs do not auto-retry after provider
   errors or crashes. An interrupted run eventually expires; create a new explicit
   request only after checking prior state. No scheduled paid maintenance is enabled.
@@ -54,11 +60,11 @@ stored ownership. Collection operations require explicit `user_id`.
 | `GET /v1/conversations/:id?cursor=...` | Read messages, 32 per page |
 | `POST /v1/conversations/search` | Lexical message search: `user_id`, `query`, optional `limit` |
 | `DELETE /v1/conversations/:id` | Delete with `expected_version`; clear derived caches |
-| `POST /v1/knowledge/organize` | `user_id`, `request_id`, `memory_ids` and/or `conversation_ids`, optional `mode` |
+| `POST /v1/knowledge/organize` | `user_id`, `request_id`, `memory_ids` and/or `conversation_ids`, optional `mode`; optional `target_slugs` replaces only those exact pages |
 | `GET /v1/knowledge/runs?user_id=...` | Latest 30 run states/proposals |
 | `GET /v1/knowledge/runs/:id` | One run |
 | `POST /v1/knowledge/runs/:id/resolve` | Review decision with `approve: true/false` |
-| `GET /v1/wiki?user_id=...` | Current derived pages |
+| `GET /v1/wiki?user_id=...` | `{data, stale}`: current pages plus metadata-only pages needing rebuild |
 | `GET /v1/wiki/:slug?user_id=...` | One page with citations/source locators |
 | `GET /v1/knowledge/graph?user_id=...` | Topic nodes, edges and source locators |
 | `POST /v1/mcp` | Read-only MCP Streamable HTTP endpoint |
@@ -67,6 +73,9 @@ An organization run accepts at most 32 memory IDs and eight conversation IDs.
 The complete source payload must fit 40,000 UTF-16 characters including metadata;
 oversized selections return 413, not silently clipped input. Output limits are
 eight pages, 12 claims per page, 24 edges and four citations per claim/edge.
+Incremental targets contain one to eight distinct valid slugs. A target run must
+return exactly those pages or it fails without replacing prior content. The
+current per-user derived limit is 64 pages and 256 edges.
 Each claim and quote is at most 1,000 characters. The output-token cap can be
 reached before these maxima; truncated model output fails rather than publishes.
 
@@ -127,9 +136,10 @@ remain disabled; organization returns 503 instead of simulated success.
 
 ## Migration and rollback
 
-The change adds tables/indexes within the existing SQLite Durable Object. Existing
-memory records and the Durable Object binding/class identity are preserved. Local
-tests upgrade the v0.1 fixture and retain original sources/history.
+The change adds a page/source dependency table and columns to existing Wiki/run
+tables within the existing SQLite Durable Object. Existing pages are backfilled
+from their stored source locators; repeated construction is idempotent. Memory
+records and the Durable Object binding/class identity are preserved.
 
 Do not roll back to v0.1 while retaining newly written knowledge/conversations:
 old code cannot invalidate their caches. If rollback is required, first stop new

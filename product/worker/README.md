@@ -39,7 +39,10 @@
 - Do not mix old and new vectors after model, dimension, or configuration changes.
 - Explain migrations when changing storage structure; do not downgrade directly to incompatible code.
 - Complete conversations are explicit application writes, not implicit capture.
-- Wiki pages and graph edges are derived caches. Invalidate them whenever their user scope changes.
+- Wiki pages and graph edges are derived caches. Invalidate dependent pages when
+  cited source versions/validity change and erase them when sources are deleted.
+  Unrelated current pages remain available; pending model work still uses the
+  conservative user-scope epoch.
 - MCP requires a user-scoped Bearer key and exposes no writes or caller-controlled user scope.
 - Media ingestion accepts local Base64 WAV, MP3, or MP4 clips up to 7 MiB (inline) or 500 MiB (chunked, 30 minutes maximum). It
   requires explicit consent and review. Chunked files use private temporary R2

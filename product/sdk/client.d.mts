@@ -1,4 +1,4 @@
-import type { MemoryAttributes, MemoryFilter, RetrievalMode, ModelUsage, Message, Conversation, ConversationPage, KnowledgeJob, KnowledgePage, KnowledgeEdge, MemoryContext, EvidenceSearch, MemoryReview, IngestionInput, IngestionJob, MediaIngestionInput } from "./service-types.js";
+import type { MemoryAttributes, MemoryFilter, RetrievalMode, ModelUsage, Message, Conversation, ConversationPage, KnowledgeJob, KnowledgePage, KnowledgeEdge, WikiListing, WikiPage, MemoryContext, EvidenceSearch, MemoryReview, IngestionInput, IngestionJob, MediaIngestionInput } from "./service-types.js";
 export type * from "./service-types.js";
 import type { components, operations } from "./schema.js";
 export type { components, operations, paths } from "./schema.js";
@@ -87,12 +87,12 @@ export declare class SixteenMemory {
   conversationsAll(user_id: string, call?: CallOptions): Promise<Conversation[]>;
   searchConversations(input: { user_id: string; query: string; limit?: number }, call?: CallOptions): Promise<{ data: (Message & { conversation_id: string; conversation_version: number; title: string; score: number })[]; retrieval: string }>;
   deleteConversation(id: string, expected_version: number, call?: CallOptions): Promise<{ deleted: true; id: string }>;
-  organize(input: { user_id: string; request_id: string; memory_ids?: string[]; conversation_ids?: string[]; mode?: "auto" | "review" }, call?: CallOptions): Promise<KnowledgeJob & { usage?: ModelUsage[]; unsupported_items?: number[] }>;
+  organize(input: { user_id: string; request_id: string; memory_ids?: string[]; conversation_ids?: string[]; mode?: "auto" | "review"; target_slugs?: string[] }, call?: CallOptions): Promise<KnowledgeJob & { usage?: ModelUsage[]; unsupported_items?: number[] }>;
   knowledgeRuns(user_id: string, call?: CallOptions): Promise<KnowledgeJob[]>;
   knowledgeRun(id: string, call?: CallOptions): Promise<KnowledgeJob>;
   resolveKnowledge(id: string, approve: boolean, call?: CallOptions): Promise<KnowledgeJob>;
-  wiki(user_id: string, call?: CallOptions): Promise<{ data: (KnowledgePage & { id: string; user_id: string; run_id: string })[] }>;
-  wikiPage(user_id: string, slug: string, call?: CallOptions): Promise<KnowledgePage & { id: string; user_id: string; run_id: string }>;
+  wiki(user_id: string, call?: CallOptions): Promise<WikiListing>;
+  wikiPage(user_id: string, slug: string, call?: CallOptions): Promise<WikiPage>;
   graph(user_id: string, call?: CallOptions): Promise<{ nodes: { id: string; slug: string; title: string }[]; edges: KnowledgeEdge[] }>;
   context(input: SearchInput & { user_id: string; max_chars?: number; include_evidence?: boolean }, call?: CallOptions): Promise<MemoryContext>;
   searchEvidence(input: Pick<SearchInput, "query" | "limit" | "filter" | "at"> & { user_id: string }, call?: CallOptions): Promise<EvidenceSearch>;

@@ -41,6 +41,14 @@ const conversation = await client.createConversation({ user_id: "alice", request
 const messages = await client.conversationMessagesAll(conversation.id);
 await client.context({ user_id: "alice", query: "preference" });
 void [all, messages];
+await client.organize({ user_id: "alice", request_id: "wiki-one", memory_ids: [saved.id], target_slugs: ["preference"] });
+const wiki = await client.wiki("alice");
+const staleTitles: string[] = wiki.stale.map(page => page.title);
+void staleTitles;
+// @ts-expect-error Stale metadata cannot be used as current claims.
+wiki.stale[0].claims;
+// @ts-expect-error Page targets must be an array.
+await client.organize({ user_id: "alice", request_id: "bad-target", target_slugs: "preference" });
 await client.ingestMedia({ user_id: "alice", request_id: "media", ref: "meeting", observed_at: new Date().toISOString(),
   media: { mime_type: "audio/wav", data_base64: "UklGRg==" }, consent: true });
 await client.createMediaUpload({ user_id: "alice", request_id: "large-media", ref: "meeting", observed_at: new Date().toISOString(),

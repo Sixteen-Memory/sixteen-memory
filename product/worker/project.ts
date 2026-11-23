@@ -191,6 +191,7 @@ export class MemoryProject extends DurableObject<Env> {
     this.evidenceIndex.erase(id);
     this.sql.exec("DELETE FROM history WHERE memory_id=?", id);
     this.sql.exec("DELETE FROM memories WHERE id=?", id);
+    if (row) this.knowledge.invalidate(row.user_id);
     // Keep only the retry tombstone until its expiry, preventing an old retry from resurrecting deleted data.
   }
 

@@ -6,6 +6,19 @@
   "evidence_note": "Paths and release receipts record implementation and deployment state. Provider credentials and private logs remain excluded.",
   "items": [
     {
+      "id": "incremental-source-linked-wiki",
+      "as_of": "2026-11-23",
+      "title": "Incremental source-linked Wiki",
+      "status": "local",
+      "public_claim": "Local candidate records page/source dependencies, preserves unrelated pages, removes stale claims from reads, retains source-backed conflicts for review and supports exact-page rebuilds. Production model generation remains disabled; no scheduled maintenance or general entity graph.",
+      "evidence": [
+        "product/INCREMENTAL_WIKI_2026-11-23.md",
+        "product/worker/knowledge-store.ts",
+        "product/test/wiki-runtime.mjs"
+      ],
+      "publishable_as_available": false
+    },
+    {
       "id": "code-agent-access",
       "as_of": "2026-11-12",
       "title": "Code Agent connections and MCP capability discovery",

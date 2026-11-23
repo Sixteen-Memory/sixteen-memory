@@ -13,6 +13,7 @@
     "test:round1": "node test/round1-runtime.mjs",
     "test:components": "node test/memory-components-runtime.mjs",
     "test:knowledge": "node test/knowledge-runtime.mjs",
+    "test:wiki": "node test/wiki-runtime.mjs",
     "test:media": "node test/media-runtime.mjs",
     "test:media:upload": "node test/media-upload-runtime.mjs",
     "test:agent-access": "node test/agent-access-runtime.mjs",
