@@ -7,7 +7,7 @@
   },
   "landscape": {
     "generator": "gpt-image-2",
-    "provider": "AIDP ModelHub",
+    "provider": "Image generation gateway",
     "original": "../output/homepage-v2/imagegen/memory-field.png",
     "published": [
       "public/assets/memory-field.webp",
@@ -17,7 +17,7 @@
   },
   "cube": {
     "generator": "gpt-image-2",
-    "provider": "AIDP ModelHub",
+    "provider": "Image generation gateway",
     "original": "../output/homepage-v2/imagegen/memory-cube.png",
     "published": "public/assets/memory-cube.webp",
     "date": "2026-10-26"
@@ -35,7 +35,7 @@
   },
   "brandMark": {
     "wordmark": "HTML typography using locally hosted Inter Tight 700",
-    "favicon": "Existing generated concept from docs/kunshan-2026/redesign/assets/logo-transparent.png",
+    "favicon": "Original generated brand concept mark (logo-transparent.png)",
     "status": "Design concept, not a cleared trademark"
   },
   "typography": {
@@ -58,7 +58,7 @@
   },
   "editorial": {
     "generator": "gpt-image-2",
-    "provider": "AIDP ModelHub",
+    "provider": "Image generation gateway",
     "original": "../output/homepage-v3/imagegen/memory-editorial.png",
     "published": [
       "public/assets/memory-editorial.webp",
@@ -149,7 +149,7 @@
   },
   "roundtableIllustrationHistory": [
     {
-      "provider": "AIDP ModelHub CN",
+      "provider": "Image generation gateway",
       "model": "gpt-image-2",
       "date": "2026-10-27",
       "requestedSize": "1536x1024",

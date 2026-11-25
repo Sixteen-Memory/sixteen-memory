@@ -1,4 +1,4 @@
-"""Verify wheel allowlist and clean offline install before private distribution."""
+"""Verify wheel allowlist and clean offline install before distribution."""
 import pathlib
 import subprocess
 import sys

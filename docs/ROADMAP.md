@@ -6,12 +6,12 @@
 
 This source and release-record snapshot was assembled on November 6, 2026. It is not live monitoring. The November 6 recorded baseline was v0.1.0. Current source is v0.3.0; see the [release receipt](../product/RELEASE_0.3.0_VERIFICATION.md) for deployment status.
 
-The private Vercel AI SDK adapter entry was added on November 8, 2026. This does
+The Vercel AI SDK adapter entry was added on November 8, 2026. This does
 not change the recorded production version or publish an npm package.
 
 The same day's 0.2.0 integration candidate unifies SDK transport, framework
 adapter and console types, and adds an authenticated HTTP handler with real
-local storage tests. Those package versions are private and not deployed.
+local storage tests. Those package versions are not yet published to external registries.
 
 ## Implemented foundation
 
@@ -20,10 +20,10 @@ local storage tests. Those package versions are private and not deployed.
 - [x] User-scoped keys, role checks, and revocable console sessions.
 - [x] Console, request records, JavaScript SDK source, and examples.
 - [x] OpenAPI 3.1 for online v0.1, generated TypeScript types, and a downloadable zero-dependency SDK package.
-- [x] Private Vercel AI SDK 7 adapter with retrieval middleware, read-only tools, explicit writes, and local compatibility tests.
+- [x] Vercel AI SDK 7 adapter with retrieval middleware, read-only tools, explicit writes, and local compatibility tests.
 - [x] Shared SDK transport, authenticated normal/streaming chat handler, console cookie integration, and clean two-package installation checks.
 - [x] Independent website, product pages, developer documentation, and bilingual navigation.
-- [x] Private company repository, personal contributions, and collaboration guides.
+- [x] Open-source Apache-2.0 repository, personal contributions, and collaboration guides.
 
 ## Development features awaiting real-model validation
 
@@ -41,7 +41,7 @@ Validity windows are not historical snapshots or temporal reasoning. Usage limit
 ### November 9 local additions
 
 Source search, bounded context assembly, and read-only memory checks are
-implemented in the private candidate, including console and typed development
+implemented in the local candidate, including console and typed development
 SDK entry points. See [behavior and limitations](../product/MEMORY_COMPONENTS.md)
 and the [Mem0/Anthropic comparison](MEMORY_RESEARCH_2026-11-09.md).
 A subsequent November 9 iteration adds explicit complete-conversation storage
@@ -60,12 +60,12 @@ These are directions, not delivery-date commitments. Ordinary website and reposi
 ## Not available
 
 - Profile API, OAuth onboarding for MCP, or scheduled paid knowledge maintenance.
-- npm registry and PyPI publication. The typed JS/TS package is distributed through website downloads; the Vercel AI SDK adapter remains private source.
+- npm registry and PyPI publication. The typed JS/TS package and Vercel AI SDK adapter are available as Apache-2.0 source and versioned website downloads, not yet published to npm or PyPI.
 - Webhooks, feedback endpoints, or a unified asynchronous task framework.
 - Self-service signup, customer billing, organization membership, or SSO.
 - Enterprise SLA, public compliance certification, validated production capacity, or customer outcome claims.
 
-Do not represent planned work with empty directories, invented installation commands, or nonfunctional endpoints. Open-source modules belong in separate public repositories; the core repository remains private.
+Do not represent planned work with empty directories, invented installation commands, or nonfunctional endpoints. Source code in this repository is open-source under Apache-2.0; external package registry releases require separate authorization.
 
 ## November 9 real-provider diagnostic
 

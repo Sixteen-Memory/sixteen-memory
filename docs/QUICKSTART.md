@@ -5,7 +5,6 @@
 ## 1. Prerequisites
 
 - Node.js 24, npm, and Git.
-- Your own GitHub account with access to this private repository.
 - Provider credentials are not required for explicit writes or lexical retrieval.
 
 ```sh

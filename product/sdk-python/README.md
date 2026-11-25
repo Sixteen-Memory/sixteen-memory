@@ -1,8 +1,8 @@
 # SixteenMemory Python SDK 0.3.1
 
 Server-side Python 3.9+. The synchronous client has no runtime dependencies.
-The optional native asyncio client uses `httpx==0.28.1`. No PyPI registry release.
-Use the versioned website wheel or an authorized source checkout.
+The optional native asyncio client uses `httpx==0.28.1`. Licensed under Apache-2.0;
+use the versioned website wheel or a source checkout (not yet published to PyPI).
 
 This development checkout adds `ingest_media(**data)` to both clients. The
 existing website wheel does not include it. Media requests require explicit

@@ -1,13 +1,14 @@
 # TypeScript / JavaScript SDK
 
 A zero-runtime-dependency, server-side ESM client for the online SixteenMemory
-v0.3 API. Requires Node.js 20.3 or newer. The company repository remains private;
-this client download is not an open-source or npm registry release.
+v0.3 API. Requires Node.js 20.3 or newer. Licensed under Apache-2.0 in the
+open-source `Sixteen-Memory/sixteen-memory` repository; distributed via source
+checkout or versioned website archive (not yet published to the npm registry).
 
 ## Install
 
-SDK 0.3.0 is delivered as a versioned website archive, not through the npm registry.
-Build from an authorized checkout or install the website archive:
+SDK 0.3.0 is delivered as open-source code and as a versioned website archive, not yet through the npm registry.
+Build from a local checkout or install the website archive:
 
 ```sh
 mkdir -p output/packages
@@ -118,7 +119,7 @@ A changed payload returns 409; deletion or expiry returns 410 during that period
 ## v0.3 methods and pagination
 
 The installed package now includes context/evidence/review, ingestion/reindex,
-conversations, knowledge, wiki and graph methods. Private-source `index.mjs`
+conversations, knowledge, wiki and graph methods. Source `index.mjs`
 reexports the same runtime. The generated OpenAPI covers the core subset;
 `service-types.d.ts` describes newer methods without importing Worker internals.
 

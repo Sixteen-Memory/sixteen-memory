@@ -1,6 +1,6 @@
 # GitHub organization and repository
 
-Recorded on November 6, 2026.
+Initially recorded on November 6, 2026; updated on November 25, 2026 for open-source publication under Apache-2.0.
 
 ## Confirmed ownership
 
@@ -8,20 +8,19 @@ Use a GitHub **Organization**, not a shared company personal account:
 
 ```text
 Organization: Sixteen-Memory
-Private repository: sixteen-memory
+Public repository: sixteen-memory (Apache-2.0)
 Owner / daily contributor: Chengyuann
 ```
 
-The organization represents the company; personal accounts identify actual contributors. This keeps authorship, two-factor authentication, access removal, and future membership clear. Do not share a company password or long-lived token.
+The organization represents the project and company; personal accounts identify actual contributors. This keeps authorship, two-factor authentication, access removal, and future membership clear. Do not share a company password or long-lived token.
 
-Future open-source work has a separate home:
+Open-source licensing and scope:
 
 ```text
-Sixteen-Memory/sixteen-memory       Private core repository
-Sixteen-Memory/<public-project>     Separate public repository
+Sixteen-Memory/sixteen-memory       Open-source core repository (Apache-2.0)
 ```
 
-Select releasable content for a public repository. Do not turn the private core repository public.
+Keep credentials, local databases, `.dev.vars`, and customer data strictly outside Git. Package registry publishing (npm / PyPI) and hosted deployments remain separately authorized operations.
 
 ## Source import scope
 
@@ -54,7 +53,7 @@ Excluded:
 - The organization handle is `Sixteen-Memory`; the brand is SixteenMemory.
 - The recorded plan is GitHub Free; no paid upgrade was authorized.
 - `Chengyuann` already has Owner access and does not need an outside-collaborator invitation.
-- The core repository stays private, without public Pages or automatic deployment.
-- `CODEOWNERS` identifies responsibility; it does not prove required-review enforcement.
+- The repository is public under the [Apache License 2.0](../LICENSE), without automatic deployment on push.
+- `CODEOWNERS` identifies responsibility; check actual branch protection settings separately.
 
 Local commits use the GitHub noreply address for `Chengyuann`, not the employer email from the old workspace. This configuration applies only to this repository, not global Git settings.
