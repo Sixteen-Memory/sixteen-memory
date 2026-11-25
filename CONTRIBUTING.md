@@ -19,7 +19,7 @@ Keep product localization, API response wording, and multilingual evaluation fix
 5. Push through your own account and open a pull request.
 6. Have the responsible owner confirm the change before merging. Pull request approval does not authorize deployment.
 
-The initial import may establish `main` directly. Use branches afterward and do not force-push the main branch. `CODEOWNERS` records responsibility but does not guarantee required-review enforcement; private repository protections depend on the GitHub plan and settings. Do not purchase GitHub Team without approval.
+The initial import may establish `main` directly. Use branches afterward and do not force-push the main branch. `CODEOWNERS` records responsibility but does not guarantee required-review enforcement; branch protections depend on the configured GitHub repository settings. Do not purchase paid GitHub plans without approval.
 
 ## Never commit
 
@@ -28,6 +28,6 @@ The initial import may establish `main` directly. Use branches afterward and do 
 - Customer records, raw model responses, browser screenshots, or deployment sessions.
 - `node_modules/`, build output, or local reports.
 
-Private repositories still require secret exclusion. If a secret enters history, revoke or rotate it first, then assess history cleanup.
+Never commit secrets or sensitive data. If a secret enters history, revoke or rotate it first, then assess history cleanup.
 
-Future open-source work belongs in a separate public repository after a license, data, and history review. Do not change this private main repository to public.
+Contributions submitted to this repository are licensed under the [Apache License 2.0](LICENSE) unless explicitly stated otherwise.

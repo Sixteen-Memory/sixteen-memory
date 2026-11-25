@@ -59,7 +59,7 @@
 - [Mem0 research notes](MEM0_LEARNINGS_2026-11-06.md): a pinned source revision and the approaches we do or do not adopt.
 - [Agent memory research and comparison](MEMORY_RESEARCH_2026-11-09.md): Mem0 source, Anthropic's components, implemented improvements, and remaining gaps.
 - [Context and evidence APIs](../product/MEMORY_COMPONENTS.md): local source search, whole-record context budget, and read-only review.
-- [GitHub organization and repository](GITHUB_REPOSITORY_PLAN.md): company ownership, private visibility, and contributor identity.
+- [GitHub organization and repository](GITHUB_REPOSITORY_PLAN.md): organization ownership, Apache-2.0 open-source governance, and contributor identity.
 - [Evaluation tools](../product/eval/README.md): separate from routine development; real requests require explicit authorization.
 
 > Implemented does not mean deployed. Read the roadmap for recorded version status and inspect the actual environment separately.

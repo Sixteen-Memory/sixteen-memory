@@ -1,6 +1,6 @@
 # Repository artwork
 
-These assets are original documentation illustrations for this private repository,
+These assets are original documentation illustrations for this open-source repository,
 not screenshots of a connected account or real customer data.
 
 | File | Purpose | Source |

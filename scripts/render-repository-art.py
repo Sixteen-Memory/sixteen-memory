@@ -58,7 +58,7 @@ def main():
                                    radius=round(radius * SCALE), fill=fill,
                                    outline=outline, width=round(width * SCALE))
 
-        text(68, 44, "MEMORY INFRASTRUCTURE / PRIVATE WORKSPACE", micro, lime)
+        text(68, 44, "MEMORY INFRASTRUCTURE / APACHE 2.0", micro, lime)
         text(68, 98, "Sixteen", serif)
         first_width = draw.textlength("Sixteen", font=serif) / SCALE
         text(68 + first_width - 1, 98, "Memory", italic)
@@ -70,9 +70,9 @@ def main():
         text(270, 412, "CONSOLE", micro)
         text(407, 412, "/", micro, "#52677d")
         text(442, 412, "SDK + DOCS", micro)
-        rect((641, 399, 788, 437), 19, fill="#203026", outline="#48613c")
-        draw.ellipse((657*SCALE, 415*SCALE, 663*SCALE, 421*SCALE), fill=lime)
-        text(675, 411, "PRIVATE", micro, lime)
+        rect((636, 399, 814, 437), 19, fill="#203026", outline="#48613c")
+        draw.ellipse((652*SCALE, 415*SCALE, 658*SCALE, 421*SCALE), fill=lime)
+        text(670, 411, "OPEN SOURCE", micro, lime)
 
         # Original memory-ledger illustration: sources remain attached to the current record.
         for offset, color in [(0, "#304456"), (22, "#3a5161")]:

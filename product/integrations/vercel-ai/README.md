@@ -6,13 +6,13 @@ read-only tools, explicit writes, and an authenticated HTTP chat handler.
 > **Developer preview · versioned download**<br>
 > This package is distributed as a versioned website archive, not through npm. It targets the development API candidate while its retrieval and explicit-write paths are also checked against the recorded v0.1.0 source fixture.
 
-## Install from the private repository
+## Install from source
 
-This package currently has no registry release. Requires Node.js 22 or newer;
+This package is open-source under Apache-2.0 and currently has no public npm registry release. Requires Node.js 22 or newer;
 the repository uses Node.js 24. Tested with `ai@7.0.165` and `zod@4.6.7`.
 AI SDK 5/6 are not included in this package's compatibility claim.
 
-In an authorized checkout:
+In a local checkout:
 
 ```sh
 cd product/integrations/vercel-ai

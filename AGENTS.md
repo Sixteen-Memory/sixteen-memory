@@ -3,7 +3,8 @@
 - This is the canonical company source repository. Do not keep developing a
   second copy in the old mixed prototype workspace.
 - GitHub owner: `Sixteen-Memory`; repository: `sixteen-memory`; visibility:
-  **private**. Do not change its visibility or publish its contents elsewhere.
+  **public** (`Apache-2.0`). Do not change repository visibility, license terms,
+  or publish packages to external registries without explicit authorization.
 - Human contributor: `Chengyuann`. Use the repository-local Git identity and
   existing GitHub credential helper; never place tokens in remotes or files.
 - Make scoped commits and use feature branches for subsequent work. Do not

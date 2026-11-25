@@ -3,7 +3,7 @@
   "version": "0.3.0",
   "description": "Typed scoped client for SixteenMemory v0.3 with bounded transport and pagination",
   "private": true,
-  "license": "UNLICENSED",
+  "license": "Apache-2.0",
   "type": "module",
   "engines": {
     "node": ">=20.3"

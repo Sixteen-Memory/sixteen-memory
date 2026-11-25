@@ -1,6 +1,7 @@
 {
   "name": "sixteen-memory-api-tooling",
   "private": true,
+  "license": "Apache-2.0",
   "type": "module",
   "scripts": {
     "generate": "node generate.mjs",

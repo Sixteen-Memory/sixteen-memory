@@ -1,12 +1,12 @@
 <p align="center">
-  <img src="docs/assets/repository-cover.png" alt="SixteenMemory — Context that continues. Private product repository." width="1200">
+  <img src="docs/assets/repository-cover.png" alt="SixteenMemory — Context that continues. Open-source agent memory infrastructure." width="1200">
 </p>
 
 <h1 align="center">SixteenMemory</h1>
 
 <p align="center">
   <strong>Memory your Agent can use. Context that continues.</strong><br>
-  A managed memory layer for existing Agents: keep important context, retrieve what matters, and trace every change.
+  A source-linked memory layer for existing Agents: keep important context, retrieve what matters, and trace every change.
 </p>
 
 <p align="center">
@@ -14,14 +14,14 @@
   <a href="docs/ARCHITECTURE.md">Architecture</a> ·
   <a href="docs/REPOSITORY_MAP.md">Code map</a> ·
   <a href="docs/ROADMAP.md">Roadmap</a> ·
-  <a href="CONTRIBUTING.md">Contributing</a>
+  <a href="CONTRIBUTING.md">Contributing</a> ·
+  <a href="LICENSE">Apache-2.0</a>
 </p>
 
 ---
 
-> **Private · Developer preview**<br>
-> `Sixteen-Memory/sixteen-memory` is the company's private source repository, not an open-source release.
-> It contains the product, website, and SDK. Pushing code does not deploy a service.
+> **Open Source · Apache-2.0**<br>
+> `Sixteen-Memory/sixteen-memory` is the open-source repository for SixteenMemory: the memory service, management console, JavaScript and Python SDKs, MCP and Code Agent integrations, Vercel AI SDK adapter, and website. Pushing code does not automatically deploy a hosted service.
 
 ## One memory layer. Three product surfaces.
 
@@ -157,7 +157,7 @@ This is a recorded status snapshot, not live monitoring. The recorded production
 | Status | Capabilities |
 | :--- | :--- |
 | **Implemented baseline · recorded as live** | Explicit memory lifecycle, lexical retrieval, user-scoped keys, console, OpenAPI 3.1, and typed SDK download |
-| **Development · not released as live features** | Private Vercel AI SDK adapter; conversation extraction and review, fact slots, metadata and time filters, Qwen semantic and hybrid retrieval |
+| **Development · not released as live features** | Vercel AI SDK adapter; conversation extraction and review, fact slots, metadata and time filters, Qwen semantic and hybrid retrieval |
 | **Planned · not available** | Profiles, MCP, npm registry and Python SDK releases, webhooks, organization members, and self-service billing |
 
 Committing code does not validate real-model quality, customer outcomes, production capacity, or recovery procedures. Read the [roadmap and current status](docs/ROADMAP.md).
@@ -178,10 +178,10 @@ npm run build:product    # Type checks, frontend build, and Worker dry run
 - **Company ownership, personal contributions.** `Chengyuann` contributes through feature branches and pull requests.
 - **English repository documentation.** Keep guides, templates, and new contribution descriptions in English. Product localization and multilingual test data remain separate.
 - **No automatic external changes.** Do not deploy, run paid model evaluation, or change repository visibility implicitly.
-- **Private does not mean secret-safe.** Keep credentials, databases, logs, and customer data out of Git.
-- **Open source belongs in a separate repository.** This repository has no open-source license. Third-party dependencies and fonts retain their own licenses.
+- **Never commit secrets.** Keep credentials, databases, logs, and customer data out of Git.
+- **Licensed under Apache-2.0.** Source code in this repository is licensed under the [Apache License 2.0](LICENSE). Third-party dependencies and bundled fonts retain their own licenses.
 
-[Contributing](CONTRIBUTING.md) · [Security](SECURITY.md) · [Repository ownership](docs/GITHUB_REPOSITORY_PLAN.md)
+[Contributing](CONTRIBUTING.md) · [Security](SECURITY.md) · [License](LICENSE) · [Repository ownership](docs/GITHUB_REPOSITORY_PLAN.md)
 
 ## v0.3 knowledge workspace
 
