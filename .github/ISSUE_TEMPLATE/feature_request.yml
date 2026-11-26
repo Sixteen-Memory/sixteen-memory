@@ -1,0 +1,25 @@
+name: Feature request
+description: Propose a capability, SDK improvement, or integration for SixteenMemory.
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or use case
+      description: What workflow or agent memory gap are you trying to solve?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behavior
+      description: Describe the API, CLI, SDK, or console behavior you have in mind.
+    validations:
+      required: true
+  - type: textarea
+    id: tradeoffs
+    attributes:
+      label: Provenance, scope, or cost considerations
+      description: Optional notes on user isolation, source evidence, or provider boundaries.
+    validations:
+      required: false

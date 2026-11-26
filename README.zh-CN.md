@@ -20,6 +20,7 @@
 </p>
 
 <p align="center">
+  <a href="https://github.com/Sixteen-Memory/sixteen-memory/actions/workflows/ci.yml"><img src="https://github.com/Sixteen-Memory/sixteen-memory/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <a href="https://github.com/Sixteen-Memory/sixteen-memory/releases/tag/v0.3.0"><img src="https://img.shields.io/badge/release-v0.3.0-1060f0?style=flat-square" alt="Release v0.3.0"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache--2.0-0f172a?style=flat-square" alt="Apache-2.0 License"></a>
   <a href="product/worker/"><img src="https://img.shields.io/badge/runtime-Workers%20%2B%20SQLite%20DO-334155?style=flat-square" alt="Cloudflare Workers and SQLite Durable Objects"></a>
@@ -64,17 +65,17 @@ AI Agent 不应该猜测一条记忆从哪里来，更不应该在事实变化�
 ```sh
 git clone https://github.com/Sixteen-Memory/sixteen-memory.git
 cd sixteen-memory
-npm run setup
-npm run prepare:product && npm run build:product && npm run dev:product
+npm run setup:product
+npm run quickstart
 ```
 
 - **记忆 API**：`http://127.0.0.1:8790`（健康检查 `GET /health`）
-- **管理控制台**：`http://127.0.0.1:4191`（本地管理员 Key 自动写入 Git 忽略的 `product/.dev.vars`）
+- **中英双语控制台**：`http://127.0.0.1:4191`（本地 `ADMIN_KEY` 自动写入 Git 忽略的 `product/.dev.vars`，按需接入 OpenAI / 通义千问可参考 [`product/.dev.vars.example`](product/.dev.vars.example)）
 
-直接体验完整的本地 HTTP / 流式对话与真实 SQLite 持久化全链路（使用官方模拟模型，零外部费用）：
+5 秒零密钥运行完整的“来源记忆 → 增量 Wiki 精确失效 → 冲突保留 → 真实 MCP 读取”端到端演示：
 
 ```sh
-npm run example:integration
+npm run build:product && npm run demo
 ```
 
 ### 2. 通过 TypeScript、Python、MCP 或 Vercel AI SDK 接入

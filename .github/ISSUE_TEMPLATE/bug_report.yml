@@ -1,0 +1,45 @@
+name: Bug report
+description: Report a bug in the Memory API, Console, SDKs, MCP server, or incremental Wiki.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please do **not** paste API keys, `.dev.vars` contents, or real customer data.
+        For security vulnerabilities, see [SECURITY.md](../../SECURITY.md).
+  - type: dropdown
+    id: component
+    attributes:
+      label: Component
+      options:
+        - Worker API / SQLite Durable Object
+        - Incremental Wiki & Knowledge Graph
+        - MCP / Code Agents (Codex, Claude Code) / OAuth
+        - TypeScript / JavaScript SDK (@sixteen-memory/sdk)
+        - Python SDK (sixteen-memory)
+        - Vercel AI SDK Adapter (@sixteen-memory/vercel-ai)
+        - Management Console
+        - Documentation / Website
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: Clear description of the bug and the expected behavior.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Minimal reproduction
+      description: Exact commands, request payloads (sanitized), or test steps.
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      placeholder: "e.g. Node 24.10, Python 3.12, macOS / Ubuntu, v0.3.0"
+    validations:
+      required: true

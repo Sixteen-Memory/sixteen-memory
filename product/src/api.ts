@@ -55,4 +55,5 @@ export const api = {
   requests: (): Promise<AuditRecord[]> => client.requests(),
   exportPage: (filters: DevelopmentPageOptions): Promise<Page> => development.exportPage(filters),
 };
-export const errorMessage = (error: unknown) => error instanceof Error ? error.message : "请求失败，请稍后重试";
+export const errorMessage = (error: unknown, fallback = "Request failed. Please try again.") =>
+  error instanceof Error ? error.message : fallback;

@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Questions & architecture discussions
+    url: https://github.com/Sixteen-Memory/sixteen-memory/discussions
+    about: Ask questions, share agent memory use cases, or discuss design tradeoffs.
+  - name: Security disclosures
+    url: https://github.com/Sixteen-Memory/sixteen-memory/blob/main/SECURITY.md
+    about: Report security concerns privately rather than in a public issue.

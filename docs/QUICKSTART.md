@@ -32,6 +32,15 @@ Build output goes to `homepage/dist/`. It is ignored by Git and is not automatic
 
 ## 3. Work on the product
 
+For the fastest product-only install and one-command startup:
+
+```sh
+npm run setup:product
+npm run quickstart
+```
+
+Or run the underlying steps individually:
+
 ```sh
 npm run prepare:product
 npm run build:product
@@ -40,11 +49,17 @@ npm run dev:product
 
 | Entry point | Address |
 | :--- | :--- |
-| Console development server | `http://127.0.0.1:4191` |
+| Console development server (EN / zh-CN) | `http://127.0.0.1:4191` |
 | Local API and built application | `http://127.0.0.1:8790` |
 | Health endpoint, no key required | `http://127.0.0.1:8790/health` |
 
-`prepare:product` generates a local key in `product/.dev.vars`. Read `ADMIN_KEY` locally to sign in; do not commit or publish it. Applications should use a read/write key bound to a user scope, created by an administrator in the console.
+`prepare:product` generates a local key in `product/.dev.vars` (see [`product/.dev.vars.example`](../product/.dev.vars.example) for optional OpenAI / Qwen provider variables). Read `ADMIN_KEY` locally to sign in; do not commit or publish it. Applications should use a read/write key bound to a user scope, created by an administrator in the console.
+
+To watch incremental source-linked Wiki invalidation, conflict preservation, and live MCP reads in 5 seconds with zero API keys, run:
+
+```sh
+npm run demo
+```
 
 `dev:product` runs the local Worker and Vite together. Stop them with `Ctrl+C`. Data lives in the Git-ignored `product/.wrangler/` directory. Deleting it deletes local data; do not treat that as routine cleanup.
 
