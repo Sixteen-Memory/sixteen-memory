@@ -18,9 +18,9 @@ See the [P0 implementation notes](P0.md) for intelligent paths, test scope, and 
 - Optional answer-model endpoint; returns 503 when unconfigured rather than fabricating an answer.
 - Worker and Pages Service Binding, with baseline login and API rate limits.
 
-The [Vercel AI SDK 7 adapter](integrations/vercel-ai/README.md) was added to private
-source on November 8, 2026. Its local tests cover both the recorded v0.1.0 source
-fixture and the v0.2.1 candidate; it is not a new production deployment or npm release.
+The [Vercel AI SDK 7 adapter](integrations/vercel-ai/README.md) was added to the
+repository on November 8, 2026. Its local tests cover both the recorded v0.1.0 source
+fixture and the current Worker runtime; pushing source does not deploy a service.
 
 The November 9 v0.3 deployment adds [source search, bounded context, read-only
 memory review](MEMORY_COMPONENTS.md), explicit complete conversations,

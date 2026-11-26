@@ -1,74 +1,119 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="770" viewBox="0 0 1200 770" role="img" aria-labelledby="title description">
-  <title id="title">SixteenMemory architecture</title>
-  <desc id="description">An agent or JavaScript SDK and the React console access the Worker API. The Worker handles authentication, rules, explicit writes and optional intelligent paths. SQLite stores memories, sources and history. Optional provider calls are disabled by default. The static website is deployed separately.</desc>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="780" viewBox="0 0 1200 780" role="img" aria-labelledby="title description">
+  <title id="title">SixteenMemory v0.3 system architecture</title>
+  <desc id="description">TypeScript and Python SDKs, the Vercel AI SDK adapter, MCP Code Agents, and the React console connect to the Cloudflare Worker API. The Worker enforces user scope, explicit versioned writes, lexical and evidence retrieval, complete conversations, and incremental source-linked Wiki pages backed by a SQLite Durable Object. Model providers for extraction, embeddings, and media are disabled by default and run outside database transactions.</desc>
   <defs>
-    <linearGradient id="bg" x2="1" y2="1"><stop stop-color="#101a2b"/><stop offset="1" stop-color="#0b1220"/></linearGradient>
-    <linearGradient id="core" x2="1" y2="1"><stop stop-color="#23372b"/><stop offset="1" stop-color="#152632"/></linearGradient>
-    <marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M1 1 L7 4 L1 7" fill="none" stroke="#8b9aaa" stroke-width="1.3"/></marker>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0d1626"/>
+      <stop offset="1" stop-color="#09101c"/>
+    </linearGradient>
+    <linearGradient id="core" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1e3228"/>
+      <stop offset="1" stop-color="#132332"/>
+    </linearGradient>
+    <marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+      <path d="M1 1 L7 4 L1 7" fill="none" stroke="#8fa2b7" stroke-width="1.4"/>
+    </marker>
+    <marker id="arrowLime" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+      <path d="M1 1 L7 4 L1 7" fill="none" stroke="#c6ff2e" stroke-width="1.4"/>
+    </marker>
     <style>
-      text{font-family:Inter,Arial,sans-serif;fill:#f4f6fa}
-      .tag{font-size:12px;letter-spacing:2px;fill:#b4c2cd}
-      .label{font-size:21px;font-weight:600}
-      .body{font-size:15px;fill:#b4c2cd}
-      .mono{font-family:ui-monospace,monospace;font-size:13px;fill:#b4c2cd}
-      .lime{fill:#c6ff2e}
-      .edge{stroke:#748595;stroke-width:1.5;fill:none;marker-end:url(#arrow)}
+      text { font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; fill: #f4f6fa; }
+      .tag { font-size: 11px; font-weight: 700; letter-spacing: 1.8px; fill: #9fb0c3; }
+      .label { font-size: 19px; font-weight: 600; fill: #f4f6fa; }
+      .body { font-size: 13.5px; fill: #b4c2d1; }
+      .sub { font-size: 12px; fill: #8fa2b7; }
+      .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; fill: #9ccfe9; }
+      .lime { fill: #c6ff2e; }
+      .edge { stroke: #74889c; stroke-width: 1.5; fill: none; marker-end: url(#arrow); }
+      .edgeCore { stroke: #9fd13f; stroke-width: 1.6; fill: none; marker-end: url(#arrowLime); }
     </style>
   </defs>
-  <rect width="1200" height="770" rx="20" fill="url(#bg)"/>
-  <rect x="1" y="1" width="1198" height="768" rx="19" fill="none" stroke="#2b394b"/>
-  <text x="48" y="53" class="tag lime">SixteenMemory / SYSTEM OVERVIEW</text>
-  <text x="48" y="94" font-size="30" font-weight="600">One memory layer. Clear boundaries.</text>
-  <text x="48" y="125" class="body">Current implementation, with optional development paths explicitly separated.</text>
-  <text x="48" y="181" class="tag">01 / ACCESS</text>
-  <text x="455" y="181" class="tag">02 / SERVICE</text>
-  <text x="898" y="181" class="tag">03 / DATA &amp; MODELS</text>
 
-  <rect x="48" y="206" width="295" height="116" rx="12" fill="#172338" stroke="#34475b"/>
-  <text x="73" y="247" class="label">Your Agent / SDK</text>
-  <text x="73" y="276" class="body">REST or JavaScript client</text>
-  <text x="73" y="300" class="mono">product/sdk</text>
-  <rect x="48" y="372" width="295" height="116" rx="12" fill="#172338" stroke="#34475b"/>
-  <text x="73" y="413" class="label">Management console</text>
-  <text x="73" y="442" class="body">Memories, sources, keys &amp; history</text>
-  <text x="73" y="466" class="mono">product/src</text>
-  <path d="M343 264H388V301H432" class="edge"/>
-  <path d="M343 430H388V394H432" class="edge"/>
-  <text x="354" y="241" font-size="11" fill="#b4c2cd">HTTPS</text>
+  <rect width="1200" height="780" rx="20" fill="url(#bg)"/>
+  <rect x="1" y="1" width="1198" height="778" rx="19" fill="none" stroke="#243447"/>
 
-  <rect x="432" y="206" width="355" height="342" rx="14" fill="url(#core)" stroke="#a1ca4766"/>
-  <text x="459" y="247" class="tag lime">MEMORY SERVICE</text>
-  <text x="459" y="282" font-size="27" font-weight="600">Cloudflare Worker</text>
-  <text x="459" y="310" class="mono">product/worker</text>
-  <path d="M459 333H760" stroke="#4e665e"/>
-  <text x="459" y="369" class="body">User scope &amp; access checks</text>
-  <text x="459" y="405" class="body">Explicit writes &amp; version control</text>
-  <text x="459" y="441" class="body">Lexical retrieval &amp; filters</text>
-  <rect x="457" y="469" width="305" height="50" rx="8" fill="#0e1b26" stroke="#587284" stroke-dasharray="5 5"/>
-  <text x="476" y="491" font-size="13">Extraction / semantic orchestration</text>
-  <text x="476" y="510" font-size="11" fill="#9ccfe9">Development path · enabled by configuration</text>
+  <text x="48" y="48" class="tag lime">SIXTEENMEMORY / SYSTEM ARCHITECTURE (v0.3)</text>
+  <text x="48" y="86" font-size="28" font-weight="600">One source-linked memory layer. Explicit boundaries.</text>
+  <text x="48" y="114" class="body">Zero external vector or graph database required. Model calls stay disabled unless explicitly configured.</text>
 
-  <path d="M787 302H872" class="edge"/>
-  <text x="800" y="285" font-size="11" fill="#b4c2cd">local commit</text>
-  <rect x="872" y="206" width="280" height="176" rx="12" fill="#172338" stroke="#34475b"/>
-  <text x="897" y="247" class="label">SQLite</text>
-  <text x="897" y="273" class="body">Durable Object storage</text>
-  <text x="897" y="311" class="mono">memories · sources · history</text>
-  <text x="897" y="337" class="mono">FTS · sessions · evidence</text>
-  <text x="897" y="363" class="mono">development vector storage</text>
+  <text x="48" y="160" class="tag">01 / CLIENTS &amp; AGENTS</text>
+  <text x="418" y="160" class="tag">02 / MEMORY SERVICE</text>
+  <text x="856" y="160" class="tag">03 / STORAGE &amp; PROVIDERS</text>
 
-  <path d="M787 490H872" class="edge" stroke-dasharray="5 5"/>
-  <text x="797" y="469" font-size="11" fill="#b4c2cd">opt-in HTTPS</text>
-  <rect x="872" y="420" width="280" height="128" rx="12" fill="#142030" stroke="#587284" stroke-dasharray="5 5"/>
-  <text x="897" y="458" class="label">Model providers</text>
-  <text x="897" y="487" class="body">Generation + Qwen embeddings</text>
-  <text x="897" y="519" font-size="13" fill="#9ccfe9">Disabled by default · no automatic retry</text>
+  <!-- 01: Clients & Agents -->
+  <rect x="48" y="180" width="304" height="128" rx="12" fill="#142033" stroke="#31455c"/>
+  <text x="70" y="212" class="label">SDKs &amp; AI Frameworks</text>
+  <text x="70" y="237" class="body">TypeScript / JS &amp; Python (sync + async)</text>
+  <text x="70" y="258" class="body">Vercel AI SDK 7 middleware &amp; tools</text>
+  <text x="70" y="284" class="mono">product/sdk · sdk-python · integrations</text>
 
-  <path d="M48 592H1152" stroke="#2b394b"/>
-  <rect x="48" y="620" width="295" height="94" rx="12" fill="#101a2b" stroke="#34475b"/>
-  <text x="73" y="655" font-size="19" font-weight="600">Website &amp; documentation</text>
-  <text x="73" y="687" class="mono">homepage/ · independent static build</text>
-  <text x="384" y="646" class="tag lime">INDEPENDENT RELEASES</text>
-  <text x="384" y="677" class="body">A code push does not publish the website, enable a model or migrate data.</text>
-  <text x="384" y="705" class="body">Solid paths: core flow. Dashed paths: explicitly enabled model integration.</text>
+  <rect x="48" y="326" width="304" height="128" rx="12" fill="#142033" stroke="#31455c"/>
+  <text x="70" y="358" class="label">MCP &amp; Code Agents</text>
+  <text x="70" y="383" class="body">Codex &amp; Claude Code native MCP setup</text>
+  <text x="70" y="404" class="body">Read-only keys + PKCE OAuth writes</text>
+  <text x="70" y="430" class="mono">/v1/mcp · integrations/code-agents</text>
+
+  <rect x="48" y="472" width="304" height="114" rx="12" fill="#142033" stroke="#31455c"/>
+  <text x="70" y="504" class="label">Management Console</text>
+  <text x="70" y="529" class="body">Inspect memories, sources, Wiki &amp; keys</text>
+  <text x="70" y="556" class="mono">product/src · Pages Service Binding</text>
+
+  <path d="M352 244 H386 V300 H418" class="edge"/>
+  <path d="M352 390 H418" class="edge"/>
+  <path d="M352 529 H386 V468 H418" class="edge"/>
+  <text x="360" y="378" font-size="11" fill="#9fb0c3">HTTPS</text>
+
+  <!-- 02: Memory Service -->
+  <rect x="418" y="180" width="372" height="406" rx="14" fill="url(#core)" stroke="#95c93d88" stroke-width="1.3"/>
+  <text x="444" y="214" class="tag lime">CLOUDFLARE WORKER</text>
+  <text x="444" y="246" font-size="24" font-weight="600">Access, Rules &amp; Knowledge</text>
+  <text x="444" y="270" class="mono">product/worker</text>
+  <path d="M444 288 H764" stroke="#3e5952"/>
+
+  <text x="444" y="316" class="body">&#x2022; Server-enforced user_id scope, roles &amp; rate limits</text>
+  <text x="444" y="344" class="body">&#x2022; Idempotent writes, expected_version &amp; history</text>
+  <text x="444" y="372" class="body">&#x2022; Bilingual FTS5 search, filters &amp; bounded context</text>
+  <text x="444" y="400" class="body">&#x2022; Conversations &amp; incremental source-linked Wiki</text>
+  <text x="444" y="428" class="body">&#x2022; Selective stale-page exclusion &amp; conflict review</text>
+
+  <rect x="442" y="454" width="324" height="108" rx="10" fill="#0d1a26" stroke="#537085" stroke-dasharray="5 5"/>
+  <text x="460" y="480" font-size="13.5" font-weight="600">Opt-in intelligent orchestration</text>
+  <text x="460" y="503" class="sub">Fact-slot extraction &amp; ambiguity review</text>
+  <text x="460" y="523" class="sub">Semantic / RRF hybrid search &amp; 30-min media jobs</text>
+  <text x="460" y="545" font-size="11.5" fill="#c6ff2e">Runs outside SQLite transactions · rechecks state</text>
+
+  <!-- 03: Storage & Providers -->
+  <path d="M790 296 H856" class="edgeCore"/>
+  <text x="798" y="284" font-size="11" fill="#c6ff2e">atomic SQL</text>
+
+  <rect x="856" y="180" width="296" height="224" rx="12" fill="#142033" stroke="#3a536b"/>
+  <text x="880" y="214" class="label">SQLite Durable Object</text>
+  <text x="880" y="238" class="sub">Single-tenant / project state · built-in FTS5</text>
+  <path d="M880 254 H1128" stroke="#283a4e"/>
+  <text x="880" y="280" class="mono">memories · sources · history</text>
+  <text x="880" y="304" class="mono">conversations · evidence_fts</text>
+  <text x="880" y="328" class="mono">wiki_pages · source_deps · graph</text>
+  <text x="880" y="352" class="mono">keys · oauth_grants · audit_log</text>
+  <text x="880" y="376" class="mono">ingestions · media_uploads · vecs</text>
+
+  <path d="M790 508 H856" class="edge" stroke-dasharray="5 5"/>
+  <text x="797" y="495" font-size="11" fill="#9fb0c3">opt-in HTTPS</text>
+
+  <rect x="856" y="432" width="296" height="154" rx="12" fill="#111c2b" stroke="#537085" stroke-dasharray="5 5"/>
+  <text x="880" y="466" class="label">Model Providers</text>
+  <text x="880" y="492" class="body">OpenAI / Qwen text generation</text>
+  <text x="880" y="514" class="body">Qwen embeddings &amp; Omni media</text>
+  <text x="880" y="544" font-size="12.5" fill="#9ccfe9">Disabled by default · zero implicit retries</text>
+  <text x="880" y="565" class="sub">Temporary R2 byte-range media staging</text>
+
+  <!-- Footer -->
+  <path d="M48 622 H1152" stroke="#243447"/>
+  <rect x="48" y="646" width="304" height="96" rx="12" fill="#101929" stroke="#2f4257"/>
+  <text x="70" y="678" font-size="17" font-weight="600">Website &amp; OpenAPI Artifacts</text>
+  <text x="70" y="703" class="mono">homepage/ · product/openapi/</text>
+  <text x="70" y="724" class="sub">Static build · OpenAPI 3.1 schema</text>
+
+  <text x="386" y="668" class="tag lime">OPERATIONAL GUARANTEES</text>
+  <text x="386" y="696" class="body">Solid paths run 100% locally or on Cloudflare Workers + SQLite with no external model keys.</text>
+  <text x="386" y="720" class="body">Dashed paths activate only when operator environment flags and provider credentials are supplied.</text>
 </svg>

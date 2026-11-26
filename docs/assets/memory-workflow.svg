@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="360" viewBox="0 0 1200 360" role="img" aria-labelledby="wf-title wf-desc">
+  <title id="wf-title">SixteenMemory source-linked memory lifecycle</title>
+  <desc id="wf-desc">Four stages: 1. Capture with verbatim source evidence and request idempotency; 2. Enforce user scope and optimistic version history; 3. Retrieve bounded context via SDKs, Vercel AI middleware, or MCP; 4. Maintain incremental source-linked Wiki pages where source changes invalidate only dependent pages and preserve conflicts for human review.</desc>
+  <defs>
+    <linearGradient id="wf-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0d1626"/>
+      <stop offset="1" stop-color="#0a111e"/>
+    </linearGradient>
+    <marker id="wf-arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+      <path d="M1 1 L7 4 L1 7" fill="none" stroke="#c6ff2e" stroke-width="1.5"/>
+    </marker>
+    <style>
+      text { font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; fill: #f4f6fa; }
+      .step { font-size: 11px; font-weight: 700; letter-spacing: 1.6px; fill: #c6ff2e; }
+      .head { font-size: 17px; font-weight: 600; fill: #f4f6fa; }
+      .copy { font-size: 13px; fill: #b2c0d0; }
+      .code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11.5px; fill: #9ccfe9; }
+      .conn { stroke: #6f8f46; stroke-width: 1.6; fill: none; marker-end: url(#wf-arrow); }
+    </style>
+  </defs>
+
+  <rect width="1200" height="360" rx="18" fill="url(#wf-bg)"/>
+  <rect x="1" y="1" width="1198" height="358" rx="17" fill="none" stroke="#243447"/>
+
+  <text x="44" y="44" class="step">HOW SOURCE-LINKED MEMORY CONTINUES</text>
+  <text x="44" y="74" font-size="22" font-weight="600">Every claim keeps its provenance, version, and invalidation boundary.</text>
+
+  <!-- Card 1 -->
+  <rect x="44" y="106" width="252" height="214" rx="12" fill="#142134" stroke="#31465d"/>
+  <text x="64" y="136" class="step">01 / WRITE WITH EVIDENCE</text>
+  <text x="64" y="164" class="head">Explicit or reviewed</text>
+  <text x="64" y="190" class="copy">Store facts, conversations, or</text>
+  <text x="64" y="210" class="copy">reviewed media with verbatim</text>
+  <text x="64" y="230" class="copy">user source text.</text>
+  <rect x="64" y="256" width="212" height="44" rx="8" fill="#0d1726" stroke="#273a4f"/>
+  <text x="76" y="275" class="code">request_id + source.ref</text>
+  <text x="76" y="292" class="code">assistant != proof</text>
+
+  <path d="M296 213 H326" class="conn"/>
+
+  <!-- Card 2 -->
+  <rect x="330" y="106" width="252" height="214" rx="12" fill="#142134" stroke="#31465d"/>
+  <text x="350" y="136" class="step">02 / VERSION &amp; SCOPE</text>
+  <text x="350" y="164" class="head">Guarded mutations</text>
+  <text x="350" y="190" class="copy">Server enforces user_id keys.</text>
+  <text x="350" y="210" class="copy">Updates check expected_version</text>
+  <text x="350" y="230" class="copy">and retain full audit history.</text>
+  <rect x="350" y="256" width="212" height="44" rx="8" fill="#0d1726" stroke="#273a4f"/>
+  <text x="362" y="275" class="code">v1 -&gt; v2 · revoke · delete</text>
+  <text x="362" y="292" class="code">409 on version conflict</text>
+
+  <path d="M582 213 H612" class="conn"/>
+
+  <!-- Card 3 -->
+  <rect x="616" y="106" width="252" height="214" rx="12" fill="#142134" stroke="#31465d"/>
+  <text x="636" y="136" class="step">03 / BOUNDED RECALL</text>
+  <text x="636" y="164" class="head">SDKs, AI SDK &amp; MCP</text>
+  <text x="636" y="190" class="copy">Search active memories &amp;</text>
+  <text x="636" y="210" class="copy">sources; pack whole records</text>
+  <text x="636" y="230" class="copy">into a strict context budget.</text>
+  <rect x="636" y="256" width="212" height="44" rx="8" fill="#0d1726" stroke="#273a4f"/>
+  <text x="648" y="275" class="code">FTS5 / RRF · /v1/mcp</text>
+  <text x="648" y="292" class="code">no truncated citations</text>
+
+  <path d="M868 213 H898" class="conn"/>
+
+  <!-- Card 4 -->
+  <rect x="902" y="106" width="254" height="214" rx="12" fill="#162836" stroke="#537865"/>
+  <text x="922" y="136" class="step">04 / INCREMENTAL WIKI</text>
+  <text x="922" y="164" class="head">Selective invalidation</text>
+  <text x="922" y="190" class="copy">Source updates mark only</text>
+  <text x="922" y="210" class="copy">dependent Wiki pages stale;</text>
+  <text x="922" y="230" class="copy">conflicts stay cited for review.</text>
+  <rect x="922" y="256" width="214" height="44" rx="8" fill="#0e1b26" stroke="#355349"/>
+  <text x="934" y="275" class="code">target_slugs rebuild</text>
+  <text x="934" y="292" class="code">zero stale-claim reads</text>
+</svg>

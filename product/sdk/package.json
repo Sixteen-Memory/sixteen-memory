@@ -2,8 +2,27 @@
   "name": "@sixteen-memory/sdk",
   "version": "0.3.0",
   "description": "Typed scoped client for SixteenMemory v0.3 with bounded transport and pagination",
-  "private": true,
   "license": "Apache-2.0",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Sixteen-Memory/sixteen-memory.git",
+    "directory": "product/sdk"
+  },
+  "homepage": "https://www.sixteenmemory.com",
+  "bugs": {
+    "url": "https://github.com/Sixteen-Memory/sixteen-memory/issues"
+  },
+  "keywords": [
+    "sixteen-memory",
+    "agent-memory",
+    "ai-agents",
+    "context-engineering",
+    "mcp",
+    "typescript"
+  ],
   "type": "module",
   "engines": {
     "node": ">=20.3"

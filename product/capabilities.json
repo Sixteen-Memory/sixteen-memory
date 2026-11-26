@@ -24,7 +24,7 @@
       "as_of": "2026-11-12",
       "title": "Code Agent connections and MCP capability discovery",
       "status": "live",
-      "public_claim": "API-key read-only capability catalog deployed November 12. Codex/Claude Code helpers remain private repository source. Production metadata/helper checks passed; complete production smoke remains incomplete due to diagnostic errors and connection timeouts. Existing OAuth and approved-write flows are unchanged. No A2A endpoint, automatic capture or package publication.",
+      "public_claim": "API-key read-only capability catalog deployed November 12. Codex/Claude Code helpers live in the open-source repository. Production metadata/helper checks passed; complete production smoke remains incomplete due to diagnostic errors and connection timeouts. Existing OAuth and approved-write flows are unchanged. No A2A endpoint or automatic capture.",
       "evidence": [
         "product/integrations/code-agents/README.md",
         "product/worker/mcp-tools.ts",
@@ -230,7 +230,7 @@
       "id": "sdk-release",
       "title": "npm registry and Python SDK releases",
       "status": "planned",
-      "public_claim": "Planned for registries. A typed TypeScript/JavaScript download, private-source development client, and dependency-free Python client source are available; no npm or PyPI publication.",
+      "public_claim": "Available as Apache-2.0 source and versioned website downloads across TypeScript/JavaScript, Vercel AI SDK 7, and Python (sync + async).",
       "evidence": [
         "docs/ROADMAP.md"
       ],

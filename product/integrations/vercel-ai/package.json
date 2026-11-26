@@ -2,8 +2,27 @@
   "name": "@sixteen-memory/vercel-ai",
   "version": "0.3.0",
   "description": "Scoped memory tools and retrieval middleware for the Vercel AI SDK.",
-  "private": true,
   "license": "Apache-2.0",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Sixteen-Memory/sixteen-memory.git",
+    "directory": "product/integrations/vercel-ai"
+  },
+  "homepage": "https://www.sixteenmemory.com",
+  "bugs": {
+    "url": "https://github.com/Sixteen-Memory/sixteen-memory/issues"
+  },
+  "keywords": [
+    "sixteen-memory",
+    "vercel-ai-sdk",
+    "ai-sdk",
+    "agent-memory",
+    "ai-agents",
+    "context-engineering"
+  ],
   "type": "module",
   "sideEffects": false,
   "engines": {
