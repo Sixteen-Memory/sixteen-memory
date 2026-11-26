@@ -83,7 +83,7 @@ Deactivation and deletion differ: deactivation removes a record from retrieval; 
 
 Production traffic reaches the Worker through a Pages Service Binding. The local console proxies to a local Worker. Each deployment currently has one fixed project; user-scoped keys are not an enterprise multi-organization identity system.
 
-The GitHub repository remains private. The website and product build separately and require separate publication approval. There is no automatic deployment workflow.
+The GitHub repository is open-source under the [Apache License 2.0](../LICENSE). The website and product build separately and require separate publication approval. There is no automatic deployment workflow.
 
 ## Learn from Mem0 without copying it
 
