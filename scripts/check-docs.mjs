@@ -14,14 +14,19 @@ const parsed = new Map();
 let linksChecked = 0;
 let languageFilesChecked = 0;
 
-// Repository prose is English. Product localization and multilingual fixtures
-// are deliberately outside this documentation-only language guard.
+// Repository prose is English, except explicit localized README translations
+// (e.g. README.zh-CN.md) and the language-switcher link in README.md.
 function checkDocumentationLanguage(path, text) {
+  const rel = relative(root, path);
+  if (rel === "README.zh-CN.md") return;
   languageFilesChecked++;
   const lines = text.split(/\r?\n/);
   for (let index = 0; index < lines.length; index++) {
-    if (/\p{Script=Han}/u.test(lines[index])) {
-      problems.push(`${relative(root, path)}:${index + 1}: repository documentation must use English`);
+    const line = rel === "README.md"
+      ? lines[index].replace(/<a\s+href="README\.zh-CN\.md">[^<]*<\/a>/g, "")
+      : lines[index];
+    if (/\p{Script=Han}/u.test(line)) {
+      problems.push(`${rel}:${index + 1}: repository documentation must use English`);
     }
   }
 }
@@ -54,7 +59,7 @@ async function parse(path) {
   const references = new Map([...prose.matchAll(/^\[([^\]]+)\]:\s*(\S+)/gm)].map(match => [match[1].toLowerCase(), match[2]]));
   const links = [
     ...[...prose.matchAll(/!?\[[^\]]*\]\(\s*(<[^>]+>|[^\s)]+)(?:\s+["'][^"']*["'])?\s*\)/g)].map(match => match[1].replace(/^<|>$/g, "")),
-    ...[...prose.matchAll(/<(?:a|img)\b[^>]*\b(?:href|src)=["']([^"']+)["']/g)].map(match => match[1]),
+    ...[...prose.matchAll(/<(?:a|img|source)\b[^>]*\b(?:href|src|srcset)=["']([^"']+)["']/g)].map(match => match[1]),
   ];
   for (const match of prose.matchAll(/!?\[([^\]]+)\]\[([^\]]*)\]/g)) {
     const name = (match[2] || match[1]).toLowerCase();
