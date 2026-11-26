@@ -20,6 +20,7 @@
 </p>
 
 <p align="center">
+  <a href="https://github.com/Sixteen-Memory/sixteen-memory/actions/workflows/ci.yml"><img src="https://github.com/Sixteen-Memory/sixteen-memory/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <a href="https://github.com/Sixteen-Memory/sixteen-memory/releases/tag/v0.3.0"><img src="https://img.shields.io/badge/release-v0.3.0-1060f0?style=flat-square" alt="Release v0.3.0"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache--2.0-0f172a?style=flat-square" alt="Apache-2.0 License"></a>
   <a href="product/worker/"><img src="https://img.shields.io/badge/runtime-Workers%20%2B%20SQLite%20DO-334155?style=flat-square" alt="Cloudflare Workers and SQLite Durable Objects"></a>
@@ -64,17 +65,17 @@ Requires **Node.js 24+** and **npm**:
 ```sh
 git clone https://github.com/Sixteen-Memory/sixteen-memory.git
 cd sixteen-memory
-npm run setup
-npm run prepare:product && npm run build:product && npm run dev:product
+npm run setup:product
+npm run quickstart
 ```
 
 - **API**: `http://127.0.0.1:8790` (`GET /health`)
-- **Console**: `http://127.0.0.1:4191` (local admin key generated in Git-ignored `product/.dev.vars`)
+- **Bilingual Console (EN / zh-CN)**: `http://127.0.0.1:4191` (local `ADMIN_KEY` generated in Git-ignored `product/.dev.vars`; see [`product/.dev.vars.example`](product/.dev.vars.example) for optional OpenAI / Qwen config)
 
-Want to see the full authenticated HTTP + streaming chat loop against real local SQLite storage with zero external credentials?
+Want to watch source-linked memories, selective Wiki stale invalidation, conflict preservation, and real MCP reads run end-to-end in 5 seconds with zero API keys?
 
 ```sh
-npm run example:integration
+npm run build:product && npm run demo
 ```
 
 ### 2. Connect with TypeScript, Python, MCP, or Vercel AI SDK

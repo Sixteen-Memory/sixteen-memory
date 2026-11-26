@@ -5,7 +5,10 @@
   "license": "Apache-2.0",
   "scripts": {
     "setup": "npm ci --prefix product && npm ci --prefix product/openapi && npm ci --prefix product/integrations/vercel-ai && npm ci --prefix homepage",
+    "setup:product": "npm ci --prefix product",
     "prepare:product": "npm --prefix product run prepare:local",
+    "quickstart": "node product/scripts/quickstart.mjs",
+    "demo": "node product/examples/incremental-wiki-demo.mjs",
     "build:website": "npm --prefix homepage run build",
     "build:product": "npm --prefix product run build",
     "check:website": "npm --prefix homepage run deploy:check",

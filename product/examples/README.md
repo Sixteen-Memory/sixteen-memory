@@ -6,6 +6,7 @@
 
 | Example | Flow | Model calls |
 | :--- | :--- | :--- |
+| [incremental-wiki-demo.mjs](incremental-wiki-demo.mjs) | Self-contained 5-second demo: source-linked memories → selective Wiki invalidation → conflict review → live MCP read (`npm run demo`) | Not required (deterministic local fixture) |
 | [customer-continuity.mjs](customer-continuity.mjs) | Write → search → update → history → delete the synthetic record | Not required |
 | [intelligent-continuity.mjs](intelligent-continuity.mjs) | Conversation ingestion, candidate maintenance, and intelligent retrieval | Configuration and authorization required |
 | [media-to-memory.mjs](media-to-memory.mjs) | Local WAV/MP3/MP4 clip → reviewable, source-linked memory candidates | Media provider configuration, consent and authorization required |
