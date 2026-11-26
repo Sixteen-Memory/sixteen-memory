@@ -1,0 +1,58 @@
+# Copy to product/.dev.vars (Git-ignored) or run `npm run prepare:product`
+# to generate a random local ADMIN_KEY automatically.
+# Never commit real API keys or tokens.
+
+# Required: administrator credential for console login and key management
+ADMIN_KEY=replace-with-64-hex-chars
+
+# ---------------------------------------------------------------------------
+# Default mode: MODEL-FREE (explicit memories, FTS5 search, conversations, MCP)
+# Leave all flags below disabled to run with zero external provider calls.
+# ---------------------------------------------------------------------------
+EXTRACTION_ENABLED=false
+EMBEDDINGS_ENABLED=false
+MEDIA_ENABLED=false
+
+# ---------------------------------------------------------------------------
+# Optional: OpenAI (chat extraction / Wiki rebuilds + OpenAI-compatible embeddings)
+# ---------------------------------------------------------------------------
+# EXTRACTION_ENABLED=true
+# EXTRACTION_BASE_URL=https://api.openai.com/v1
+# EXTRACTION_MODEL=gpt-4.1-mini
+# EXTRACTION_API_KEY=replace-with-provider-key
+# EXTRACTION_TOKEN_PARAMETER=max_completion_tokens
+#
+# EMBEDDINGS_ENABLED=true
+# EMBEDDING_PROVIDER=openai-compatible
+# EMBEDDING_API_STYLE=openai-compatible
+# EMBEDDING_BASE_URL=https://api.openai.com/v1
+# EMBEDDING_MODEL=text-embedding-3-small
+# EMBEDDING_DIMENSIONS=1536
+# EMBEDDING_API_KEY=replace-with-provider-key
+# EMBEDDING_REVISION=1
+
+# ---------------------------------------------------------------------------
+# Optional: Alibaba Qwen (Bailian / DashScope)
+# Use the HTTPS endpoint matching your account region.
+# ---------------------------------------------------------------------------
+# EXTRACTION_ENABLED=true
+# EXTRACTION_BASE_URL=https://dashscope.aliyuncs.com/compatible-mode/v1
+# EXTRACTION_MODEL=qwen-flash
+# EXTRACTION_API_KEY=replace-with-provider-key
+# EXTRACTION_THINKING=disabled
+#
+# EMBEDDINGS_ENABLED=true
+# EMBEDDING_PROVIDER=qwen
+# EMBEDDING_API_STYLE=openai-compatible
+# EMBEDDING_BASE_URL=https://dashscope.aliyuncs.com/compatible-mode/v1
+# EMBEDDING_MODEL=text-embedding-v4
+# EMBEDDING_DIMENSIONS=1024
+# EMBEDDING_API_KEY=replace-with-provider-key
+# EMBEDDING_REVISION=1
+
+# ---------------------------------------------------------------------------
+# Optional: Grounded /v1/answer endpoint
+# ---------------------------------------------------------------------------
+# MODEL_BASE_URL=https://api.openai.com/v1
+# MODEL_NAME=gpt-4.1-mini
+# MODEL_API_KEY=replace-with-provider-key
